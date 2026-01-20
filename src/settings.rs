@@ -76,8 +76,10 @@ impl Settings {
     /// Retrieves the path to the user settings file.
     fn user_settings_path() -> Result<PathBuf, SettingsError> {
         let config_dir = config_dir().ok_or(SettingsError::ConfigDirNotFound)?;
-        Ok(config_dir.join("SealSlicer")            .join("settings")
-        .join("user_settings.toml"))
+        Ok(config_dir
+            .join("SealSlicer")
+            .join("settings")
+            .join("user_settings.toml"))
     }
 
     /// Retrieves the path to the default settings file.
@@ -170,11 +172,11 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
     use std::env;
     use std::fs;
     use std::path::PathBuf;
-    use tempfile::tempdir;
-    use serial_test::serial; // To run tests serially when modifying environment variables
+    use tempfile::tempdir; // To run tests serially when modifying environment variables
 
     /// Helper function to set up a temporary configuration directory
     fn setup_temp_config_dir() -> (tempfile::TempDir, PathBuf) {
@@ -208,7 +210,10 @@ mod tests {
         let original_xdg_config_home = env::var("XDG_CONFIG_HOME").ok();
         override_config_dir(&config_dir);
 
-        let expected_path = config_dir.join("SealSlicer").join("settings").join("user_settings.toml");
+        let expected_path = config_dir
+            .join("SealSlicer")
+            .join("settings")
+            .join("user_settings.toml");
         let actual_path = Settings::user_settings_path().expect("Failed to get user settings path");
 
         assert_eq!(actual_path, expected_path);
@@ -613,7 +618,10 @@ mod tests {
         override_config_dir(&config_dir);
 
         // Define a non-existent directory path within the config directory
-        let custom_settings_path = config_dir.join("SealSlicer").join("settings").join("custom_settings.toml");
+        let custom_settings_path = config_dir
+            .join("SealSlicer")
+            .join("settings")
+            .join("custom_settings.toml");
 
         // Create a Settings instance
         let settings = Settings::default();
@@ -850,7 +858,8 @@ visualize_normals = true
 [network]
 timeout = 100
 use_https = false
-"#.trim();
+"#
+        .trim();
 
         assert_eq!(serialized.trim(), expected);
     }
@@ -1143,7 +1152,6 @@ use_https = false
         assert_eq!(final_settings.network.timeout, 100);
     }
 
-    
     /// Test Case 10a: Full Load and Save Cycle (Integration Test)
     #[test]
     #[serial]
@@ -1157,16 +1165,16 @@ use_https = false
         let mut settings = Settings::initialize_settings().unwrap();
 
         // Modify a setting
-        
-            settings.general.username = "CycleUser".to_string();
-            settings.network.timeout = 90;
-        
+
+        settings.general.username = "CycleUser".to_string();
+        settings.network.timeout = 90;
 
         // Save settings
         settings.save_user_settings().unwrap();
 
         // Reload settings
-        let reloaded_settings = Settings::load_from_file(&Settings::user_settings_path().unwrap()).unwrap();
+        let reloaded_settings =
+            Settings::load_from_file(&Settings::user_settings_path().unwrap()).unwrap();
 
         // Assert that changes persist
         assert_eq!(reloaded_settings.general.username, "CycleUser");

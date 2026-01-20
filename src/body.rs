@@ -5,7 +5,6 @@
 use std::ffi::OsStr;
 use std::path::Path;
 
-use crate::stl_processor::StlProcessorTrait;
 use crate::{material::Material, mesh::Mesh};
 use nalgebra::{Matrix4, Quaternion, UnitQuaternion, Vector3};
 use slint::SharedString;
@@ -117,23 +116,6 @@ impl Body {
         self.uuid.to_string() == *other.to_string()
     }
 
-    pub fn new_from_stl<P: AsRef<OsStr>, Processor: StlProcessorTrait>(
-        filename: P,
-        processor: &Processor,
-    ) -> Self {
-        let mut body = Body::default();
-        let path = Path::new(filename.as_ref());
-        body.name = path
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .into_owned();
-        body.mesh.import_stl(filename, processor);
-        body.aabb = AABB::from_vertices(&body.mesh.vertices);
-        body.translate(Vector3::new(0.0, 0.0, body.aabb.min.z * -1.0));
-        body
-    }
-
     pub fn get_model_matrix(&self) -> Matrix4<f32> {
         let mut model = Matrix4::identity();
         model *= Matrix4::new_translation(&self.position);
@@ -234,24 +216,11 @@ impl Body {
 mod tests {
     use super::*;
     use crate::mesh::Vertex;
-    use crate::stl_processor::StlProcessorTrait;
     use approx::relative_eq;
     use nalgebra::{Matrix4, UnitQuaternion, Vector3};
     use stl_io::Triangle;
 
     const EPSILON: f32 = 1e-4;
-
-    // Mock implementation of StlProcessorTrait without cloning
-    struct MockStlProcessor;
-
-    impl StlProcessorTrait for MockStlProcessor {
-        fn read_stl(&self, _filename: &OsStr) -> Result<Vec<Triangle>, std::io::Error> {
-            Ok(vec![
-                create_triangle([0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]),
-                create_triangle([1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0]),
-            ])
-        }
-    }
 
     // Helper function to create a triangle
     fn create_triangle(v0: [f32; 3], v1: [f32; 3], v2: [f32; 3]) -> Triangle {
@@ -291,78 +260,6 @@ mod tests {
     }
 
     #[test]
-    fn test_new_from_stl() {
-        // Arrange: Create a mock processor
-        let mock_processor = MockStlProcessor;
-
-        // Act: Create Body from STL using mock processor
-        let body = Body::new_from_stl("dummy_filename.stl", &mock_processor);
-
-        // Additionally, check that vertices and indices are generated correctly
-        let expected_vertices = vec![
-            Vertex {
-                position: [0.0, 0.0, 0.0],
-                normal: [0.0, 0.0, 1.0],
-                barycentric: [1.0, 0.0, 0.0],
-            },
-            Vertex {
-                position: [1.0, 0.0, 0.0],
-                normal: [0.0, 0.0, 1.0],
-                barycentric: [0.0, 1.0, 0.0],
-            },
-            Vertex {
-                position: [0.0, 1.0, 0.0],
-                normal: [0.0, 0.0, 1.0],
-                barycentric: [0.0, 0.0, 1.0],
-            },
-            Vertex {
-                position: [1.0, 0.0, 0.0],
-                normal: [0.0, 0.0, 1.0],
-                barycentric: [1.0, 0.0, 0.0],
-            },
-            Vertex {
-                position: [1.0, 1.0, 0.0],
-                normal: [0.0, 0.0, 1.0],
-                barycentric: [0.0, 1.0, 0.0],
-            },
-        ];
-
-        let expected_indices = vec![0, 1, 2, 3, 4, 2];
-        println!("{:?}", &body.mesh.vertices);
-        println!();
-        println!("{:?}", &expected_vertices);
-        assert_eq!(
-            body.mesh.vertices.len(),
-            expected_vertices.len(),
-            "Mesh should have the 5 after import due to barycentric, instead of 4 without the barycentric"
-        );
-
-        for (imported, expected) in body.mesh.vertices.iter().zip(expected_vertices.iter()) {
-            let imported_pos = Vector3::from(imported.position);
-            let expected_pos = Vector3::from(expected.position);
-            assert!(
-                relative_eq!(imported_pos, expected_pos, epsilon = EPSILON),
-                "Vertex position mismatch. Expected {:?}, got {:?}",
-                expected.position,
-                imported.position
-            );
-
-            let imported_norm = Vector3::from(imported.normal);
-            let expected_norm = Vector3::from(expected.normal);
-            assert!(
-                relative_eq!(imported_norm, expected_norm, epsilon = EPSILON),
-                "Vertex normal mismatch. Expected {:?}, got {:?}",
-                expected.normal,
-                imported.normal
-            );
-        }
-
-        assert_eq!(
-            body.mesh.indices, expected_indices,
-            "Mesh indices do not match expected after import"
-        );
-    }
-
     #[test]
     fn test_get_model_matrix() {
         // Arrange: Create a Body with known position, rotation, and scale

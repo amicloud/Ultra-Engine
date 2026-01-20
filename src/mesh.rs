@@ -1,6 +1,5 @@
 // Distributed under the GNU Affero General Public License v3.0 or later.
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
-use crate::stl_processor::StlProcessorTrait;
 use approx::relative_eq;
 use bytemuck::{Pod, Zeroable};
 use nalgebra::{Quaternion, UnitQuaternion, Vector3};
@@ -90,7 +89,7 @@ pub struct SimpleVertex {
 impl From<Vector3<f32>> for SimpleVertex {
     fn from(value: Vector3<f32>) -> Self {
         Self {
-            position: [value[0],value[1],value[2]]
+            position: [value[0], value[1], value[2]],
         }
     }
 }
@@ -117,11 +116,11 @@ impl SimpleVertex {
     }
 
     pub fn apply_rotation(&self, rotation: UnitQuaternion<f32>) -> SimpleVertex {
-                // Apply the rotation to the vector using the quaternion
+        // Apply the rotation to the vector using the quaternion
         // The `transform_vector` method applies the rotation without scaling
         let r = rotation.to_rotation_matrix() * self.get_position_vector3();
-        SimpleVertex{
-            position: [r.x,r.y,r.z]
+        SimpleVertex {
+            position: [r.x, r.y, r.z],
         }
     }
 
@@ -252,19 +251,6 @@ impl Mesh {
                 }
             })
             .collect()
-    }
-
-    pub fn import_stl<P: AsRef<OsStr>, Processor: StlProcessorTrait>(
-        &mut self,
-        filename: P,
-        processor: &Processor,
-    ) {
-        let imported_triangles: Vec<Triangle> = processor
-            .read_stl(filename.as_ref())
-            .expect("Error processing STL file");
-        self.generate_vertices_and_indices(&imported_triangles);
-        self.generate_simple_vertices_and_indices(&imported_triangles);
-        self.get_triangles_for_slicing();
     }
 }
 

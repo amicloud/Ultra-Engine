@@ -12,7 +12,6 @@ use crate::render_texture::RenderTexture;
 use crate::ScopedVAOBinding;
 use crate::ScopedVBOBinding;
 use crate::SharedBodies;
-use crate::SharedPrinter;
 use glow::Context as GlowContext;
 use glow::HasContext;
 use nalgebra::Vector3;
@@ -37,17 +36,10 @@ pub struct MeshRenderer {
     next_texture: RenderTexture,
     bodies: SharedBodies,
     camera: Camera,
-    printer: SharedPrinter,
 }
 
 impl MeshRenderer {
-    pub fn new(
-        gl: Rc<GlowContext>,
-        width: u32,
-        height: u32,
-        bodies: &SharedBodies,
-        printer: &SharedPrinter,
-    ) -> Self {
+    pub fn new(gl: Rc<GlowContext>, width: u32, height: u32, bodies: &SharedBodies) -> Self {
         unsafe {
             // Create shader program
             let shader_program = gl.create_program().expect("Cannot create program");
@@ -244,12 +236,9 @@ impl MeshRenderer {
                 roughness_location,
                 base_reflectance_location,
                 visualize_normals_location,
-                printer: printer.clone(),
                 visualize_edges_location,
                 edge_thickness_location,
             };
-            let p = printer.lock().unwrap();
-            me.add_printer_plate_plane(p.physical_x as f32, p.physical_y as f32);
             me
         }
     }
