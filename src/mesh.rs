@@ -2,13 +2,12 @@
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 use approx::relative_eq;
 use bytemuck::{Pod, Zeroable};
-use nalgebra::{UnitQuaternion, Vector3};
+use nalgebra::Vector3;
 use obj::{load_obj, Obj};
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::BufReader;
-use std::{collections::HashMap, hash::Hash, hash::Hasher};
-use stl_io::Triangle;
+use std::{hash::Hash, hash::Hasher};
 
 #[repr(C)]
 #[derive(Default, Clone, Pod, Copy, Debug)]

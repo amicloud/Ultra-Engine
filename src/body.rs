@@ -223,17 +223,8 @@ mod tests {
     use crate::mesh::Vertex;
     use approx::relative_eq;
     use nalgebra::{Matrix4, UnitQuaternion, Vector3};
-    use stl_io::Triangle;
 
     const EPSILON: f32 = 1e-4;
-
-    // Helper function to create a triangle
-    fn create_triangle(v0: [f32; 3], v1: [f32; 3], v2: [f32; 3]) -> Triangle {
-        Triangle {
-            normal: [0.0, 0.0, 1.0],
-            vertices: [v0, v1, v2],
-        }
-    }
 
     #[test]
     fn test_default() {
@@ -264,7 +255,6 @@ mod tests {
         );
     }
 
-    #[test]
     #[test]
     fn test_get_model_matrix() {
         // Arrange: Create a Body with known position, rotation, and scale
