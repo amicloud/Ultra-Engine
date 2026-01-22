@@ -2,10 +2,16 @@
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 
 mod body;
+mod action;
+mod action_manager;
+mod material;
+mod settings;
 mod camera;
 mod mesh;
 mod mesh_renderer;
 mod render_texture;
+mod entity_manager;
+mod entity;
 use action_manager::ActionManager;
 use body::Body;
 use glow::Context as GlowContext;
@@ -21,10 +27,6 @@ use std::num::NonZeroU32;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 slint::include_modules!();
-mod action;
-mod action_manager;
-mod material;
-mod settings;
 use log::error;
 #[derive(Default)]
 struct MouseState {
