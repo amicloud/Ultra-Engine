@@ -3,7 +3,6 @@ use dirs_next::config_dir; // Use dirs-next for better maintenance
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::Write,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
@@ -845,21 +844,20 @@ mod tests {
 
         let serialized = toml::to_string_pretty(&settings).unwrap();
         let expected = r#"
-[general]
-username = "SerializeUser"
-theme = "blue"
-auto_save = false
+            [general]
+            username = "SerializeUser"
+            theme = "blue"
+            auto_save = false
 
-[renderer]
-render_scale = 3.0
-visualize_edges = true
-visualize_normals = true
+            [renderer]
+            render_scale = 3.0
+            visualize_edges = true
+            visualize_normals = true
 
-[network]
-timeout = 100
-use_https = false
-"#
-        .trim();
+            [network]
+            timeout = 100
+            use_https = false
+        "#.trim();
 
         assert_eq!(serialized.trim(), expected);
     }
