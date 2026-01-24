@@ -1,7 +1,7 @@
 use crate::transform_component::TransformComponent;
 use crate::velocity_component::VelocityComponent;
 use bevy_ecs::prelude::*;
-use nalgebra::{Quaternion, UnitQuaternion, Vector3};
+use nalgebra::{UnitQuaternion, Vector3};
 pub struct BasicPhysicsSystem {}
 
 impl BasicPhysicsSystem {
@@ -22,10 +22,10 @@ impl BasicPhysicsSystem {
     }
 
     fn apply_rotation(
-        rotation: &Quaternion<f32>,
+        rotation: &UnitQuaternion<f32>,
         angular_velocity: &Vector3<f32>,
         delta_time: f32,
-    ) -> Quaternion<f32> {
+    ) -> UnitQuaternion<f32> {
         let angular_velocity_magnitude = angular_velocity.norm();
         if angular_velocity_magnitude == 0.0 {
             return *rotation;
@@ -35,9 +35,8 @@ impl BasicPhysicsSystem {
         let angle = angular_velocity_magnitude * delta_time;
         let delta_rotation =
             UnitQuaternion::from_axis_angle(&nalgebra::Unit::new_normalize(axis), angle);
-        let current_rotation = UnitQuaternion::from_quaternion(*rotation);
-        let new_rotation = delta_rotation * current_rotation;
-        new_rotation.into_inner()
+        let new_rotation = delta_rotation * rotation;
+        new_rotation
     }
 
     fn apply_translation(
@@ -71,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_apply_rotation_x() {
-        let rotation = Quaternion::identity();
+        let rotation = UnitQuaternion::identity();
         let angular_velocity = Vector3::new(PI, 0.0, 0.0);
         let new_rotation =
             BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
@@ -80,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_apply_rotation_y() {
-        let rotation = Quaternion::identity();
+        let rotation = UnitQuaternion::identity();
         let angular_velocity = Vector3::new(0.0, PI, 0.0);
         let new_rotation =
             BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
@@ -89,7 +88,7 @@ mod tests {
 
     #[test]
     fn test_apply_rotation_z() {
-        let rotation = Quaternion::identity();
+        let rotation = UnitQuaternion::identity();
         let angular_velocity = Vector3::new(0.0, 0.0, PI);
         let new_rotation =
             BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);

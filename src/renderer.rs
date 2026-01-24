@@ -1,13 +1,14 @@
 use std::fs;
 use std::rc::Rc;
 slint::include_modules!();
-use crate::body::Body;
 use crate::camera::Camera;
+use crate::material::Material;
 use crate::mesh::Vertex;
+use crate::mesh_resource_manager::MeshResourceManager;
+use crate::render_instance::RenderInstance;
 use crate::render_texture::RenderTexture;
 use crate::ScopedVAOBinding;
 use crate::ScopedVBOBinding;
-use crate::SharedBodies;
 use glow::Context as GlowContext;
 use glow::HasContext;
 use nalgebra::Vector3;
@@ -30,7 +31,6 @@ pub struct Renderer {
     edge_thickness_location: glow::UniformLocation,
     displayed_texture: RenderTexture,
     next_texture: RenderTexture,
-    bodies: Vec<Body>,
     camera: Camera,
 }
 
@@ -225,7 +225,6 @@ impl Renderer {
                 ebo,
                 displayed_texture,
                 next_texture,
-                bodies: Vec::new(),
                 camera,
                 light_color_location,
                 albedo_location,
@@ -239,17 +238,14 @@ impl Renderer {
         }
     }
 
-    pub fn submit_bodies(&mut self, bodies: Vec<&Body>) {
-        self.bodies.clear();
-        self.bodies = bodies.into_iter().map(|b| b.clone()).collect();
-    }
-    
     pub fn render(
         &mut self,
         width: u32,
         height: u32,
         visualize_edges: bool,
         visualize_normals: bool,
+        meshes: &MeshResourceManager,
+        instances: &[RenderInstance],
     ) -> slint::Image {
         unsafe {
             let gl = &self.gl;
@@ -324,11 +320,13 @@ impl Renderer {
                 gl.bind_vertex_array(Some(self.vao));
                 gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.vbo));
                 gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.ebo));
-                // Body Rendering Loop
-                for body in self.bodies.iter() {
-                    println!("Rendering body: {}", body.uuid);
+                // Rendering Loop
+                for instance in instances.iter() {
+                    println!("Rendering mesh: {}", instance.mesh_id);
+                    let mesh = meshes.get_mesh(instance.mesh_id).unwrap();
                     // PBR Uniforms
-                    let material = &body.material;
+                    let material = Material::default();
+
                     gl.uniform_1_f32(Some(&self.roughness_location), material.roughness);
                     gl.uniform_3_f32(
                         Some(&self.albedo_location),
@@ -353,12 +351,11 @@ impl Renderer {
                         (material.can_visualize_edges && visualize_edges) as u32,
                     );
                     gl.uniform_1_f32(Some(&self.edge_thickness_location), 3.0);
-                    let mesh = &body.mesh;
                     // Set the model uniform
                     gl.uniform_matrix_4_f32_slice(
                         Some(&self.model_location),
                         false,
-                        body.get_model_matrix().as_slice(),
+                        instance.transform.as_slice(),
                     );
 
                     // Upload the vertex data to the GPU

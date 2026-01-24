@@ -5,13 +5,14 @@ mod action;
 mod action_manager;
 mod basic_physics_system;
 mod body;
-mod body_builder_system;
-mod body_resource_manager;
 mod camera;
 mod material;
 mod mesh;
 mod mesh_component;
 mod mesh_resource_manager;
+mod render_instance;
+mod render_queue;
+mod render_system;
 mod render_texture;
 mod renderer;
 mod settings;
@@ -19,7 +20,6 @@ mod transform_component;
 mod velocity_component;
 use action_manager::ActionManager;
 use bevy_ecs::prelude::*;
-use body::Body;
 use glow::Context as GlowContext;
 use glow::HasContext;
 use log::debug;
@@ -37,11 +37,11 @@ slint::include_modules!();
 use log::error;
 
 use crate::basic_physics_system::BasicPhysicsSystem;
-use crate::body_builder_system::BodyBuilderSystem;
-use crate::body_resource_manager::BodyResourceManager;
 use crate::mesh::Mesh;
 use crate::mesh_component::MeshComponent;
 use crate::mesh_resource_manager::MeshResourceManager;
+use crate::render_queue::RenderQueue;
+use crate::render_system::RenderSystem;
 use crate::transform_component::TransformComponent;
 use crate::velocity_component::VelocityComponent;
 #[derive(Default)]
@@ -58,7 +58,6 @@ struct MouseState {
     forward_pressed: bool,
 }
 
-type SharedBodies = Rc<RefCell<Vec<Rc<RefCell<Body>>>>>;
 type SharedMeshRenderer = Rc<RefCell<Option<Renderer>>>;
 type SharedMouseState = Rc<RefCell<MouseState>>;
 type SharedSettings = Arc<Mutex<Settings>>;
@@ -68,7 +67,6 @@ type SharedActionManager = Arc<Mutex<ActionManager>>;
 struct AppState {
     mouse_state: SharedMouseState,
     shared_mesh_renderer: SharedMeshRenderer,
-    shared_bodies: SharedBodies,
     shared_settings: SharedSettings,
     shared_action_manager: SharedActionManager,
 }
@@ -84,23 +82,22 @@ fn main() {
     world
         .borrow_mut()
         .insert_resource(MeshResourceManager::default());
-    world
-        .borrow_mut()
-        .insert_resource(BodyResourceManager::default());
-
-    let teapot_mesh_id = world
-        .borrow_mut()
-        .get_resource_mut::<MeshResourceManager>()
-        .unwrap()
-        .add_mesh(Mesh::from_obj(OsStr::new("resources/models/utah_teapot.obj")).unwrap());
+    world.borrow_mut().insert_resource(RenderQueue::default());
 
     let teapot_mesh_component = MeshComponent {
-        mesh_id: teapot_mesh_id,
+        mesh_id: world
+            .borrow_mut()
+            .get_resource_mut::<MeshResourceManager>()
+            .unwrap()
+            .add_mesh(Mesh::from_obj(OsStr::new("resources/models/utah_teapot.obj")).unwrap()),
     };
 
     let schedule = Rc::new(RefCell::new({
         let mut s = Schedule::default();
-        s.add_systems((BasicPhysicsSystem::update, BodyBuilderSystem::build_bodies));
+        s.add_systems((
+            BasicPhysicsSystem::update,
+            RenderSystem::extract_render_data,
+        ));
         s
     }));
 
@@ -132,7 +129,6 @@ fn main() {
     let state = AppState {
         mouse_state: Rc::new(RefCell::new(MouseState::default())),
         shared_mesh_renderer: Rc::new(RefCell::new(None)),
-        shared_bodies: Rc::new(RefCell::new(Vec::<Rc<RefCell<Body>>>::new())), // Initialized as empty Vec
         shared_settings: settings.clone(),
         shared_action_manager: Arc::new(Mutex::new(ActionManager::new())),
     };
@@ -142,7 +138,6 @@ fn main() {
         // Create a weak reference to the app for use inside the closure
         let app_weak_clone = app_weak.clone(); // Clone app_weak for use inside the closure
         let mesh_renderer_clone = Rc::clone(&state.shared_mesh_renderer);
-        let bodies_clone = Rc::clone(&state.shared_bodies);
         let shared_settings = Arc::clone(&state.shared_settings);
         if let Err(error) = app.window().set_rendering_notifier({
             move |rendering_state, graphics_api| {
@@ -174,7 +169,7 @@ fn main() {
                         let renderer = Renderer::new(
                             gl.clone(),
                             (1000.0 * render_scale) as u32,
-                            (1000.0 * render_scale) as u32
+                            (1000.0 * render_scale) as u32,
                         );
                         *mesh_renderer_clone.borrow_mut() = Some(renderer);
                     }
@@ -188,22 +183,21 @@ fn main() {
                                 let renderer_settings = &shared_settings.lock().unwrap().renderer;
                                 let render_scale = renderer_settings.render_scale;
 
-                                // This is trash code
                                 let w = &world.borrow();
-                                let _bodies = &w
-                                    .get_resource::<BodyResourceManager>()
-                                    .unwrap()
-                                    .bodies;
-                                // Submit bodies to renderer
-                                let bodies = _bodies
-                                    .iter()
-                                    .collect::<Vec<&Body>>();
-                                renderer.submit_bodies(bodies);
+                                let render_queue = w
+                                    .get_resource::<RenderQueue>()
+                                    .expect("RenderQueue resource not found");
+                                let mesh_manager = w
+                                    .get_resource::<MeshResourceManager>()
+                                    .expect("MeshResourceManager resource not found");
+                                let instances = &render_queue.instances;
                                 let texture = renderer.render(
                                     (width * render_scale) as u32,
                                     (height * render_scale) as u32,
                                     renderer_settings.visualize_edges,
                                     renderer_settings.visualize_normals,
+                                    mesh_manager,
+                                    instances,
                                 );
 
                                 app.set_texture(texture);
