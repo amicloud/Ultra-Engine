@@ -1,10 +1,8 @@
-use crate::{
-    body::Body,
-    body_resource_manager::BodyResourceManager,
-    mesh_resource_manager::MeshResourceManager,
-    transform_component::TransformComponent,
-};
 use crate::mesh_component::MeshComponent;
+use crate::{
+    body::Body, body_resource_manager::BodyResourceManager,
+    mesh_resource_manager::MeshResourceManager, transform_component::TransformComponent,
+};
 use bevy_ecs::prelude::*;
 
 #[derive(Default)]

@@ -844,19 +844,19 @@ mod tests {
 
         let serialized = toml::to_string_pretty(&settings).unwrap();
         let expected = r#"
-            [general]
-            username = "SerializeUser"
-            theme = "blue"
-            auto_save = false
+[general]
+username = "SerializeUser"
+theme = "blue"
+auto_save = false
 
-            [renderer]
-            render_scale = 3.0
-            visualize_edges = true
-            visualize_normals = true
+[renderer]
+render_scale = 3.0
+visualize_edges = true
+visualize_normals = true
 
-            [network]
-            timeout = 100
-            use_https = false
+[network]
+timeout = 100
+use_https = false
         "#
         .trim();
 
