@@ -7,17 +7,13 @@ use crate::mesh::Vertex;
 use crate::mesh_resource_manager::MeshResourceManager;
 use crate::render_instance::RenderInstance;
 use crate::render_texture::RenderTexture;
-use crate::ScopedVAOBinding;
-use crate::ScopedVBOBinding;
 use glow::Context as GlowContext;
 use glow::HasContext;
 use nalgebra::Vector3;
 pub struct Renderer {
     gl: Rc<GlowContext>,
     program: glow::Program,
-    vao: glow::VertexArray,
-    vbo: glow::Buffer,
-    ebo: glow::Buffer,
+
     view_proj_location: glow::UniformLocation,
     camera_position_location: glow::UniformLocation,
     model_location: glow::UniformLocation,
@@ -29,11 +25,17 @@ pub struct Renderer {
     visualize_normals_location: glow::UniformLocation,
     visualize_edges_location: glow::UniformLocation,
     edge_thickness_location: glow::UniformLocation,
+
     displayed_texture: RenderTexture,
     next_texture: RenderTexture,
     camera: Camera,
 }
-
+pub struct RenderParams {
+    pub width: u32,
+    pub height: u32,
+    pub visualize_edges: bool,
+    pub visualize_normals: bool,
+}
 impl Renderer {
     pub fn new(gl: Rc<GlowContext>, width: u32, height: u32) -> Self {
         unsafe {
@@ -140,18 +142,6 @@ impl Renderer {
                 .get_uniform_location(shader_program, "edge_thickness")
                 .unwrap();
 
-            // Set up VBO, EBO, VAO
-            let vbo = gl.create_buffer().expect("Cannot create buffer");
-            gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
-
-            let vao = gl
-                .create_vertex_array()
-                .expect("Cannot create vertex array");
-            gl.bind_vertex_array(Some(vao));
-
-            let ebo = gl.create_buffer().expect("Cannot create EBO");
-            gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(ebo));
-
             // Calculate the offsets for everything
             // much easier to read and reason about when laid out like this
             let vertex_stride: i32 = size_of::<Vertex>() as i32;
@@ -220,9 +210,6 @@ impl Renderer {
                 camera_position_location,
                 light_direction_location,
                 model_location,
-                vao,
-                vbo,
-                ebo,
                 displayed_texture,
                 next_texture,
                 camera,
@@ -240,25 +227,23 @@ impl Renderer {
 
     pub fn render(
         &mut self,
-        width: u32,
-        height: u32,
-        visualize_edges: bool,
-        visualize_normals: bool,
+        render_params: RenderParams,
         meshes: &MeshResourceManager,
         instances: &[RenderInstance],
     ) -> slint::Image {
         unsafe {
             let gl = &self.gl;
             gl.use_program(Some(self.program));
-            let _saved_vbo = ScopedVBOBinding::new(gl, Some(self.vbo));
-            let _saved_vao = ScopedVAOBinding::new(gl, Some(self.vao));
             // Enable face culling
             gl.enable(glow::CULL_FACE);
             gl.cull_face(glow::BACK);
 
             // Resize texture if necessary
-            if self.next_texture.width != width || self.next_texture.height != height {
-                let mut new_texture = RenderTexture::new(gl, width, height);
+            if self.next_texture.width != render_params.width
+                || self.next_texture.height != render_params.height
+            {
+                let mut new_texture =
+                    RenderTexture::new(gl, render_params.width, render_params.height);
                 std::mem::swap(&mut self.next_texture, &mut new_texture);
             }
             let light_intensity = 0.25;
@@ -285,7 +270,8 @@ impl Renderer {
                 );
 
                 // Compute view and projection matrices
-                self.camera.set_aspect_ratio(width as f32 / height as f32);
+                self.camera
+                    .set_aspect_ratio(render_params.width as f32 / render_params.height as f32);
                 let projection = self.camera.projection_matrix;
                 let view = self.camera.view_matrix();
                 let view_proj = projection * view;
@@ -317,15 +303,12 @@ impl Renderer {
                     default_light_color.y,
                     default_light_color.z,
                 );
-                gl.bind_vertex_array(Some(self.vao));
-                gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.vbo));
-                gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.ebo));
                 // Rendering Loop
                 for instance in instances.iter() {
                     let mesh = meshes.get_mesh(instance.mesh_id).unwrap();
+
                     // PBR Uniforms
                     let material = Material::default();
-
                     gl.uniform_1_f32(Some(&self.roughness_location), material.roughness);
                     gl.uniform_3_f32(
                         Some(&self.albedo_location),
@@ -342,39 +325,24 @@ impl Renderer {
 
                     gl.uniform_1_u32(
                         Some(&self.visualize_normals_location),
-                        (visualize_normals && material.visualize_normals) as u32,
+                        (render_params.visualize_normals && material.visualize_normals) as u32,
                     );
 
                     gl.uniform_1_u32(
                         Some(&self.visualize_edges_location),
-                        (material.can_visualize_edges && visualize_edges) as u32,
+                        (material.can_visualize_edges && render_params.visualize_edges) as u32,
                     );
                     gl.uniform_1_f32(Some(&self.edge_thickness_location), 3.0);
-                    // Set the model uniform
+
+                    // Model transform
                     gl.uniform_matrix_4_f32_slice(
                         Some(&self.model_location),
                         false,
                         instance.transform.as_slice(),
                     );
 
-                    // Upload the vertex data to the GPU
-                    self.gl.buffer_data_u8_slice(
-                        glow::ARRAY_BUFFER,
-                        bytemuck::cast_slice(&mesh.vertices),
-                        glow::STATIC_DRAW,
-                    );
-
-                    // Upload the index data to the GPU
-                    self.gl.buffer_data_u8_slice(
-                        glow::ELEMENT_ARRAY_BUFFER,
-                        bytemuck::cast_slice(&mesh.indices),
-                        glow::STATIC_DRAW,
-                    );
-
-                    if gl.check_framebuffer_status(glow::FRAMEBUFFER) != glow::FRAMEBUFFER_COMPLETE
-                    {
-                        panic!("Framebuffer is not complete!");
-                    }
+                    // Bind the mesh VAO and draw
+                    gl.bind_vertex_array(mesh.vao);
                     gl.draw_elements(
                         glow::TRIANGLES,
                         mesh.indices.len() as i32,
@@ -432,8 +400,6 @@ impl Drop for Renderer {
     fn drop(&mut self) {
         unsafe {
             self.gl.delete_program(self.program);
-            self.gl.delete_vertex_array(self.vao);
-            self.gl.delete_buffer(self.vbo);
         }
     }
 }

@@ -9,9 +9,10 @@ pub struct MeshResourceManager {
 }
 
 impl MeshResourceManager {
-    pub fn add_mesh(&mut self, mesh: Mesh) -> u32 {
+    pub fn add_mesh(&mut self, mut mesh: Mesh, gl: &glow::Context) -> u32 {
+        mesh.upload_to_gpu(gl);
         let id = mesh.id;
-        self.meshes.insert(mesh.id, mesh);
+        self.meshes.insert(id, mesh);
         id
     }
 

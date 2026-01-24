@@ -2,6 +2,7 @@
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 use approx::relative_eq;
 use bytemuck::{Pod, Zeroable};
+use glow::HasContext;
 use nalgebra::Vector3;
 use obj::{load_obj, Obj};
 use std::ffi::OsStr;
@@ -89,9 +90,89 @@ pub struct Mesh {
     pub id: u32,
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u32>,
+
+    // GPU handles
+    pub vao: Option<glow::VertexArray>,
+    pub vbo: Option<glow::Buffer>,
+    pub ebo: Option<glow::Buffer>,
 }
 
 impl Mesh {
+    pub fn upload_to_gpu(&mut self, gl: &glow::Context) {
+        unsafe {
+            let vao = gl.create_vertex_array().unwrap();
+            let vbo = gl.create_buffer().unwrap();
+            let ebo = gl.create_buffer().unwrap();
+
+            gl.bind_vertex_array(Some(vao));
+
+            // Vertex buffer
+            gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
+            gl.buffer_data_u8_slice(
+                glow::ARRAY_BUFFER,
+                bytemuck::cast_slice(&self.vertices),
+                glow::STATIC_DRAW,
+            );
+
+            // Index buffer
+            gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(ebo));
+            gl.buffer_data_u8_slice(
+                glow::ELEMENT_ARRAY_BUFFER,
+                bytemuck::cast_slice(&self.indices),
+                glow::STATIC_DRAW,
+            );
+
+            let vertex_stride: i32 = std::mem::size_of::<Vertex>() as i32;
+            let position_size = 3;
+            let normal_size = 3;
+            let barycentric_size = 3;
+
+            // Offsets
+            let position_offset = 0;
+            let normal_offset = position_offset + position_size;
+            let barycentric_offset = normal_offset + normal_size;
+
+            // Enable attributes
+            gl.enable_vertex_attrib_array(0); // position
+            gl.vertex_attrib_pointer_f32(
+                0,
+                position_size,
+                glow::FLOAT,
+                false,
+                vertex_stride,
+                position_offset * 4,
+            );
+
+            gl.enable_vertex_attrib_array(1); // normal
+            gl.vertex_attrib_pointer_f32(
+                1,
+                normal_size,
+                glow::FLOAT,
+                true,
+                vertex_stride,
+                normal_offset * 4,
+            );
+
+            gl.enable_vertex_attrib_array(2); // barycentric
+            gl.vertex_attrib_pointer_f32(
+                2,
+                barycentric_size,
+                glow::FLOAT,
+                true,
+                vertex_stride,
+                barycentric_offset * 4,
+            );
+
+            gl.bind_vertex_array(None);
+            gl.bind_buffer(glow::ARRAY_BUFFER, None);
+            gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+
+            self.vao = Some(vao);
+            self.vbo = Some(vbo);
+            self.ebo = Some(ebo);
+        }
+    }
+
     pub fn from_obj(path: &OsStr) -> Result<Self, Box<dyn std::error::Error>> {
         let input = BufReader::new(File::open(path)?);
         let obj: Obj = load_obj(input)?;

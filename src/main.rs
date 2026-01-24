@@ -24,6 +24,7 @@ use glow::Context as GlowContext;
 use glow::HasContext;
 use log::debug;
 use nalgebra::Vector3;
+use rand::random_range;
 use renderer::Renderer;
 use settings::Settings;
 use slint::platform::PointerEventButton;
@@ -42,6 +43,7 @@ use crate::mesh_component::MeshComponent;
 use crate::mesh_resource_manager::MeshResourceManager;
 use crate::render_queue::RenderQueue;
 use crate::render_system::RenderSystem;
+use crate::renderer::RenderParams;
 use crate::transform_component::TransformComponent;
 use crate::velocity_component::VelocityComponent;
 #[derive(Default)]
@@ -84,22 +86,6 @@ fn main() {
         .insert_resource(MeshResourceManager::default());
     world.borrow_mut().insert_resource(RenderQueue::default());
 
-    let teapot_mesh_component = MeshComponent {
-        mesh_id: world
-            .borrow_mut()
-            .get_resource_mut::<MeshResourceManager>()
-            .unwrap()
-            .add_mesh(Mesh::from_obj(OsStr::new("resources/models/utah_teapot.obj")).unwrap()),
-    };
-
-    let cube_mesh_component = MeshComponent {
-        mesh_id: world
-            .borrow_mut()
-            .get_resource_mut::<MeshResourceManager>()
-            .unwrap()
-            .add_mesh(Mesh::from_obj(OsStr::new("resources/models/cube.obj")).unwrap()),
-    };
-
     let schedule = Rc::new(RefCell::new({
         let mut s = Schedule::default();
         s.add_systems((
@@ -122,28 +108,6 @@ fn main() {
             },
         );
     }
-
-    let forward_slow = VelocityComponent {
-        translational: Vector3::new(1.0, 2.0, 3.0),
-        angular: Vector3::new(0.11, 0.22, 0.13),
-    };
-
-    let vel2 = VelocityComponent {
-        translational: Vector3::new(1.0, 1.0, 2.0),
-        angular: Vector3::new(0.31, 0.22, 0.43),
-    };
-
-    world.borrow_mut().spawn((
-        TransformComponent::default(),
-        forward_slow,
-        teapot_mesh_component,
-    ));
-
-    world.borrow_mut().spawn((
-        TransformComponent::default(),
-        vel2,
-        cube_mesh_component,
-    ));
 
     let state = AppState {
         mouse_state: Rc::new(RefCell::new(MouseState::default())),
@@ -191,6 +155,54 @@ fn main() {
                             (1000.0 * render_scale) as u32,
                         );
                         *mesh_renderer_clone.borrow_mut() = Some(renderer);
+
+                        let cube_mesh_id = world
+                            .borrow_mut()
+                            .get_resource_mut::<MeshResourceManager>()
+                            .unwrap()
+                            .add_mesh(
+                                Mesh::from_obj(OsStr::new("resources/models/cube.obj")).unwrap(),
+                                &gl,
+                            );
+
+                        for _ in 0..1000 {
+                            // Random position
+                            let pos = Vector3::new(
+                                random_range(-10.0..10.0),
+                                random_range(-10.0..10.0),
+                                random_range(-10.0..10.0),
+                            );
+
+                            // Random translational velocity
+                            let translational = Vector3::new(
+                                random_range(-5.0..5.0),
+                                random_range(-5.0..5.0),
+                                random_range(-5.0..5.0),
+                            );
+
+                            // Random angular velocity
+                            let angular = Vector3::new(
+                                random_range(-1.0..1.0),
+                                random_range(-1.0..1.0),
+                                random_range(-1.0..1.0),
+                            );
+
+                            // Spawn cube
+                            world.borrow_mut().spawn((
+                                TransformComponent {
+                                    position: pos,
+                                    rotation: nalgebra::UnitQuaternion::identity(),
+                                    scale: Vector3::new(1.0, 1.0, 1.0),
+                                },
+                                VelocityComponent {
+                                    translational,
+                                    angular,
+                                },
+                                MeshComponent {
+                                    mesh_id: cube_mesh_id,
+                                },
+                            ));
+                        }
                     }
                     slint::RenderingState::BeforeRendering => {
                         // Access the renderer
@@ -210,14 +222,14 @@ fn main() {
                                     .get_resource::<MeshResourceManager>()
                                     .expect("MeshResourceManager resource not found");
                                 let instances = &render_queue.instances;
-                                let texture = renderer.render(
-                                    (width * render_scale) as u32,
-                                    (height * render_scale) as u32,
-                                    renderer_settings.visualize_edges,
-                                    renderer_settings.visualize_normals,
-                                    mesh_manager,
-                                    instances,
-                                );
+                                let render_params = RenderParams {
+                                    width: (width * render_scale) as u32,
+                                    height: (height * render_scale) as u32,
+                                    visualize_edges: renderer_settings.visualize_edges,
+                                    visualize_normals: renderer_settings.visualize_normals,
+                                };
+                                let texture =
+                                    renderer.render(render_params, mesh_manager, instances);
 
                                 app.set_texture(texture);
                                 app.set_visualize_edges(renderer_settings.visualize_edges);
@@ -233,6 +245,7 @@ fn main() {
                     slint::RenderingState::RenderingTeardown => {
                         println!["Rendering teardown"];
                         // Clean up the renderer
+
                         *mesh_renderer_clone.borrow_mut() = None;
                     }
                     _ => {}
@@ -472,5 +485,3 @@ macro_rules! define_scoped_binding {
 
 // define_scoped_binding!(struct ScopedTextureBinding => glow::NativeTexture, glow::TEXTURE_BINDING_2D, bind_texture, glow::TEXTURE_2D);
 define_scoped_binding!(struct ScopedFrameBufferBinding => glow::NativeFramebuffer, glow::DRAW_FRAMEBUFFER_BINDING, bind_framebuffer, glow::DRAW_FRAMEBUFFER);
-define_scoped_binding!(struct ScopedVBOBinding => glow::NativeBuffer, glow::ARRAY_BUFFER_BINDING, bind_buffer, glow::ARRAY_BUFFER);
-define_scoped_binding!(struct ScopedVAOBinding => glow::NativeVertexArray, glow::VERTEX_ARRAY_BINDING, bind_vertex_array);
