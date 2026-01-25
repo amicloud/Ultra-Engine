@@ -140,6 +140,7 @@ pub struct Mesh {
     pub id: u32,
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u32>,
+    pub aabb: AABB,
 
     // GPU handles
     pub vao: Option<glow::VertexArray>,
@@ -301,6 +302,8 @@ impl Mesh {
             path.hash(&mut hasher);
             hasher.finish() as u32
         };
+
+        mesh.aabb = AABB::from_vertices(&mesh.vertices);
         Ok(mesh)
     }
 }
