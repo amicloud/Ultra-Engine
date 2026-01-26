@@ -2,6 +2,7 @@ use std::{ffi::OsStr, fs};
 
 use glow::HasContext;
 
+#[derive(Hash)]
 pub struct Shader {
     pub program: glow::Program,
     // cached uniform locations

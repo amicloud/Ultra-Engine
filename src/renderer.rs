@@ -114,7 +114,7 @@ impl Renderer {
                         .material_manager
                         .get_material(material_id)
                         .expect("Material not found");
-                    let shader = &material.shader;
+                    let shader = &material.desc.shader;
 
                     // Bind shader
                     gl.use_program(Some(shader.program));
@@ -134,10 +134,13 @@ impl Renderer {
                     );
 
                     // Material-specific uniforms
-                    gl.uniform_1_f32(Some(&shader.u_roughness_location), material.roughness);
+                    gl.uniform_1_f32(
+                        Some(&shader.u_roughness_location),
+                        f32::from_bits(material.desc.roughness),
+                    );
                     gl.uniform_1_f32(
                         Some(&shader.u_base_reflectance_location),
-                        material.base_reflectance,
+                        f32::from_bits(material.desc.base_reflectance),
                     );
 
                     // Light uniforms
@@ -169,7 +172,7 @@ impl Renderer {
                     gl.uniform_1_f32(Some(&shader.u_edge_thickness_location), 1.0);
 
                     // Bind textures
-                    if let Some(albedo_tex) = material.albedo {
+                    if let Some(albedo_tex) = material.desc.albedo {
                         let tex = render_data_manager
                             .texture_manager
                             .get_texture(albedo_tex)
@@ -178,7 +181,7 @@ impl Renderer {
                         gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
                         gl.uniform_1_i32(Some(&shader.u_albedo_location), 0);
                     }
-                    if let Some(normal_tex) = material.normal {
+                    if let Some(normal_tex) = material.desc.normal {
                         let tex = render_data_manager
                             .texture_manager
                             .get_texture(normal_tex)

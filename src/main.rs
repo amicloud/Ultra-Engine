@@ -45,8 +45,8 @@ slint::include_modules!();
 use log::error;
 
 use crate::basic_physics_system::BasicPhysicsSystem;
-use crate::handles::MaterialHandle;
-use crate::handles::TextureHandle;
+use crate::material::Material;
+use crate::material::MaterialDesc;
 use crate::material_component::MaterialComponent;
 use crate::mesh::Mesh;
 use crate::mesh_component::MeshComponent;
@@ -101,8 +101,6 @@ fn main() {
     world
         .borrow_mut()
         .insert_resource(RenderDataManager::default());
-
-    // world.borrow_mut().insert_resource()
 
     let schedule = Rc::new(RefCell::new({
         let mut s = Schedule::default();
@@ -182,31 +180,28 @@ fn main() {
                             &gl,
                         );
 
-                        let albedo_id = render_data_manager.texture_manager.load_from_file(
-                            &gl,
-                            OsStr::new("resources/textures/cube_albedo.png"),
-                            TextureHandle(0),
-                        );
-                        let normal_id = render_data_manager.texture_manager.load_from_file(
-                            &gl,
-                            OsStr::new("resources/textures/cube_normal.png"),
-                            TextureHandle(1),
+                        let albedo_id = render_data_manager
+                            .texture_manager
+                            .load_from_file(&gl, OsStr::new("resources/textures/cube_albedo.png"));
+                        let normal_id = render_data_manager
+                            .texture_manager
+                            .load_from_file(&gl, OsStr::new("resources/textures/cube_normal.png"));
+
+                        let m_desc = MaterialDesc::new(
+                            Shader::new(
+                                &gl,
+                                OsStr::new("resources/shaders/pbr.vert"),
+                                OsStr::new("resources/shaders/pbr.frag"),
+                            ),
+                            0.5,
+                            0.04,
+                            Some(albedo_id),
+                            Some(normal_id),
                         );
 
-                        let m_handle = render_data_manager.material_manager.add_material(
-                            crate::material::Material {
-                                shader: Shader::new(
-                                    &gl,
-                                    OsStr::new("resources/shaders/pbr.vert"),
-                                    OsStr::new("resources/shaders/pbr.frag"),
-                                ),
-                                id: MaterialHandle { 0: 0 },
-                                roughness: 0.5,
-                                albedo: Some(albedo_id),
-                                normal: Some(normal_id),
-                                base_reflectance: 0.04,
-                            },
-                        );
+                        let m_handle = render_data_manager
+                            .material_manager
+                            .add_material(Material::new(m_desc));
 
                         for _ in 0..100 {
                             // Random position
@@ -273,6 +268,8 @@ fn main() {
                                         .expect("RenderQueue resource not found");
                                     render_queue.instances.clone()
                                 };
+
+                                // 2. Get the render data manager 
                                 let mut render_data_manager = w
                                     .get_resource_mut::<RenderDataManager>()
                                     .expect("RenderDataManager resource not found");
