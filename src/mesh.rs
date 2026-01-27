@@ -381,4 +381,47 @@ mod tests {
         assert!(mesh.vertices.is_empty(), "Default vertices should be empty");
         assert!(mesh.indices.is_empty(), "Default indices should be empty");
     }
+
+    #[test]
+    fn test_aabb_from_vertices() {
+        let vertices = vec![
+            Vertex {
+                position: [1.0, -2.0, 3.0],
+                ..Vertex::zeroed()
+            },
+            Vertex {
+                position: [-4.0, 5.0, -6.0],
+                ..Vertex::zeroed()
+            },
+            Vertex {
+                position: [7.0, 8.0, 9.0],
+                ..Vertex::zeroed()
+            },
+        ];
+
+        let aabb = AABB::from_vertices(&vertices);
+        assert_eq!(aabb.min, Vector3::new(-4.0, -2.0, -6.0));
+        assert_eq!(aabb.max, Vector3::new(7.0, 8.0, 9.0));
+    }
+
+    #[test]
+    fn test_compute_bounding_sphere() {
+        let mut mesh = Mesh::default();
+        mesh.vertices = vec![
+            Vertex {
+                position: [0.0, 0.0, 0.0],
+                ..Vertex::zeroed()
+            },
+            Vertex {
+                position: [2.0, 0.0, 0.0],
+                ..Vertex::zeroed()
+            },
+        ];
+
+        mesh.aabb = AABB::from_vertices(&mesh.vertices);
+        mesh.compute_bounding_sphere();
+
+        assert_eq!(mesh.sphere_center, Vector3::new(1.0, 0.0, 0.0));
+        assert!((mesh.sphere_radius - 1.0).abs() < 1e-6);
+    }
 }
