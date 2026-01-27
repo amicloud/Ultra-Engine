@@ -166,36 +166,50 @@ fn main() {
                             (1000.0 * render_scale) as u32,
                         );
                         *renderer_clone.borrow_mut() = Some(renderer);
+                        
                         let w = &mut world.borrow_mut();
-                        let mut render_data_manager =
-                            w.get_resource_mut::<RenderDataManager>().unwrap();
+                        let test_models = [
+                            "resources/models/cube/Cube.gltf",
+                            "resources/models/normal_tangent_test/NormalTangentMirrorTest.gltf",
+                            "resources/models/suzanne/Suzanne.gltf",
+                        ];
 
-                        render_data_manager
-                            .texture_manager
-                            .create_default_normal_map(&gl);
+                        let test_objects = {
+                            let mut render_data_manager =
+                                w.get_resource_mut::<RenderDataManager>().unwrap();
 
-                        let test_gltf = OsStr::new("resources/models/suzanne/Suzanne.gltf");
+                            render_data_manager
+                                .texture_manager
+                                .create_default_normal_map(&gl);
 
-                        let test_object_id = render_data_manager.mesh_manager.add_mesh(
-                            Mesh::from_gltf(test_gltf).unwrap(),
-                            &gl,
-                        );
+                            let mut objects = Vec::with_capacity(test_models.len());
+                            for model_path in test_models {
+                                let test_gltf = OsStr::new(model_path);
+                                let test_object_id = render_data_manager.mesh_manager.add_mesh(
+                                    Mesh::from_gltf(test_gltf).unwrap(),
+                                    &gl,
+                                );
 
-                        let mut material_handles = render_data_manager
-                            .load_materials_from_gltf(
-                                &gl,
-                                test_gltf,
-                                OsStr::new("resources/shaders/pbr.vert"),
-                                OsStr::new("resources/shaders/pbr.frag"),
-                            )
-                            .expect("Failed to load glTF materials");
+                                let mut material_handles = render_data_manager
+                                    .load_materials_from_gltf(
+                                        &gl,
+                                        test_gltf,
+                                        OsStr::new("resources/shaders/pbr.vert"),
+                                        OsStr::new("resources/shaders/pbr.frag"),
+                                    )
+                                    .expect("Failed to load glTF materials");
 
-                        let m_handle = material_handles
-                            .pop()
-                            .expect("No materials found in glTF");
+                                let m_handle = material_handles
+                                    .pop()
+                                    .expect("No materials found in glTF");
+
+                                objects.push((test_object_id, m_handle));
+                            }
+                            objects
+                        };
 
                         let t_range = 2.0;
-                        for _ in 0..1 {
+                        for (test_object_id, m_handle) in test_objects {
                             // Random position
                             let pos = Vector3::new(
                                 random_range(-10.0..10.0),
