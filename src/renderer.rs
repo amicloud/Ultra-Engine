@@ -182,23 +182,18 @@ impl Renderer {
                     gl.uniform_1_i32(Some(&shader.u_albedo_location), 0);
 
                     // Optional normal map
-                    if let Some(normal_tex) = material.desc.normal {
-                        let tex = render_data_manager
-                            .texture_manager
-                            .get_texture(normal_tex)
-                            .expect("Normal texture missing");
-                        gl.active_texture(glow::TEXTURE1);
-                        gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
-                        gl.uniform_1_i32(Some(&shader.u_normal_location), 1);
-                    } else {
-                        let tex = render_data_manager
-                            .texture_manager
-                            .get_texture(render_data_manager.texture_manager.default_normal_map)
-                            .expect("Normal texture missing");
-                        gl.active_texture(glow::TEXTURE1);
-                        gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
-                        gl.uniform_1_i32(Some(&shader.u_normal_location), 1);
-                    }
+                    let normal_tex_handle = material
+                        .desc
+                        .normal
+                        .unwrap_or(render_data_manager.texture_manager.default_normal_map);
+
+                    let tex = render_data_manager
+                        .texture_manager
+                        .get_texture(normal_tex_handle)
+                        .expect("Normal texture missing");
+                    gl.active_texture(glow::TEXTURE1);
+                    gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
+                    gl.uniform_1_i32(Some(&shader.u_normal_location), 1);
 
                     // Group by mesh
                     let mut instances_by_mesh: HashMap<MeshHandle, Vec<[f32; 16]>> = HashMap::new();

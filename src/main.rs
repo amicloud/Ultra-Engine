@@ -32,6 +32,7 @@ use glow::HasContext;
 use log::debug;
 use nalgebra::Vector3;
 use rand::random_range;
+// use rand::random_range;
 use renderer::Renderer;
 use settings::Settings;
 use slint::platform::PointerEventButton;
@@ -177,17 +178,20 @@ fn main() {
                             .texture_manager
                             .create_default_normal_map(&gl);
 
-                        let cube_mesh_id = render_data_manager.mesh_manager.add_mesh(
-                            Mesh::from_obj(OsStr::new("resources/models/cube.obj")).unwrap(),
+                        let test_object_id = render_data_manager.mesh_manager.add_mesh(
+                            Mesh::from_gltf(OsStr::new("resources/models/cube/Cube.gltf"))
+                                .unwrap(),
                             &gl,
                         );
 
-                        let albedo_id = render_data_manager
-                            .texture_manager
-                            .load_from_file(&gl, OsStr::new("resources/textures/cube_albedo.png"));
-                        let _normal_id = render_data_manager
-                            .texture_manager
-                            .load_from_file(&gl, OsStr::new("resources/textures/cube_normal.png"));
+                        let albedo_id = render_data_manager.texture_manager.load_from_file(
+                            &gl,
+                            OsStr::new("resources/models/cube/Cube_BaseColor.png"),
+                        );
+
+                        // let normal_id = render_data_manager
+                        //     .texture_manager
+                        //     .load_from_file(&gl, OsStr::new("resources/models/normal_tangent_test/NormalTangentMirrorTest_Normal.png"));
 
                         let m_desc = MaterialDesc::new(
                             Shader::new(
@@ -206,6 +210,7 @@ fn main() {
                             .add_material(Material::new(m_desc));
 
                         for _ in 0..100 {
+                            // {
                             // Random position
                             let pos = Vector3::new(
                                 random_range(-10.0..10.0),
@@ -227,19 +232,29 @@ fn main() {
                                 random_range(-1.0..1.0),
                             );
 
-                            // Spawn cube
+                            // Static position
+                            // let pos = Vector3::zeros();
+
+                            // // Random translational velocity
+                            // let translational = Vector3::zeros();
+
+                            // // Random angular velocity
+                            // let angular = Vector3::zeros();
+
+                            let scale = 1.0;
+                            // Spawn test objects
                             w.spawn((
                                 TransformComponent {
                                     position: pos,
                                     rotation: nalgebra::UnitQuaternion::identity(),
-                                    scale: Vector3::new(1.0, 1.0, 1.0),
+                                    scale: Vector3::new(scale,scale,scale),
                                 },
                                 VelocityComponent {
                                     translational,
                                     angular,
                                 },
                                 MeshComponent {
-                                    mesh_id: cube_mesh_id,
+                                    mesh_id: test_object_id,
                                 },
                                 MaterialComponent {
                                     material_id: m_handle,

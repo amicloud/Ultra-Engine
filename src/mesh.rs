@@ -4,10 +4,7 @@ use approx::relative_eq;
 use bytemuck::{Pod, Zeroable};
 use glow::HasContext;
 use nalgebra::Vector3;
-use obj::{load_obj, Obj};
 use std::ffi::OsStr;
-use std::fs::File;
-use std::io::BufReader;
 use std::{hash::Hash, hash::Hasher};
 
 use crate::handles::MeshHandle;
@@ -20,6 +17,7 @@ pub struct Vertex {
     pub barycentric: [f32; 3],
     pub uv_albedo: [f32; 2],
     pub uv_normal: [f32; 2],
+    pub tangent: [f32; 4],
 }
 
 impl PartialEq for Vertex {
@@ -38,6 +36,7 @@ unsafe impl Zeroable for Vertex {
             barycentric: [0.0, 0.0, 0.0],
             uv_albedo: [0.0, 0.0],
             uv_normal: [0.0, 0.0],
+            tangent: [0.0, 0.0, 0.0, 0.0],
         }
     }
 }
@@ -180,16 +179,17 @@ impl Mesh {
             let bary_offset = normal_offset + 3;
             let uv_albedo_offset = bary_offset + 3;
             let uv_normal_offset = uv_albedo_offset + 2;
+            let tangent_offset = uv_normal_offset + 2;
 
             // Enable vertex attributes (per-vertex)
             gl.enable_vertex_attrib_array(0); // position
             gl.vertex_attrib_pointer_f32(0, 3, glow::FLOAT, false, stride, position_offset * 4);
 
             gl.enable_vertex_attrib_array(1); // normal
-            gl.vertex_attrib_pointer_f32(1, 3, glow::FLOAT, true, stride, normal_offset * 4);
+            gl.vertex_attrib_pointer_f32(1, 3, glow::FLOAT, false, stride, normal_offset * 4);
 
             gl.enable_vertex_attrib_array(2); // barycentric
-            gl.vertex_attrib_pointer_f32(2, 3, glow::FLOAT, true, stride, bary_offset * 4);
+            gl.vertex_attrib_pointer_f32(2, 3, glow::FLOAT, false, stride, bary_offset * 4);
 
             gl.enable_vertex_attrib_array(3); // uv_albedo
             gl.vertex_attrib_pointer_f32(3, 2, glow::FLOAT, false, stride, uv_albedo_offset * 4);
@@ -197,13 +197,16 @@ impl Mesh {
             gl.enable_vertex_attrib_array(4); // uv_normal
             gl.vertex_attrib_pointer_f32(4, 2, glow::FLOAT, false, stride, uv_normal_offset * 4);
 
+            gl.enable_vertex_attrib_array(5); // tangent
+            gl.vertex_attrib_pointer_f32(5, 4, glow::FLOAT, false, stride, tangent_offset * 4);
+
             // Instance buffer (model matrices)
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(instance_vbo));
             gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, &[], glow::DYNAMIC_DRAW);
 
             let mat_stride = 16 * 4; // 16 floats * 4 bytes
             for i in 0..4 {
-                let loc = 5 + i; // locations 5,6,7,8
+                let loc = 6 + i; // locations 6,7,8,9
                 gl.enable_vertex_attrib_array(loc);
                 gl.vertex_attrib_pointer_f32(
                     loc,
@@ -246,37 +249,81 @@ impl Mesh {
         }
     }
 
-    pub fn from_obj(path: &OsStr) -> Result<Self, Box<dyn std::error::Error>> {
-        let input = BufReader::new(File::open(path)?);
-        let obj: Obj = load_obj(input)?;
+    pub fn from_gltf(path: &OsStr) -> Result<Self, Box<dyn std::error::Error>> {
+        let (gltf, buffers, _) = gltf::import(path.to_str().unwrap())?;
         let mut mesh = Mesh::default();
 
-        mesh.vertices = obj
-            .vertices
-            .into_iter()
-            .map(|pos| Vertex {
-                position: pos.position,
-                normal: pos.normal,
-                barycentric: [0.0, 0.0, 0.0],
-                uv_albedo: [
-                    (pos.position[0] + 0.5), // X mapped 0→1
-                    (pos.position[1] + 0.5), // Y mapped 0→1
-                ],
-                uv_normal: [
-                    (pos.position[0] + 0.5), // X mapped 0→1
-                    (pos.position[1] + 0.5), // Y mapped 0→1
-                ],
-            })
-            .collect();
-        mesh.indices = obj.indices.iter().map(|&i| i as u32).collect();
+        for gltf_mesh in gltf.meshes() {
+            println!("Mesh #{}", gltf_mesh.index());
+
+            for primitive in gltf_mesh.primitives() {
+                println!("- Primitive #{}", primitive.index());
+
+                let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
+
+                // Mandatory attributes
+                let positions: Vec<[f32; 3]> = reader
+                    .read_positions()
+                    .ok_or("Mesh missing positions")?
+                    .collect();
+
+                let normals: Vec<[f32; 3]> = reader
+                    .read_normals()
+                    .ok_or("Mesh missing normals")?
+                    .collect();
+
+                let uvs: Vec<[f32; 2]> = reader
+                    .read_tex_coords(0)
+                    .ok_or("Mesh missing TEXCOORD_0")?
+                    .into_f32()
+                    .collect();
+
+                let tangents: Vec<[f32; 4]> = reader
+                    .read_tangents()
+                    .ok_or("Mesh missing tangents")?
+                    .collect();
+
+                // Sanity check
+                assert_eq!(positions.len(), normals.len());
+                assert_eq!(positions.len(), uvs.len());
+                assert_eq!(positions.len(), tangents.len());
+
+                // Build vertices
+                for i in 0..positions.len() {
+                    mesh.vertices.push(Vertex {
+                        position: positions[i],
+                        normal: normals[i],
+                        barycentric: [0.0, 0.0, 0.0],
+                        uv_albedo: uvs[i],
+                        uv_normal: uvs[i],
+                        tangent: [
+                            tangents[i][0],
+                            tangents[i][1],
+                            tangents[i][2],
+                            tangents[i][3],
+                        ],
+                    });
+                }
+
+                // Read indices
+                let indices: Vec<u32> = reader
+                    .read_indices()
+                    .ok_or("Mesh missing indices")?
+                    .into_u32()
+                    .collect();
+                mesh.indices.extend(indices);
+            }
+        }
+
+        // Mesh ID & bounds
         mesh.id = {
             let mut hasher = std::collections::hash_map::DefaultHasher::new();
             path.hash(&mut hasher);
             MeshHandle(hasher.finish() as u32)
         };
-
         mesh.aabb = AABB::from_vertices(&mesh.vertices);
         mesh.compute_bounding_sphere();
+
         Ok(mesh)
     }
 

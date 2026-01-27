@@ -1,139 +1,105 @@
 #version 310 es
-
 precision highp float;
 precision highp int;
 
-// Inputs from Vertex Shader
-in vec3 v_normal;          // Interpolated normal from vertex shader
-in vec3 v_view_dir;        // View direction from vertex shader
-in vec3 v_barycentric;     // Barycentric coordinates
-in vec3 v_camera_position; // Camera position passed from vertex shader
-in vec2 v_uv_albedo;    // Albedo texture UV coordinates
-in vec2 v_uv_normal;    // Normal map texture UV coordinates
+in vec3 v_normal;
+in vec3 v_view_dir;
+in vec3 v_barycentric;
+in vec3 v_camera_position;
+in vec2 v_uv_albedo;
+in vec2 v_uv_normal;
+in mat3 v_tbn;
 
-// Output Color
 out vec4 fragColor;
 
-// Uniforms for Lighting and Material Properties
-uniform sampler2D u_albedo;       // Albedo texture
-uniform sampler2D u_normal;       // Normal map texture
-uniform vec3 u_light_direction;     // Light direction
-uniform vec3 u_light_color;         // Light color
-uniform float u_roughness;          // Surface roughness
-uniform vec3 u_base_reflectance;    // Reflectance at normal incidence (F0)
-uniform bool u_visualize_normals;   // Toggle normal visualization
+uniform sampler2D u_albedo;
+uniform sampler2D u_normal;
+uniform vec3 u_light_direction;
+uniform vec3 u_light_color;
+uniform float u_roughness;
+uniform vec3 u_base_reflectance;
+uniform bool u_visualize_normals;
+uniform bool u_visualize_edges;
+uniform float u_edge_thickness;
 
-// Uniforms for Edge Visualization
-uniform bool u_visualize_edges;     // Toggle edge visualization
-uniform float u_edge_thickness;     // Thickness of the edge lines
-
-// Constants
 const float PI = 3.14159265359;
 
-// GGX/Trowbridge-Reitz Normal Distribution Function (NDF)
-float D(float alpha, vec3 N, vec3 H) {
-    float alpha2 = alpha * alpha;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
+// -------------------- Microfacet helpers --------------------
 
-    float denominator = (NdotH2 * (alpha2 - 1.0) + 1.0);
-    return alpha2 / (PI * denominator * denominator);
+float D(float alpha, vec3 N, vec3 H) {
+    float a2 = alpha * alpha;
+    float NdotH = max(dot(N, H), 0.0);
+    float denom = (NdotH * NdotH) * (a2 - 1.0) + 1.0;
+    return a2 / (PI * denom * denom);
 }
 
-// Schlick-Beckman Geometry Shadowing Function (G1)
 float G1(float alpha, vec3 N, vec3 X) {
     float NdotX = max(dot(N, X), 0.0);
-    float k = (alpha + 1.0) * (alpha + 1.0) / 8.0; // Smith's k-value approximation
-    return NdotX / ((NdotX * (1.0 - k) + k) + 0.00001);
+    float k = (alpha + 1.0) * (alpha + 1.0) / 8.0;
+    return NdotX / (NdotX * (1.0 - k) + k + 1e-5);
 }
 
-// Smith's Geometry Function for both view and light (G)
 float G(float alpha, vec3 N, vec3 V, vec3 L) {
     return G1(alpha, N, V) * G1(alpha, N, L);
 }
 
-// Fresnel-Schlick approximation
 vec3 F(vec3 F0, vec3 V, vec3 H) {
     float VdotH = max(dot(V, H), 0.0);
     return F0 + (vec3(1.0) - F0) * pow(1.0 - VdotH, 5.0);
 }
 
-// Lambertian Diffuse (for diffuse light calculation)
-vec3 diffuseLambert(vec3 albedo) {
-    return albedo / PI;
-}
+// -------------------- Main --------------------
 
 void main() {
+    // Albedo
+    vec3 albedo = texture(u_albedo, v_uv_albedo).rgb;
 
-    vec4 albedo = texture(u_albedo, v_uv_albedo);
-    vec3 n = texture(u_normal, v_uv_normal).xyz * 2.0 - 1.0;
-    // Normalize the interpolated normal and view direction
-    vec3 N_initial = normalize(v_normal);
+    // Normal mapping (tangent → world)
+    vec3 N_tangent = texture(u_normal, v_uv_normal).xyz * 2.0 - 1.0;
+    vec3 N = normalize(v_tbn * N_tangent);
 
-    // Use the normal map
-    vec3 N_map = normalize(n); // n is from u_normal
-    // Optionally combine with vertex normal
-    vec3 N = normalize(N_initial + N_map); // simple additive blend
-
-    
     vec3 V = normalize(v_view_dir);
     vec3 L = normalize(u_light_direction);
-    vec3 H = normalize(V + L); // Halfway vector between light and view direction
+    vec3 H = normalize(V + L);
 
-    
-    
-    // Roughness squared (alpha)
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0);
+
     float alpha = u_roughness * u_roughness;
-
-    // Fresnel reflectance at normal incidence
     vec3 F0 = u_base_reflectance;
 
-    // Fresnel term (F), geometry (G), and normal distribution function (D)
+    // Specular BRDF
     vec3 F_spec = F(F0, V, H);
     float G_spec = G(alpha, N, V, L);
     float D_spec = D(alpha, N, H);
+    vec3 specular = (F_spec * G_spec * D_spec)
+        / (4.0 * NdotL * NdotV + 1e-6);
 
-    // Cook-Torrance BRDF: Specular component
-    vec3 specularBRDF = (F_spec * G_spec * D_spec) / (4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.000001); // Avoid division by zero
+    // Diffuse (energy-conserving-ish)
+    vec3 diffuse = albedo * (1.0 - F_spec);
 
-    // Diffuse component (Lambertian)
-    vec3 diffuseBRDF = diffuseLambert(albedo.rgb);
+    // Direct lighting
+    vec3 direct_light =
+        (diffuse + specular) * u_light_color * NdotL;
 
-    // Light intensity (without distance-based attenuation)
-    vec3 lightIntensity = u_light_color;
-    vec3 ambientLight = vec3(0.25, 0.25, 0.25); // Basic ambient light
-    vec3 normal_color = v_normal * 0.5 * float(u_visualize_normals);  
+    // ✅ Albedo-preserving ambient
+    vec3 ambient = albedo * u_light_color * 0.2;
 
-    // Combine diffuse and specular contributions
-    vec3 color = normal_color + ambientLight + (diffuseBRDF + specularBRDF) * lightIntensity * max(dot(N, L), 0.0);
+    vec3 color = direct_light + ambient;
 
-     // Edge Visualization
+    // Normal visualization (debug)
+    vec3 normal_color = v_normal * 0.5 * float(u_visualize_normals);
+    color += normal_color;
+
+    // Edge visualization
     if (u_visualize_edges) {
-        // Tchayen Edge Computation with smoothstep
-        vec3 tchayen_d = fwidth(v_barycentric); // Compute the derivative for anti-aliasing
-
-        // Define edge0 and edge1 for smoothstep based on edge_thickness and derivative
-        // This defines a transition range where the edge smooths out
-        vec3 edge0 = (tchayen_d * u_edge_thickness)/10.0;
-        vec3 edge1 = edge0 + tchayen_d;
-
-        // Apply smoothstep instead of step for smooth transitions
-        vec3 tchayen_f = smoothstep(edge0, edge1, v_barycentric);
-
-        // Compute the edge factor as the minimum of the smoothstep results across barycentric coordinates
-        float tchayen_edge_factor = min(min(tchayen_f.x, tchayen_f.y), tchayen_f.z);
-
-        // Define a blend factor to control the intensity of the edge color
-        float blend_factor = 0.15;
-
-        // Mix the original color with black based on the edge factor
-        // The `max` ensures that we don't subtract more than the blend factor
-        color = mix(
-            color, 
-            vec3(0.0, 0.0, 0.0), 
-            max(blend_factor - tchayen_edge_factor, 0.0)
-        );
+        vec3 d = fwidth(v_barycentric);
+        vec3 edge0 = d * u_edge_thickness / 10.0;
+        vec3 edge1 = edge0 + d;
+        vec3 f = smoothstep(edge0, edge1, v_barycentric);
+        float edge_factor = min(min(f.x, f.y), f.z);
+        color = mix(color, vec3(0.0), max(0.15 - edge_factor, 0.0));
     }
-    // Set the final fragment color with full opacity
+
     fragColor = vec4(color, 1.0);
 }
