@@ -3,11 +3,11 @@ use bevy_ecs::prelude::*;
 use crate::{handles::MaterialHandle, material::Material};
 
 #[derive(Default, Resource)]
-pub struct MaterialResourceManager {
+pub struct MaterialResource {
     pub materials: std::collections::HashMap<MaterialHandle, Material>,
 }
 
-impl MaterialResourceManager {
+impl MaterialResource {
     pub fn add_material(&mut self, material: Material) -> MaterialHandle {
         let id = material.id;
         self.materials.insert(id, material);

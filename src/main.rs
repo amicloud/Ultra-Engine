@@ -6,15 +6,15 @@ mod action_manager;
 mod basic_physics_system;
 mod camera;
 mod camera_input;
-mod camera_resource_manager;
+mod camera_resource;
 mod frustum;
 mod handles;
 mod material;
 mod material_component;
-mod material_resource_manager;
+mod material_resource;
 mod mesh;
 mod mesh_component;
-mod mesh_resource_manager;
+mod mesh_resource;
 mod render_data_manager;
 mod render_instance;
 mod render_queue;
@@ -54,8 +54,8 @@ use crate::camera_input::{
 use crate::material_component::MaterialComponent;
 use crate::mesh::Mesh;
 use crate::mesh_component::MeshComponent;
-use crate::mesh_resource_manager::MeshResourceManager;
-use crate::render_data_manager::RenderDataManager;
+use crate::mesh_resource::MeshResource;
+use crate::render_data_manager::RenderResourceManager;
 use crate::render_instance::RenderInstance;
 use crate::render_queue::RenderQueue;
 use crate::render_system::RenderSystem;
@@ -100,9 +100,9 @@ fn main() {
     let world = Rc::new(RefCell::new(World::new()));
     world
         .borrow_mut()
-        .insert_resource(MeshResourceManager::default());
+        .insert_resource(MeshResource::default());
     world.borrow_mut().insert_resource(RenderQueue::default());
-    world.borrow_mut().insert_resource(RenderDataManager::new());
+    world.borrow_mut().insert_resource(RenderResourceManager::new());
     world
         .borrow_mut()
         .insert_resource(CameraInputState::default());
@@ -189,7 +189,7 @@ fn main() {
 
                         let w = &mut world.borrow_mut();
                         let camera_handle = w
-                            .get_resource_mut::<RenderDataManager>()
+                            .get_resource_mut::<RenderResourceManager>()
                             .unwrap()
                             .camera_manager
                             .add_camera(Camera::new(16.0 / 9.0));
@@ -207,7 +207,7 @@ fn main() {
 
                         let test_objects = {
                             let mut render_data_manager =
-                                w.get_resource_mut::<RenderDataManager>().unwrap();
+                                w.get_resource_mut::<RenderResourceManager>().unwrap();
 
                             render_data_manager
                                 .texture_manager
@@ -316,7 +316,7 @@ fn main() {
 
                                 // 2. Get the render data manager
                                 let mut render_data_manager = w
-                                    .get_resource_mut::<RenderDataManager>()
+                                    .get_resource_mut::<RenderResourceManager>()
                                     .expect("RenderDataManager resource not found");
 
                                 // 3. Render

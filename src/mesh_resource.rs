@@ -3,11 +3,11 @@ use bevy_ecs::prelude::*;
 use crate::{handles::MeshHandle, mesh::Mesh, renderer::Renderer};
 
 #[derive(Default, Resource)]
-pub struct MeshResourceManager {
+pub struct MeshResource {
     pub meshes: std::collections::HashMap<MeshHandle, Mesh>,
 }
 
-impl MeshResourceManager {
+impl MeshResource {
     pub fn add_mesh(&mut self, mut mesh: Mesh, gl: &glow::Context) -> MeshHandle {
         mesh.upload_to_gpu(gl);
         let id = mesh.id;

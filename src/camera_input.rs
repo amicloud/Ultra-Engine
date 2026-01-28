@@ -5,7 +5,7 @@ use bevy_ecs::message::{Message, MessageReader, Messages};
 use bevy_ecs::prelude::*;
 
 use crate::handles::CameraHandle;
-use crate::render_data_manager::RenderDataManager;
+use crate::render_data_manager::RenderResourceManager;
 
 #[derive(Copy, Clone, Debug, Default, Resource)]
 pub struct ActiveCamera(pub CameraHandle);
@@ -77,7 +77,7 @@ impl From<slint::platform::PointerEventButton> for MouseButton {
 
 pub fn apply_camera_input(
     mut reader: MessageReader<CameraInputMessage>,
-    mut render_data_manager: ResMut<RenderDataManager>,
+    mut render_data_manager: ResMut<RenderResourceManager>,
     active_camera: Res<ActiveCamera>,
     mut input_state: ResMut<CameraInputState>,
 ) {

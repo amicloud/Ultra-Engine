@@ -8,13 +8,13 @@ use std::ffi::OsStr;
 use std::hash::{Hash, Hasher}; // cargo add image
 
 #[derive(Default)]
-pub struct TextureResourceManager {
+pub struct TextureResource {
     pub textures: HashMap<TextureHandle, Texture>,
     pub default_normal_map: TextureHandle,
 }
 
 #[allow(dead_code)]
-impl TextureResourceManager {
+impl TextureResource {
     pub fn add_texture(&mut self, texture: Texture) -> TextureHandle {
         let id = texture.id;
         self.textures.insert(id, texture);
@@ -149,35 +149,35 @@ mod tests {
     #[test]
     fn test_gltf_image_to_rgba_r8() {
         let image = make_image_data(gltf::image::Format::R8, vec![10]);
-        let rgba = TextureResourceManager::gltf_image_to_rgba(&image).unwrap();
+        let rgba = TextureResource::gltf_image_to_rgba(&image).unwrap();
         assert_eq!(rgba, vec![10, 10, 10, 255]);
     }
 
     #[test]
     fn test_gltf_image_to_rgba_r8g8() {
         let image = make_image_data(gltf::image::Format::R8G8, vec![10, 20]);
-        let rgba = TextureResourceManager::gltf_image_to_rgba(&image).unwrap();
+        let rgba = TextureResource::gltf_image_to_rgba(&image).unwrap();
         assert_eq!(rgba, vec![10, 20, 0, 255]);
     }
 
     #[test]
     fn test_gltf_image_to_rgba_r8g8b8() {
         let image = make_image_data(gltf::image::Format::R8G8B8, vec![10, 20, 30]);
-        let rgba = TextureResourceManager::gltf_image_to_rgba(&image).unwrap();
+        let rgba = TextureResource::gltf_image_to_rgba(&image).unwrap();
         assert_eq!(rgba, vec![10, 20, 30, 255]);
     }
 
     #[test]
     fn test_gltf_image_to_rgba_r8g8b8a8() {
         let image = make_image_data(gltf::image::Format::R8G8B8A8, vec![10, 20, 30, 40]);
-        let rgba = TextureResourceManager::gltf_image_to_rgba(&image).unwrap();
+        let rgba = TextureResource::gltf_image_to_rgba(&image).unwrap();
         assert_eq!(rgba, vec![10, 20, 30, 40]);
     }
 
     #[test]
     fn test_gltf_image_to_rgba_unsupported_format() {
         let image = make_image_data(gltf::image::Format::R16, vec![0, 0]);
-        let result = TextureResourceManager::gltf_image_to_rgba(&image);
+        let result = TextureResource::gltf_image_to_rgba(&image);
         assert!(result.is_err());
     }
 }

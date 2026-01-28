@@ -3,11 +3,11 @@ use bevy_ecs::prelude::*;
 use crate::{camera::Camera, handles::CameraHandle};
 
 #[derive(Default, Resource)]
-pub struct CameraResourceManager {
+pub struct CameraResource {
     pub cameras: std::collections::HashMap<CameraHandle, Camera>,
 }
 
-impl CameraResourceManager {
+impl CameraResource {
     pub fn add_camera(&mut self, camera: Camera) -> CameraHandle {
         let id = camera.id;
         self.cameras.insert(id, camera);

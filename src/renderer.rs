@@ -4,7 +4,7 @@ use crate::handles::CameraHandle;
 use crate::handles::MaterialHandle;
 use crate::handles::MeshHandle;
 use crate::mesh::Mesh;
-use crate::render_data_manager::RenderDataManager;
+use crate::render_data_manager::RenderResourceManager;
 use crate::render_instance::RenderInstance;
 use crate::render_texture::RenderTexture;
 use glow::Context as GlowContext;
@@ -26,7 +26,7 @@ impl Renderer {
     pub fn render(
         &mut self,
         render_params: RenderParams,
-        render_data_manager: &mut RenderDataManager,
+        render_data_manager: &mut RenderResourceManager,
         instances: Vec<RenderInstance>,
     ) -> slint::Image {
         unsafe {
