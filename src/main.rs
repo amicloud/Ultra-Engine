@@ -25,6 +25,8 @@ mod texture;
 mod texture_resource_manager;
 mod transform_component;
 mod velocity_component;
+mod camera_component;
+mod camera_resource_manager;
 use action_manager::ActionManager;
 use bevy_ecs::prelude::*;
 use glow::Context as GlowContext;
@@ -45,6 +47,7 @@ slint::include_modules!();
 use log::error;
 
 use crate::basic_physics_system::BasicPhysicsSystem;
+use crate::camera::Camera;
 use crate::material_component::MaterialComponent;
 use crate::mesh::Mesh;
 use crate::mesh_component::MeshComponent;
@@ -162,12 +165,16 @@ fn main() {
                         // Initialize renderer
                         let renderer = Renderer::new(
                             gl.clone(),
-                            (1000.0 * render_scale) as u32,
-                            (1000.0 * render_scale) as u32,
+                            (1600.0 * render_scale) as u32,
+                            (900.0 * render_scale) as u32,
                         );
                         *renderer_clone.borrow_mut() = Some(renderer);
                         
                         let w = &mut world.borrow_mut();
+                        w.get_resource_mut::<RenderDataManager>().unwrap().camera_manager.add_camera(
+                            Camera::new(16.0 / 9.0),
+                        );
+
                         let test_models = [
                             "resources/models/cube/Cube.gltf",
                             "resources/models/normal_tangent_test/NormalTangentMirrorTest.gltf",
@@ -330,100 +337,28 @@ fn main() {
 
     // Handler for scrollwheel/scroll gesture
     {
-        let app_weak_clone = app_weak.clone(); // Clone app_weak again for this closure
-        let mesh_renderer_clone = Rc::clone(&state.shared_renderer); // Clone mesh_renderer for this closure
         app.on_mouse_scroll(move |amt| {
-            // Access the renderer
-            if let Some(renderer) = mesh_renderer_clone.borrow_mut().as_mut() {
-                // Move the camera
-                renderer.zoom(amt);
-
-                // Trigger a redraw
-                if let Some(app) = app_weak_clone.upgrade() {
-                    app.window().request_redraw();
-                }
-            }
+            
         });
     }
 
-    // Handler for mouse movement in renderer
+    // Handler for mouse movement
     {
-        let app_weak_clone = app_weak.clone(); // Clone app_weak again for this closure
-        let mesh_renderer_clone = Rc::clone(&state.shared_renderer); // Clone mesh_renderer for this closure
-        let mouse_state_clone = Rc::clone(&state.mouse_state);
         app.on_mouse_move_renderer(move |x, y| {
-            debug!("On mouse move event received");
-
-            let mut mouse_state = mouse_state_clone.borrow_mut();
-
-            // If the previous coords are still 0,0 then let's not move a bunch and return 0
-            // This prevents some weird behavior, do not change
-            let delta_x = x - if mouse_state.p_x != 0.0 {
-                mouse_state.p_x
-            } else {
-                x
-            };
-            let delta_y = y - if mouse_state.p_y != 0.0 {
-                mouse_state.p_y
-            } else {
-                y
-            };
-
-            mouse_state.p_x = x;
-            mouse_state.p_y = y;
-            mouse_state.x = x;
-            mouse_state.y = y;
-            debug!("Delta x: {:.3}, Delta y: {:.3}", delta_x, delta_y);
-            debug!("Mouse pressed? {}", mouse_state.left_pressed);
-
-            // Access the renderer
-            if let Some(renderer) = mesh_renderer_clone.borrow_mut().as_mut() {
-                if mouse_state.left_pressed {
-                    renderer.camera_pitch_yaw(delta_x, delta_y);
-                }
-                if mouse_state.middle_pressed {
-                    renderer.camera_pan(delta_x, delta_y);
-                }
-                // Trigger a redraw
-                if let Some(app) = app_weak_clone.upgrade() {
-                    app.window().request_redraw();
-                }
-            }
+            
         });
     }
 
-    // Mouse down handler for renderer
+    // Mouse down handler
     {
-        let mouse_state_clone = Rc::clone(&state.mouse_state);
         app.on_mouse_down_renderer(move |button| {
-            debug!("On mouse down received");
-            let mut mouse_state = mouse_state_clone.borrow_mut();
-            match button {
-                PointerEventButton::Left => mouse_state.left_pressed = true,
-                PointerEventButton::Other => mouse_state.other_pressed = true,
-                PointerEventButton::Right => mouse_state.right_pressed = true,
-                PointerEventButton::Middle => mouse_state.middle_pressed = true,
-                PointerEventButton::Back => mouse_state.back_pressed = true,
-                PointerEventButton::Forward => mouse_state.forward_pressed = true,
-                _ => {}
-            }
+            
         });
     }
-    // Mouse up handler for renderer
+    // Mouse up handler
     {
-        let mouse_state_clone = Rc::clone(&state.mouse_state);
         app.on_mouse_up_renderer(move |button| {
-            debug!("On mouse up received");
-            let mut mouse_state = mouse_state_clone.borrow_mut();
-            match button {
-                PointerEventButton::Left => mouse_state.left_pressed = false,
-                PointerEventButton::Other => mouse_state.other_pressed = false,
-                PointerEventButton::Right => mouse_state.right_pressed = false,
-                PointerEventButton::Middle => mouse_state.middle_pressed = false,
-                PointerEventButton::Back => mouse_state.back_pressed = false,
-                PointerEventButton::Forward => mouse_state.forward_pressed = false,
-                _ => {}
-            }
+            
         });
     }
 

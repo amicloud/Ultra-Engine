@@ -3,7 +3,10 @@
 
 use nalgebra::{Matrix4, Point3, Vector3, Vector4};
 
+use crate::handles::CameraHandle;
+
 pub struct Camera {
+    pub id: CameraHandle,
     pub position: Point3<f32>,
     pub target: Point3<f32>,
     up: Vector3<f32>,
@@ -18,6 +21,7 @@ pub struct Camera {
 impl Camera {
     pub fn new(aspect_ratio: f32) -> Self {
         let mut camera: Camera = Self {
+            id: CameraHandle(0), // Placeholder, should be set appropriately, but until we have more than 1 camera it's fine
             position: Point3::new(0.0, 0.0, 0.0),
             target: Point3::new(0.0, 0.0, 0.0),
             up: Vector3::new(0.0, 0.0, -1.0),

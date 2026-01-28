@@ -1,6 +1,7 @@
 use std::rc::Rc;
 slint::include_modules!();
 use crate::camera::Camera;
+use crate::handles::CameraHandle;
 use crate::handles::MaterialHandle;
 use crate::handles::MeshHandle;
 use crate::mesh::Mesh;
@@ -14,7 +15,6 @@ pub struct Renderer {
     gl: Rc<GlowContext>,
     displayed_texture: RenderTexture,
     next_texture: RenderTexture,
-    camera: Camera,
     frames_rendered: u64,
 }
 pub struct RenderParams {
@@ -28,7 +28,7 @@ impl Renderer {
         &mut self,
         render_params: RenderParams,
         render_data_manager: &mut RenderDataManager,
-        instances: Vec<RenderInstance>,
+        instances: Vec<RenderInstance>
     ) -> slint::Image {
         unsafe {
             let gl = &self.gl;
@@ -64,10 +64,15 @@ impl Renderer {
                     self.next_texture.height as i32,
                 );
 
+                let camera = render_data_manager
+                    .camera_manager
+                    .get_camera_mut(CameraHandle(0))
+                    .expect("Camera not found");
+
                 // Update camera
-                self.camera
+                camera
                     .set_aspect_ratio(render_params.width as f32 / render_params.height as f32);
-                let view_proj = self.camera.projection_matrix * self.camera.view_matrix();
+                let view_proj = camera.projection_matrix * camera.view_matrix();
 
                 // ------------------------------------------------------------
                 // PASS 1: Frustum culling
@@ -130,9 +135,9 @@ impl Renderer {
                     );
                     gl.uniform_3_f32(
                         Some(&shader.u_camera_position_location),
-                        self.camera.position.x,
-                        self.camera.position.y,
-                        self.camera.position.z,
+                        camera.position.x,
+                        camera.position.y,
+                        camera.position.z,
                     );
 
                     // Material-specific uniforms
@@ -266,7 +271,6 @@ impl Renderer {
     pub fn new(gl: Rc<GlowContext>, width: u32, height: u32) -> Self {
         unsafe {
             let aspect_ratio = width as f32 / height as f32;
-            let camera = Camera::new(aspect_ratio);
 
             let depth_buffer = gl.create_renderbuffer().unwrap();
             gl.bind_renderbuffer(glow::RENDERBUFFER, Some(depth_buffer));
@@ -288,23 +292,10 @@ impl Renderer {
                 // model_location,
                 displayed_texture,
                 next_texture,
-                camera,
                 frames_rendered: 0,
             };
             renderer
         }
-    }
-
-    pub fn camera_pitch_yaw(&mut self, delta_x: f32, delta_y: f32) {
-        self.camera.pitch_yaw(delta_x, -delta_y);
-    }
-
-    pub fn camera_pan(&mut self, delta_x: f32, delta_y: f32) {
-        self.camera.pan(delta_x, delta_y);
-    }
-
-    pub(crate) fn zoom(&mut self, amt: f32) {
-        self.camera.zoom(amt);
     }
 
     /// Deletes a mesh's GPU resources

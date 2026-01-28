@@ -9,6 +9,7 @@ use crate::{
     mesh_resource_manager::MeshResourceManager,
     shader::Shader,
     texture_resource_manager::TextureResourceManager,
+    camera_resource_manager::CameraResourceManager,
 };
 
 #[derive(Resource)]
@@ -16,6 +17,7 @@ pub struct RenderDataManager {
     pub mesh_manager: MeshResourceManager,
     pub material_manager: MaterialResourceManager,
     pub texture_manager: TextureResourceManager,
+    pub camera_manager: CameraResourceManager,
 }
 
 impl RenderDataManager {
@@ -24,6 +26,7 @@ impl RenderDataManager {
             mesh_manager: MeshResourceManager::default(),
             material_manager: MaterialResourceManager::default(),
             texture_manager: TextureResourceManager::default(),
+            camera_manager: CameraResourceManager::default(),
         }
     }
 
