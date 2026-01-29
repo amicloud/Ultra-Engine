@@ -8,26 +8,26 @@ use crate::{handles::*, shader::Shader};
 #[derive(Hash)]
 pub struct MaterialDesc {
     pub shader: Shader,
-    pub roughness: u32,
     pub albedo: TextureHandle,
     pub normal: Option<TextureHandle>,
+    pub roughness: u32,
     pub base_reflectance: u32,
 }
 
 impl MaterialDesc {
     pub fn new(
         shader: Shader,
-        roughness: f32,
-        base_reflectance: f32,
         albedo: TextureHandle,
         normal: Option<TextureHandle>,
+        roughness: f32,
+        base_reflectance: f32,
     ) -> Self {
         Self {
             shader,
-            roughness: roughness.to_bits(),
-            base_reflectance: base_reflectance.to_bits(),
             albedo,
             normal,
+            roughness: roughness.to_bits(),
+            base_reflectance: base_reflectance.to_bits(),
         }
     }
 }

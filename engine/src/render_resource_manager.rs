@@ -67,10 +67,10 @@ impl RenderResourceManager {
             let shader = Shader::new(gl, vertex_shader, fragment_shader);
             let desc = MaterialDesc::new(
                 shader,
-                roughness,
-                base_reflectance,
                 albedo_handle,
                 normal_handle,
+                roughness,
+                base_reflectance,
             );
             let handle = self.material_manager.add_material(Material::new(desc));
             material_handles.push(handle);
