@@ -22,7 +22,8 @@ jobs:
         sudo apt-get install -y \
           libwayland-dev \
           pkg-config \
-          libx11-dev  # if you use X11 too
+          libsdl2-dev 
+          libx11-dev
     - name: Build
       run: cargo build --verbose
     - name: Run tests

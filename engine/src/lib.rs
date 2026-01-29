@@ -32,7 +32,6 @@ use glow::HasContext;
 use nalgebra::Vector3;
 use rand::random_range;
 use renderer::Renderer;
-use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::rc::Rc;
 use std::thread::sleep;
@@ -71,34 +70,40 @@ struct MouseState {
     forward_pressed: bool,
 }
 
-pub struct Engine {}
+pub struct Engine {
+    pub world: World,
+    pub schedule: Schedule,
+}
+
 
 impl Engine {
-    pub fn run_slintless(&self) {
+    pub fn new() -> Self {
+        let mut world = World::new();
+        world.insert_resource(MeshResource::default());
+        world.insert_resource(RenderQueue::default());
+        world.insert_resource(RenderResourceManager::new());
+        world.insert_resource(CameraInputState::default());
+        world.insert_resource(ActiveCamera::default());
+        world.init_resource::<Messages<CameraInputMessage>>();
+
+        let mut schedule = Schedule::default();
+            schedule.add_systems(
+                (
+                    BasicPhysicsSystem::update,
+                    apply_camera_input,
+                    RenderSystem::extract_render_data,
+                    update_camera_messages,
+                )
+                    .chain(),
+            );
+        
+        Engine { world, schedule }
+    }
+    pub fn run(&mut self) {
         unsafe {
             let (gl, window, mut events_loop, _context) = Self::create_sdl2_context();
 
-            let mut world = World::new();
-            world.insert_resource(MeshResource::default());
-            world.insert_resource(RenderQueue::default());
-            world.insert_resource(RenderResourceManager::new());
-            world.insert_resource(CameraInputState::default());
-            world.insert_resource(ActiveCamera::default());
-            world.init_resource::<Messages<CameraInputMessage>>();
-
-            let schedule = Rc::new(RefCell::new({
-                let mut s = Schedule::default();
-                s.add_systems(
-                    (
-                        BasicPhysicsSystem::update,
-                        apply_camera_input,
-                        RenderSystem::extract_render_data,
-                        update_camera_messages,
-                    )
-                        .chain(),
-                );
-                s
-            }));
+            
 
             let gl = Rc::new(gl); // Wrap in Rc for shared ownership
             let version = gl.get_parameter_string(glow::VERSION);
@@ -116,15 +121,15 @@ impl Engine {
             // Initialize renderer
             let mut renderer = Renderer::new(gl.clone());
 
-            let camera_handle = world
+            let camera_handle = self.world
                 .get_resource_mut::<RenderResourceManager>()
                 .unwrap()
                 .camera_manager
                 .add_camera(Camera::new(16.0 / 9.0));
-            if let Some(mut active_camera) = world.get_resource_mut::<ActiveCamera>() {
+            if let Some(mut active_camera) = self.world.get_resource_mut::<ActiveCamera>() {
                 active_camera.0 = camera_handle;
             } else {
-                world.insert_resource(ActiveCamera(camera_handle));
+                self.world.insert_resource(ActiveCamera(camera_handle));
             }
 
             let test_gltfs = [
@@ -135,7 +140,7 @@ impl Engine {
 
             let test_objects = {
                 let mut render_data_manager =
-                    world.get_resource_mut::<RenderResourceManager>().unwrap();
+                    self.world.get_resource_mut::<RenderResourceManager>().unwrap();
 
                 render_data_manager
                     .texture_manager
@@ -199,7 +204,7 @@ impl Engine {
 
                     let scale = 10.0;
                     // Spawn test objects
-                    world.spawn((
+                    self.world.spawn((
                         TransformComponent {
                             position: pos,
                             rotation: nalgebra::UnitQuaternion::identity(),
@@ -226,7 +231,7 @@ impl Engine {
             'render: loop {
                 let frame_start = Instant::now();
                 {
-                    let mut camera_messages = world
+                    let mut camera_messages = self.world
                         .get_resource_mut::<Messages<CameraInputMessage>>()
                         .expect("CameraInputMessage resource not found");
 
@@ -277,20 +282,20 @@ impl Engine {
                     accumulator += frame_time;
 
                     while accumulator >= fixed_dt {
-                        schedule.borrow_mut().run(&mut world);
+                        self.schedule.run(&mut self.world);
                         accumulator -= fixed_dt;
                     }
 
                     // 1. Extract instance data AFTER systems run
                     let instances: Vec<RenderInstance> = {
-                        let render_queue = world
+                        let render_queue = self.world
                             .get_resource::<RenderQueue>()
                             .expect("RenderQueue resource not found");
                         render_queue.instances.clone()
                     };
 
                     // 2. Get the render data manager
-                    let mut render_data_manager = world
+                    let mut render_data_manager = self.world
                         .get_resource_mut::<RenderResourceManager>()
                         .expect("RenderDataManager resource not found");
 
