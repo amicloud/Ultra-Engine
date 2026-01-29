@@ -3,9 +3,8 @@ use std::error::Error;
 use std::ffi::OsStr;
 
 use crate::{
-    camera_resource::CameraResource, material::Material, material::MaterialDesc,
-    material_resource::MaterialResource, mesh_resource::MeshResource, shader::Shader,
-    texture_resource_manager::TextureResource,
+    material::Material, material::MaterialDesc, material_resource::MaterialResource,
+    mesh_resource::MeshResource, shader::Shader, texture_resource_manager::TextureResource,
 };
 
 #[derive(Resource)]
@@ -13,7 +12,6 @@ pub struct RenderResourceManager {
     pub mesh_manager: MeshResource,
     pub material_manager: MaterialResource,
     pub texture_manager: TextureResource,
-    pub camera_manager: CameraResource,
 }
 
 impl RenderResourceManager {
@@ -22,7 +20,6 @@ impl RenderResourceManager {
             mesh_manager: MeshResource::default(),
             material_manager: MaterialResource::default(),
             texture_manager: TextureResource::default(),
-            camera_manager: CameraResource::default(),
         }
     }
 

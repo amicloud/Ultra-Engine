@@ -1,4 +1,3 @@
-use crate::handles::CameraHandle;
 use crate::handles::MaterialHandle;
 use crate::handles::MeshHandle;
 use crate::mesh::Mesh;
@@ -8,7 +7,7 @@ use std::rc::Rc;
 // use crate::render_texture::RenderTexture;
 use glow::Context as GlowContext;
 use glow::HasContext;
-use nalgebra::Vector3;
+use nalgebra::{Matrix4, Vector3};
 pub struct Renderer {
     gl: Rc<GlowContext>,
     // displayed_texture: RenderTexture,
@@ -21,12 +20,19 @@ pub struct RenderParams {
     pub visualize_edges: bool,
     pub visualize_normals: bool,
 }
+
+/// Precomputed camera data required by the renderer.
+pub struct CameraRenderData {
+    pub view_proj: Matrix4<f32>,
+    pub position: Vector3<f32>,
+}
 impl Renderer {
     pub fn render(
         &mut self,
         render_params: RenderParams,
         render_data_manager: &mut RenderResourceManager,
         instances: Vec<RenderInstance>,
+        camera: Option<CameraRenderData>,
     ) {
         unsafe {
             let gl = &self.gl;
@@ -52,14 +58,17 @@ impl Renderer {
                 render_params.height as i32,
             );
 
-            let camera = render_data_manager
-                .camera_manager
-                .get_camera(CameraHandle(0))
-                .expect("Camera not found");
+            let Some(camera) = camera else {
+                gl.viewport(
+                    saved_viewport[0],
+                    saved_viewport[1],
+                    saved_viewport[2],
+                    saved_viewport[3],
+                );
+                return;
+            };
 
-            let aspect_ratio = render_params.width as f32 / render_params.height as f32;
-            let projection_matrix = crate::camera::Camera::projection_matrix(aspect_ratio);
-            let view_proj = projection_matrix * camera.view_matrix();
+            let view_proj = camera.view_proj;
 
             // ------------------------------------------------------------
             // PASS 1: Frustum culling

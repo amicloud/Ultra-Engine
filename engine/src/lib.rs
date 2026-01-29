@@ -4,9 +4,7 @@
 mod action;
 mod action_manager;
 mod basic_physics_system;
-mod camera;
-mod camera_input;
-mod camera_resource;
+mod camera_component;
 mod frustum;
 mod handles;
 mod input;
@@ -37,40 +35,21 @@ use std::time::Duration;
 use std::time::Instant;
 
 use crate::basic_physics_system::BasicPhysicsSystem;
-use crate::camera::Camera;
-use crate::camera_input::{
-    apply_camera_input, update_camera_messages, ActiveCamera, CameraInputMessage, CameraInputState,
-};
-use crate::input::MouseButton;
-use crate::handles::CameraHandle;
 use crate::mesh::Mesh;
 use crate::mesh_resource::MeshResource;
 use crate::render_resource_manager::RenderResourceManager;
 use crate::render_instance::RenderInstance;
 use crate::render_queue::RenderQueue;
 use crate::render_system::RenderSystem;
-use crate::renderer::RenderParams;
+use crate::renderer::{CameraRenderData, RenderParams};
 
 pub use crate::handles::{MaterialHandle, MeshHandle};
 pub use crate::material_component::MaterialComponent;
 pub use crate::mesh_component::MeshComponent;
 pub use crate::transform_component::TransformComponent;
 pub use crate::velocity_component::VelocityComponent;
-#[derive(Default)]
-#[allow(dead_code)]
-struct MouseState {
-    x: f32,
-    y: f32,
-    p_x: f32,
-    p_y: f32,
-    left_pressed: bool,
-    middle_pressed: bool,
-    right_pressed: bool,
-    other_pressed: bool,
-    back_pressed: bool,
-    forward_pressed: bool,
-}
-
+pub use crate::camera_component::{ActiveCamera, CameraComponent};
+pub use crate::input::{InputMessage, MouseButton};
 pub struct Engine {
     pub world: World,
     pub schedule: Schedule,
@@ -90,20 +69,12 @@ impl Engine {
         world.insert_resource(MeshResource::default());
         world.insert_resource(RenderQueue::default());
         world.insert_resource(RenderResourceManager::new());
-        world.insert_resource(CameraInputState::default());
         world.insert_resource(ActiveCamera::default());
-        world.init_resource::<Messages<CameraInputMessage>>();
+        world.init_resource::<Messages<InputMessage>>();
 
         let mut schedule = Schedule::default();
-            schedule.add_systems(
-                (
-                    BasicPhysicsSystem::update,
-                    apply_camera_input,
-                    RenderSystem::extract_render_data,
-                    update_camera_messages,
-                )
-                    .chain(),
-            );
+        // Engine-only systems. Game code adds its own systems to this schedule.
+        schedule.add_systems((BasicPhysicsSystem::update, RenderSystem::extract_render_data).chain());
         
         Engine {
             world,
@@ -117,25 +88,11 @@ impl Engine {
 
     pub fn load_gltf(&mut self, gltf_path: &OsStr) -> (MeshHandle, MaterialHandle) {
         let gl = &self.gl;
-        let (mesh_handle, material_handle, camera_handle) = {
+        let (mesh_handle, material_handle) = {
             let mut render_data_manager = self
                 .world
                 .get_resource_mut::<RenderResourceManager>()
                 .expect("RenderResourceManager resource not found");
-
-            let camera_handle = if render_data_manager
-                .camera_manager
-                .get_camera(CameraHandle(0))
-                .is_none()
-            {
-                Some(
-                    render_data_manager
-                        .camera_manager
-                        .add_camera(Camera::new(16.0 / 9.0)),
-                )
-            } else {
-                None
-            };
 
             render_data_manager
                 .texture_manager
@@ -158,16 +115,8 @@ impl Engine {
                 .pop()
                 .expect("No materials found in glTF");
 
-            (mesh_handle, material_handle, camera_handle)
+            (mesh_handle, material_handle)
         };
-
-        if let Some(camera_handle) = camera_handle {
-            if let Some(mut active_camera) = self.world.get_resource_mut::<ActiveCamera>() {
-                active_camera.0 = camera_handle;
-            } else {
-                self.world.insert_resource(ActiveCamera(camera_handle));
-            }
-        }
 
         (mesh_handle, material_handle)
     }
@@ -197,9 +146,10 @@ impl Engine {
             'render: loop {
                 let frame_start = Instant::now();
                 {
-                    let mut camera_messages = self.world
-                        .get_resource_mut::<Messages<CameraInputMessage>>()
-                        .expect("CameraInputMessage resource not found");
+                    // Engine responsibility: translate SDL2 events into generic ECS messages.
+                    let mut input_messages = self.world
+                        .get_resource_mut::<Messages<InputMessage>>()
+                        .expect("InputMessage resource not found");
 
                     for event in self.events_loop.poll_iter() {
                         match event {
@@ -207,7 +157,7 @@ impl Engine {
                                 break 'render;
                             }
                             sdl2::event::Event::MouseMotion { x, y, .. } => {
-                                camera_messages.write(CameraInputMessage::MouseMove {
+                                input_messages.write(InputMessage::MouseMove {
                                     x: x as f32,
                                     y: y as f32,
                                 });
@@ -217,15 +167,21 @@ impl Engine {
                                 if direction == sdl2::mouse::MouseWheelDirection::Flipped {
                                     delta = -delta;
                                 }
-                                camera_messages.write(CameraInputMessage::MouseScroll { delta: delta * 10.0 });
+                                input_messages.write(InputMessage::MouseScroll { delta: delta * 10.0 });
                             }
                             sdl2::event::Event::MouseButtonDown { mouse_btn, .. } => {
                                 let button = MouseButton::from(mouse_btn);
-                                camera_messages.write(CameraInputMessage::MouseDown { button });
+                                input_messages.write(InputMessage::MouseButtonDown { button });
                             }
                             sdl2::event::Event::MouseButtonUp { mouse_btn, .. } => {
                                 let button = MouseButton::from(mouse_btn);
-                                camera_messages.write(CameraInputMessage::MouseUp { button });
+                                input_messages.write(InputMessage::MouseButtonUp { button });
+                            }
+                            sdl2::event::Event::KeyDown { keycode: Some(keycode), .. } => {
+                                input_messages.write(InputMessage::KeyDown { keycode });
+                            }
+                            sdl2::event::Event::KeyUp { keycode: Some(keycode), .. } => {
+                                input_messages.write(InputMessage::KeyUp { keycode });
                             }
                             _ => {}
                         }
@@ -249,6 +205,10 @@ impl Engine {
 
                     while accumulator >= fixed_dt {
                         self.schedule.run(&mut self.world);
+                        // Flush input messages after all game systems have consumed them.
+                        if let Some(mut messages) = self.world.get_resource_mut::<Messages<InputMessage>>() {
+                            messages.update();
+                        }
                         accumulator -= fixed_dt;
                     }
 
@@ -260,13 +220,20 @@ impl Engine {
                         render_queue.instances.clone()
                     };
 
-                    // 2. Get the render data manager
+                    // 2. Compute camera matrices from ECS state (camera is fully game-driven).
+                    let camera_data = Self::camera_render_data(
+                        &mut self.world,
+                        render_params.width,
+                        render_params.height,
+                    );
+
+                    // 3. Get the render data manager
                     let mut render_data_manager = self.world
                         .get_resource_mut::<RenderResourceManager>()
                         .expect("RenderDataManager resource not found");
 
-                    // 3. Render
-                    renderer.render(render_params, &mut *render_data_manager, instances);
+                    // 4. Render
+                    renderer.render(render_params, &mut *render_data_manager, instances, camera_data);
                 }
                 self.window.gl_swap_window();
                 let frame_time = frame_start.elapsed();
@@ -302,5 +269,44 @@ impl Engine {
         let event_loop = sdl.event_pump().unwrap();
 
         (gl, window, event_loop, gl_context)
+    }
+
+    /// Builds camera render data from the ECS world.
+    fn camera_render_data(
+        world: &mut World,
+        width: u32,
+        height: u32,
+    ) -> Option<CameraRenderData> {
+        let active = world.get_resource::<ActiveCamera>()?;
+        let entity = active.0?;
+
+        let mut query = world.query::<(&TransformComponent, &CameraComponent)>();
+        let Ok((transform, camera)) = query.get(world, entity) else {
+            return None;
+        };
+
+        let view = transform
+            .to_mat4()
+            .try_inverse()
+            .unwrap_or_else(nalgebra::Matrix4::identity);
+
+        let fallback_aspect = width as f32 / height as f32;
+        let aspect_ratio = if camera.aspect_ratio > 0.0 {
+            camera.aspect_ratio
+        } else {
+            fallback_aspect
+        };
+
+        let projection = nalgebra::Matrix4::new_perspective(
+            aspect_ratio,
+            camera.fov_y_radians,
+            camera.near,
+            camera.far,
+        );
+
+        Some(CameraRenderData {
+            view_proj: projection * view,
+            position: transform.position,
+        })
     }
 }
