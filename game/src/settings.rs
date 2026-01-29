@@ -80,6 +80,7 @@ impl Settings {
     }
 
     /// Retrieves the path to the default settings file.
+    #[allow(dead_code)]
     fn default_settings_path() -> Result<PathBuf, SettingsError> {
         let config_dir = config_dir().ok_or(SettingsError::ConfigDirNotFound)?;
         Ok(config_dir
@@ -89,6 +90,7 @@ impl Settings {
     }
 
     /// Loads settings from a specified file path.
+    #[allow(dead_code)]
     pub fn load_from_file(path: &Path) -> Result<Self, SettingsError> {
         let content = fs::read_to_string(path)?;
         let settings: Settings = toml::from_str(&content)?;
@@ -115,6 +117,7 @@ impl Settings {
     }
 
     /// Loads user settings, handling defaults and creating necessary files.
+    #[allow(dead_code)]
     pub fn load_user_settings() -> Settings {
         match Settings::initialize_settings() {
             Ok(settings) => settings,
@@ -126,6 +129,7 @@ impl Settings {
     }
 
     /// Initializes settings by loading user settings or falling back to defaults.
+    #[allow(dead_code)]
     fn initialize_settings() -> Result<Self, SettingsError> {
         let user_settings_path = Settings::user_settings_path()?;
         let default_settings_path = Settings::default_settings_path()?;
@@ -150,6 +154,7 @@ impl Settings {
     }
 
     /// Loads default settings and saves them as user settings.
+    #[allow(dead_code)]
     fn load_defaults(user_path: PathBuf, default_path: PathBuf) -> Result<Self, SettingsError> {
         if default_path.exists() {
             let settings = Settings::load_from_file(&default_path)?;

@@ -11,6 +11,12 @@ rfd = "0.15.0"
 
 # logging hookup (optional, but usually useful at app level)
 log = "0.4.22"
+dirs-next = "2.0.0"
+serde = "1.0.228"
+thiserror = "2.0.18"
+toml = "0.9.11"
+serial_test = "3.3.1"
+tempfile = "3.24.0"
 
 [[bin]]
 name = "UltraMayor"
