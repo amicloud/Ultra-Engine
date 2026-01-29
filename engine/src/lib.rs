@@ -90,8 +90,13 @@ struct AppState {
     shared_action_manager: SharedActionManager,
 }
 
-fn main() {
-    std::env::set_var("SLINT_BACKEND", "GL");
+pub struct Engine {
+
+}
+
+impl Engine {
+    pub fn run(&self){
+std::env::set_var("SLINT_BACKEND", "GL");
     // Initialize the Slint application
     let app = App::new().unwrap();
     let app_weak = app.as_weak();
@@ -437,7 +442,9 @@ fn main() {
 
     // Run the Slint application
     app.run().unwrap();
+    }
 }
+
 
 macro_rules! define_scoped_binding {
     (struct $binding_ty_name:ident => $obj_name:path, $param_name:path, $binding_fn:ident, $target_name:path) => {

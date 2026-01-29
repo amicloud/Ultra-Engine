@@ -1,0 +1,17 @@
+[package]
+name = "UltraMayor"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+ultramayor_engine = { path = "../engine" }
+
+# UI / UX
+rfd = "0.15.0"
+
+# logging hookup (optional, but usually useful at app level)
+log = "0.4.22"
+
+[[bin]]
+name = "UltraMayor"
+path = "src/main.rs"

@@ -1,87 +1,36 @@
-[package]
-name = "UltraMayor"
-version = "0.0.1"
-edition = "2021"
-build = "build.rs"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-log = "0.4.22"
-nalgebra = "0.32"
-slint = "1.8.0"
-glow = "0.14.2"
-bytemuck = "1.18.0"
-rfd = "0.15.0"
-uuid = {version = "1.10.0", features = ["v4"]}
-async-compat = "0.2.4"
-toml = "0.8.19" # TOML in a TOML... pretty meta
-serde = "1.0.213"
-thiserror = "1.0.65"
-approx = "0.5.1"
-dirs-next = "2.0.0"
-bevy_ecs = "0.18.0"
-obj-rs = "0.7.4"
-assert_approx_eq = "1.1.0"
-rand = "0.9.2"
-image = "0.25.9"
-gltf = "1.4.1"
-
-[dev-dependencies]
-criterion = "0.4"
-approx = "0.5"
-tempfile = "3.13.0"
-serial_test = "3.1.1"
-
-[build-dependencies]
-slint-build = "1.8.0"
-
-# native:
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tracing-subscriber = "0.3"
-futures = "0.3.28"
-
-# web:
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4"
-
-[[bin]]
-path = "src/main.rs"
-name = "UltraMayor"
+[workspace]
+members = [
+    "engine",
+    "game",
+]
+resolver = "2"
 
 [profile.dev.package."*"]
-# Set the default for dependencies in Development mode.
 opt-level = 1
 
 [profile.dev]
-opt-level = 0          # Optimization level (0-3, s, z)
-debug = true          # Include debug information
-split-debuginfo = '...' # Controls split debug info (platform-specific)
-
-
+opt-level = 0
+debug = true
+split-debuginfo = "..."
 
 [profile.release]
-opt-level = 3          # Optimization level (0-3, s, z)
-debug = false          # Include debug information
-split-debuginfo = '...' # Controls split debug info (platform-specific)
-lto = true             # Enable Link Time Optimization
-
+opt-level = 3
+debug = false
+split-debuginfo = "..."
+lto = true
 
 [profile.release0]
 inherits = "release"
-opt-level = 0          # Optimization level (0-3, s, z)
-
+opt-level = 0
 
 [profile.release1]
 inherits = "release"
-opt-level = 1          # Optimization level (0-3, s, z)
-
+opt-level = 1
 
 [profile.release2]
 inherits = "release"
-opt-level = 2          # Optimization level (0-3, s, z)
-
+opt-level = 2
 
 [profile.release3]
 inherits = "release"
-opt-level = 3          # Optimization level (0-3, s, z)
+opt-level = 3

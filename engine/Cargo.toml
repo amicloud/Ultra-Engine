@@ -1,0 +1,52 @@
+[package]
+name = "ultramayor_engine"
+version = "0.0.1"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+# core / utility
+log = "0.4.22"
+thiserror = "1.0.65"
+uuid = { version = "1.10.0", features = ["v4"] }
+serde = "1.0.213"
+toml = "0.8.19"
+dirs-next = "2.0.0"
+rand = "0.9.2"
+approx = "0.5.1"
+slint = "1.8.0"
+
+# math / ecs
+nalgebra = "0.32"
+bevy_ecs = "0.18.0"
+
+# rendering / assets
+glow = "0.14.2"
+bytemuck = "1.18.0"
+image = "0.25.9"
+gltf = "1.4.1"
+obj-rs = "0.7.4"
+
+# async / platform glue
+async-compat = "0.2.4"
+
+# native
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tracing-subscriber = "0.3"
+futures = "0.3.28"
+
+# web
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+
+[dev-dependencies]
+criterion = "0.4"
+approx = "0.5"
+tempfile = "3.13.0"
+serial_test = "3.1.1"
+assert_approx_eq = "1.1.0"
+
+
+[build-dependencies]
+
+slint-build = "1.8.0"
