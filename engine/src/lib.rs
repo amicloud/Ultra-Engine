@@ -42,6 +42,7 @@ use crate::basic_physics_system::BasicPhysicsSystem;
 use crate::camera::Camera;
 use crate::camera_input::{
     apply_camera_input, update_camera_messages, ActiveCamera, CameraInputMessage, CameraInputState,
+    MouseButton,
 };
 use crate::material_component::MaterialComponent;
 use crate::mesh::Mesh;
@@ -224,12 +225,42 @@ impl Engine {
             'render: loop {
                 let frame_start = Instant::now();
                 {
+                    let mut camera_messages = world
+                        .get_resource_mut::<Messages<CameraInputMessage>>()
+                        .expect("CameraInputMessage resource not found");
+
                     for event in events_loop.poll_iter() {
-                        if let sdl2::event::Event::Quit { .. } = event {
-                            break 'render;
+                        match event {
+                            sdl2::event::Event::Quit { .. } => {
+                                break 'render;
+                            }
+                            sdl2::event::Event::MouseMotion { x, y, .. } => {
+                                camera_messages.write(CameraInputMessage::MouseMove {
+                                    x: x as f32,
+                                    y: y as f32,
+                                });
+                            }
+                            sdl2::event::Event::MouseWheel { y, direction, .. } => {
+                                let mut delta = y as f32;
+                                if direction == sdl2::mouse::MouseWheelDirection::Flipped {
+                                    delta = -delta;
+                                }
+                                camera_messages.write(CameraInputMessage::MouseScroll { delta });
+                            }
+                            sdl2::event::Event::MouseButtonDown { mouse_btn, .. } => {
+                                if let Some(button) = map_mouse_button(mouse_btn) {
+                                    camera_messages.write(CameraInputMessage::MouseDown { button });
+                                }
+                            }
+                            sdl2::event::Event::MouseButtonUp { mouse_btn, .. } => {
+                                if let Some(button) = map_mouse_button(mouse_btn) {
+                                    camera_messages.write(CameraInputMessage::MouseUp { button });
+                                }
+                            }
+                            _ => {}
                         }
                     }
-                    // Get the requested texture size for current window size
+
                     let width = window.size().0 as f32;
                     let height = window.size().1 as f32;
                     let render_scale = 1.0;
@@ -239,6 +270,7 @@ impl Engine {
                         visualize_edges: false,
                         visualize_normals: false,
                     };
+                    
                     let now = Instant::now();
                     let frame_time = now - last_frame;
                     last_frame = now;
@@ -289,7 +321,7 @@ impl Engine {
         gl_attr.set_depth_size(24);
         gl_attr.set_context_flags().forward_compatible().set();
         let window = video
-            .window("Hello triangle!", 1024, 769)
+            .window("Engine", 1024, 769)
             .opengl()
             .resizable()
             .build()
@@ -300,5 +332,16 @@ impl Engine {
         let event_loop = sdl.event_pump().unwrap();
 
         (gl, window, event_loop, gl_context)
+    }
+}
+
+fn map_mouse_button(button: sdl2::mouse::MouseButton) -> Option<MouseButton> {
+    match button {
+        sdl2::mouse::MouseButton::Left => Some(MouseButton::Left),
+        sdl2::mouse::MouseButton::Middle => Some(MouseButton::Middle),
+        sdl2::mouse::MouseButton::Right => Some(MouseButton::Right),
+        sdl2::mouse::MouseButton::X1 => Some(MouseButton::Back),
+        sdl2::mouse::MouseButton::X2 => Some(MouseButton::Forward),
+        _ => Some(MouseButton::Other),
     }
 }
