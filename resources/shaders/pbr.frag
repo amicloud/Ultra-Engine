@@ -54,6 +54,7 @@ void main() {
 
     // Normal mapping (tangent → world)
     vec3 N_tangent = texture(u_normal, v_uv_normal).xyz * 2.0 - 1.0;
+    N_tangent.xy *= 2.0; // Increase normal map strength
     vec3 N = normalize(v_tbn * N_tangent);
 
     vec3 V = normalize(v_view_dir);
