@@ -15,11 +15,11 @@ fn main() {
         // )),
         // engine.load_gltf(OsStr::new("resources/models/suzanne/Suzanne.gltf")),
 
-        engine.load_gltf(OsStr::new("resources/models/acvodad/Avocado.gltf")),
+        engine.load_gltf(OsStr::new("resources/models/avocado/Avocado.gltf")),
     ];
 
     let t_range = 2.0;
-    for _ in 0..1000 {
+    for _ in 0..10 {
         for (mesh_handle, material_handle) in &assets {
             // Random position
             let pos = Vector3::new(

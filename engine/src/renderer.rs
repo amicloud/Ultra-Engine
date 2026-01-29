@@ -2,7 +2,7 @@ use crate::handles::CameraHandle;
 use crate::handles::MaterialHandle;
 use crate::handles::MeshHandle;
 use crate::mesh::Mesh;
-use crate::render_data_manager::RenderResourceManager;
+use crate::render_resource_manager::RenderResourceManager;
 use crate::render_instance::RenderInstance;
 use std::rc::Rc;
 // use crate::render_texture::RenderTexture;

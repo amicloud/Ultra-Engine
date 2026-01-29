@@ -6,7 +6,7 @@ use bevy_ecs::prelude::*;
 
 use crate::handles::CameraHandle;
 use crate::input::MouseButton;
-use crate::render_data_manager::RenderResourceManager;
+use crate::render_resource_manager::RenderResourceManager;
 
 #[derive(Copy, Clone, Debug, Default, Resource)]
 pub struct ActiveCamera(pub CameraHandle);
