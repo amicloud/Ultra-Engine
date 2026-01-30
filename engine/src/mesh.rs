@@ -148,6 +148,12 @@ pub struct Mesh {
     pub instance_count: usize,
 }
 
+#[derive(Clone)]
+pub struct GltfPrimitiveMesh {
+    pub mesh: Mesh,
+    pub material_index: Option<usize>,
+}
+
 impl Mesh {
     pub fn upload_to_gpu(&mut self, gl: &glow::Context) {
         unsafe {
@@ -279,21 +285,15 @@ impl Mesh {
         }
     }
 
-    pub fn from_gltf(path: &OsStr) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_gltf(path: &OsStr) -> Result<Vec<GltfPrimitiveMesh>, Box<dyn std::error::Error>> {
         let (gltf, buffers, _) = gltf::import(path.to_str().unwrap())?;
-        let mut mesh = Mesh::default();
+        let mut meshes = Vec::new();
 
         for gltf_mesh in gltf.meshes() {
             println!("Mesh #{}", gltf_mesh.index());
-            if gltf_mesh.index() > 0 {
-                warn!("Trying to load a glTF with more than 1 mesh, which is currently not supported.");
-            }
 
             for primitive in gltf_mesh.primitives() {
                 println!("- Primitive #{}", primitive.index());
-                if primitive.index() > 0 {
-                    warn!("Trying to load a glTF with more than 1 primitive, which is currently not supported.");
-                }
 
                 let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
 
@@ -337,6 +337,8 @@ impl Mesh {
                 assert_eq!(positions.len(), uvs.len());
                 assert_eq!(positions.len(), tangents.len());
 
+                let mut mesh = Mesh::default();
+
                 // Build vertices
                 for i in 0..positions.len() {
                     mesh.vertices.push(Vertex {
@@ -355,19 +357,26 @@ impl Mesh {
                 }
 
                 mesh.indices.extend(indices);
+
+                // Mesh ID & bounds (include mesh + primitive indices to ensure uniqueness)
+                mesh.id = {
+                    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                    path.hash(&mut hasher);
+                    gltf_mesh.index().hash(&mut hasher);
+                    primitive.index().hash(&mut hasher);
+                    MeshHandle(hasher.finish() as u32)
+                };
+                mesh.aabb = AABB::from_vertices(&mesh.vertices);
+                mesh.compute_bounding_sphere();
+
+                meshes.push(GltfPrimitiveMesh {
+                    mesh,
+                    material_index: primitive.material().index(),
+                });
             }
         }
 
-        // Mesh ID & bounds
-        mesh.id = {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            path.hash(&mut hasher);
-            MeshHandle(hasher.finish() as u32)
-        };
-        mesh.aabb = AABB::from_vertices(&mesh.vertices);
-        mesh.compute_bounding_sphere();
-
-        Ok(mesh)
+        Ok(meshes)
     }
 
     pub fn compute_bounding_sphere(&mut self) {

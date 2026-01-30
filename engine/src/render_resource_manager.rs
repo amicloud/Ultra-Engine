@@ -4,12 +4,14 @@ use std::ffi::OsStr;
 
 use crate::{
     material::Material, material::MaterialDesc, material_resource::MaterialResource,
-    mesh_resource::MeshResource, shader::Shader, texture_resource_manager::TextureResource,
+    mesh_resource::MeshResource, render_body_resource::RenderBodyResource, shader::Shader,
+    texture_resource_manager::TextureResource,
 };
 
 #[derive(Resource)]
 pub struct RenderResourceManager {
     pub mesh_manager: MeshResource,
+    pub render_body_manager: RenderBodyResource,
     pub material_manager: MaterialResource,
     pub texture_manager: TextureResource,
 }
@@ -18,6 +20,7 @@ impl RenderResourceManager {
     pub fn new() -> Self {
         Self {
             mesh_manager: MeshResource::default(),
+            render_body_manager: RenderBodyResource::default(),
             material_manager: MaterialResource::default(),
             texture_manager: TextureResource::default(),
         }

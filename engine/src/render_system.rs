@@ -1,25 +1,34 @@
 use crate::{
-    material_component::MaterialComponent, mesh_component::MeshComponent,
-    render_instance::RenderInstance, render_queue::RenderQueue,
+    render_body_component::RenderBodyComponent, render_instance::RenderInstance,
+    render_queue::RenderQueue, render_resource_manager::RenderResourceManager,
     transform_component::TransformComponent,
 };
 
-use bevy_ecs::prelude::{Query, ResMut};
+use bevy_ecs::prelude::{Query, Res, ResMut};
 pub struct RenderSystem {}
 
 impl RenderSystem {
     pub fn extract_render_data(
-        query: Query<(&TransformComponent, &MeshComponent, &MaterialComponent)>,
+        query: Query<(&TransformComponent, &RenderBodyComponent)>,
+        render_resources: Res<RenderResourceManager>,
         mut queue: ResMut<RenderQueue>,
     ) {
         queue.instances.clear();
 
-        for (transform, mesh, material) in &query {
-            queue.instances.push(RenderInstance {
-                mesh_id: mesh.mesh_id,
-                transform: transform.to_mat4(),
-                material_id: material.material_id,
-            });
+        for (transform, render_body) in &query {
+            let body = render_resources
+                .render_body_manager
+                .get_render_body(render_body.render_body_id)
+                .expect("RenderBody not found");
+
+            let world_transform = transform.to_mat4();
+            for part in &body.parts {
+                queue.instances.push(RenderInstance {
+                    mesh_id: part.mesh_id,
+                    transform: world_transform * part.local_transform,
+                    material_id: part.material_id,
+                });
+            }
         }
     }
 }

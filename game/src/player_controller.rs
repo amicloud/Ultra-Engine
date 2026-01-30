@@ -13,7 +13,11 @@ pub struct PlayerComponent {
 /// Applies WASD + Space/Shift to the active camera's velocity.
 pub fn apply_player_input(
     input_state: Res<InputState>,
-    mut query: Query<(&TransformComponent, &PlayerComponent, &mut VelocityComponent)>,
+    mut query: Query<(
+        &TransformComponent,
+        &PlayerComponent,
+        &mut VelocityComponent,
+    )>,
 ) {
     for (transform, controller, mut velocity) in &mut query {
         let forward = transform

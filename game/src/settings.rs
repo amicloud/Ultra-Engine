@@ -108,7 +108,6 @@ impl Settings {
         Ok(())
     }
 
-
     #[allow(dead_code)]
     /// Saves settings to the user settings file.
     pub fn save_user_settings(&self) -> Result<(), SettingsError> {

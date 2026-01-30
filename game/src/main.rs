@@ -1,27 +1,26 @@
-mod settings;
 mod camera_controller;
-mod player_controller;
 mod input_controller;
+mod player_controller;
+mod settings;
 
-use nalgebra::Vector3;
-use rand::random_range;
-use std::ffi::OsStr;
-use ultramayor_engine::{
-    ActiveCamera, CameraComponent, Engine, MaterialComponent, MeshComponent, TransformComponent,
-    VelocityComponent,
-};
 use camera_controller::{apply_flying_camera_input, FlyingCameraComponent};
 use input_controller::{update_input_state, InputState};
+use nalgebra::Vector3;
 use player_controller::{apply_player_input, PlayerComponent};
+use rand::random_range;
+use ultramayor_engine::{
+    ActiveCamera, CameraComponent, Engine, RenderBodyComponent, TransformComponent,
+    VelocityComponent,
+};
 
-use crate::camera_controller::{OrbitCameraComponent, apply_orbit_camera_input};
+use crate::camera_controller::{apply_orbit_camera_input, OrbitCameraComponent};
 fn main() {
     println!("Welcome to the Game!");
     let mut engine = Engine::new();
 
     // Create an ECS-driven camera entity and mark it active.
     let aspect_ratio = 1024.0 / 769.0;
-    let camera_transform = TransformComponent{
+    let camera_transform = TransformComponent {
         position: Vector3::new(0.0, 0.0, 300.0),
         rotation: nalgebra::UnitQuaternion::identity().inverse(),
         scale: Vector3::new(1.0, 1.0, 1.0),
@@ -35,7 +34,7 @@ fn main() {
                 fov_y_radians: 75.0_f32.to_radians(),
                 aspect_ratio,
                 near: 0.1,
-                far: 1000.0,
+                far: 10000.0,
             },
             FlyingCameraComponent {
                 yaw: -135.0,
@@ -50,7 +49,6 @@ fn main() {
         ))
         .id();
 
-
     #[allow(unused_variables)]
     let orbit_camera = engine
         .world
@@ -60,7 +58,7 @@ fn main() {
                 fov_y_radians: 75.0_f32.to_radians(),
                 aspect_ratio,
                 near: 0.1,
-                far: 1000.0,
+                far: 10000.0,
             },
             OrbitCameraComponent {
                 target: Vector3::new(0.0, 0.0, 0.0),
@@ -72,11 +70,18 @@ fn main() {
         ))
         .id();
 
-    engine.world.get_resource_mut::<ActiveCamera>().unwrap().set(flying_camera);
-    engine.world.insert_resource(InputState::default());
     engine
-        .schedule
-        .add_systems((update_input_state, apply_orbit_camera_input, apply_flying_camera_input, apply_player_input));
+        .world
+        .get_resource_mut::<ActiveCamera>()
+        .unwrap()
+        .set(flying_camera);
+    engine.world.insert_resource(InputState::default());
+    engine.schedule.add_systems((
+        update_input_state,
+        apply_orbit_camera_input,
+        apply_flying_camera_input,
+        apply_player_input,
+    ));
 
     let assets = [
         // engine.load_gltf(OsStr::new("resources/models/cube/Cube.gltf")),
@@ -84,15 +89,16 @@ fn main() {
         //     "resources/models/normal_tangent_test/NormalTangentMirrorTest.gltf",
         // )),
         // engine.load_gltf(OsStr::new("resources/models/suzanne/Suzanne.gltf")),
-
-        engine.load_gltf(OsStr::new("resources/models/avocado/Avocado.gltf")),
+        engine.load_gltf("resources/models/avocado/Avocado.gltf"),
     ];
 
-    let ground = engine.load_gltf(OsStr::new("resources/models/opalton/opalton3Dterrain.gltf"));
+    let ground = engine.load_gltf("resources/models/opalton/opalton3Dterrain.gltf");
+
+    let antique_camera = engine.load_gltf("resources/models/antique_camera/AntiqueCamera.gltf");
 
     let t_range = 2.0;
     for _ in 0..100 {
-        for (mesh_handle, material_handle) in &assets {
+        for render_body_handle in &assets {
             // Random position
             let pos = Vector3::new(
                 random_range(-10.0..10.0),
@@ -127,11 +133,8 @@ fn main() {
                     translational,
                     angular,
                 },
-                MeshComponent {
-                    mesh_id: *mesh_handle,
-                },
-                MaterialComponent {
-                    material_id: *material_handle,
+                RenderBodyComponent {
+                    render_body_id: *render_body_handle,
                 },
             ));
         }
@@ -144,11 +147,29 @@ fn main() {
             rotation: nalgebra::UnitQuaternion::identity(),
             scale: Vector3::new(ground_scale, ground_scale, 1.0),
         },
-        MeshComponent {
-            mesh_id: ground.0,
+        RenderBodyComponent {
+            render_body_id: ground,
         },
-        MaterialComponent {
-            material_id: ground.1,
+    ));
+
+    let antique_camera_scale = 10.0;
+    let mut antique_camera_transform = TransformComponent {
+        position: camera_transform.position,
+        rotation: nalgebra::UnitQuaternion::identity(),
+        scale: Vector3::new(
+            antique_camera_scale,
+            antique_camera_scale,
+            antique_camera_scale,
+        ),
+    };
+
+    antique_camera_transform.position.x += 50.0;
+    antique_camera_transform.position.y += 50.0;
+
+    engine.world.spawn((
+        antique_camera_transform,
+        RenderBodyComponent {
+            render_body_id: antique_camera,
         },
     ));
 

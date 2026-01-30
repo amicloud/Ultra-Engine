@@ -12,11 +12,13 @@ mod material;
 mod material_component;
 mod material_resource;
 mod mesh;
-mod mesh_component;
 mod mesh_resource;
-mod render_resource_manager;
+mod render_body;
+mod render_body_component;
+mod render_body_resource;
 mod render_instance;
 mod render_queue;
+mod render_resource_manager;
 mod render_system;
 mod renderer;
 mod shader;
@@ -29,6 +31,7 @@ use bevy_ecs::prelude::*;
 use glow::HasContext;
 use renderer::Renderer;
 use std::ffi::OsStr;
+use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use std::thread::sleep;
 use std::time::Duration;
@@ -37,19 +40,20 @@ use std::time::Instant;
 use crate::basic_physics_system::BasicPhysicsSystem;
 use crate::mesh::Mesh;
 use crate::mesh_resource::MeshResource;
-use crate::render_resource_manager::RenderResourceManager;
+use crate::render_body::{RenderBody, RenderBodyPart};
 use crate::render_instance::RenderInstance;
 use crate::render_queue::RenderQueue;
+use crate::render_resource_manager::RenderResourceManager;
 use crate::render_system::RenderSystem;
 use crate::renderer::{CameraRenderData, RenderParams};
 
-pub use crate::handles::{MaterialHandle, MeshHandle};
+pub use crate::camera_component::{ActiveCamera, CameraComponent};
+pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
+pub use crate::input::{InputMessage, MouseButton};
 pub use crate::material_component::MaterialComponent;
-pub use crate::mesh_component::MeshComponent;
+pub use crate::render_body_component::RenderBodyComponent;
 pub use crate::transform_component::TransformComponent;
 pub use crate::velocity_component::VelocityComponent;
-pub use crate::camera_component::{ActiveCamera, CameraComponent};
-pub use crate::input::{InputMessage, MouseButton};
 pub struct Engine {
     pub world: World,
     pub schedule: Schedule,
@@ -58,7 +62,6 @@ pub struct Engine {
     events_loop: sdl2::EventPump,
     _gl_context: sdl2::video::GLContext,
 }
-
 
 impl Engine {
     pub fn new() -> Self {
@@ -74,12 +77,17 @@ impl Engine {
 
         let mut schedule = Schedule::default();
         // Engine-only systems. Game code adds its own systems to this schedule.
-        schedule.add_systems((BasicPhysicsSystem::update, RenderSystem::extract_render_data).chain());
+        schedule.add_systems(
+            (
+                BasicPhysicsSystem::update,
+                RenderSystem::extract_render_data,
+            )
+                .chain(),
+        );
 
-        
         let mut render_data_manager = world
-                .get_resource_mut::<RenderResourceManager>()
-                .expect("RenderResourceManager resource not found");
+            .get_resource_mut::<RenderResourceManager>()
+            .expect("RenderResourceManager resource not found");
 
         render_data_manager
             .texture_manager
@@ -95,36 +103,59 @@ impl Engine {
         }
     }
 
-    pub fn load_gltf(&mut self, gltf_path: &OsStr) -> (MeshHandle, MaterialHandle) {
+    pub fn load_gltf(&mut self, gltf_path: &str) -> RenderBodyHandle {
         let gl = &self.gl;
-        let (mesh_handle, material_handle) = {
+        let os_path = OsStr::new(gltf_path);
+        let render_body_handle = {
             let mut render_data_manager = self
                 .world
                 .get_resource_mut::<RenderResourceManager>()
                 .expect("RenderResourceManager resource not found");
 
+            let mesh_primitives = Mesh::from_gltf(os_path).unwrap();
 
-            let mesh_handle = render_data_manager
-                .mesh_manager
-                .add_mesh(Mesh::from_gltf(gltf_path).unwrap(), gl);
-
-            let mut material_handles = render_data_manager
+            let material_handles = render_data_manager
                 .load_materials_from_gltf(
                     gl,
-                    gltf_path,
+                    os_path,
                     OsStr::new("resources/shaders/pbr.vert"),
                     OsStr::new("resources/shaders/pbr.frag"),
                 )
                 .expect("Failed to load glTF materials");
 
-            let material_handle = material_handles
-                .pop()
+            let default_material = *material_handles
+                .first()
                 .expect("No materials found in glTF");
 
-            (mesh_handle, material_handle)
+            let mut parts = Vec::with_capacity(mesh_primitives.len());
+            for prim in mesh_primitives {
+                let mesh_handle = render_data_manager.mesh_manager.add_mesh(prim.mesh, gl);
+
+                let material_handle = prim
+                    .material_index
+                    .and_then(|idx| material_handles.get(idx).copied())
+                    .unwrap_or(default_material);
+
+                parts.push(RenderBodyPart {
+                    mesh_id: mesh_handle,
+                    material_id: material_handle,
+                    local_transform: nalgebra::Matrix4::identity(),
+                });
+            }
+
+            let render_body_id = {
+                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                gltf_path.hash(&mut hasher);
+                RenderBodyHandle(hasher.finish() as u32)
+            };
+
+            let render_body = RenderBody::new(render_body_id, parts);
+            render_data_manager
+                .render_body_manager
+                .add_render_body(render_body)
         };
 
-        (mesh_handle, material_handle)
+        render_body_handle
     }
 
     pub fn run(&mut self) {
@@ -153,7 +184,8 @@ impl Engine {
                 let frame_start = Instant::now();
                 {
                     // Engine responsibility: translate SDL2 events into generic ECS messages.
-                    let mut input_messages = self.world
+                    let mut input_messages = self
+                        .world
                         .get_resource_mut::<Messages<InputMessage>>()
                         .expect("InputMessage resource not found");
 
@@ -173,7 +205,7 @@ impl Engine {
                                 if direction == sdl2::mouse::MouseWheelDirection::Flipped {
                                     delta = -delta;
                                 }
-                                input_messages.write(InputMessage::MouseScroll { delta: delta});
+                                input_messages.write(InputMessage::MouseScroll { delta: delta });
                             }
                             sdl2::event::Event::MouseButtonDown { mouse_btn, .. } => {
                                 let button = MouseButton::from(mouse_btn);
@@ -183,10 +215,16 @@ impl Engine {
                                 let button = MouseButton::from(mouse_btn);
                                 input_messages.write(InputMessage::MouseButtonUp { button });
                             }
-                            sdl2::event::Event::KeyDown { keycode: Some(keycode), .. } => {
+                            sdl2::event::Event::KeyDown {
+                                keycode: Some(keycode),
+                                ..
+                            } => {
                                 input_messages.write(InputMessage::KeyDown { keycode });
                             }
-                            sdl2::event::Event::KeyUp { keycode: Some(keycode), .. } => {
+                            sdl2::event::Event::KeyUp {
+                                keycode: Some(keycode),
+                                ..
+                            } => {
                                 input_messages.write(InputMessage::KeyUp { keycode });
                             }
                             _ => {}
@@ -202,7 +240,7 @@ impl Engine {
                         visualize_edges: false,
                         visualize_normals: false,
                     };
-                    
+
                     let now = Instant::now();
                     let frame_time = now - last_frame;
                     last_frame = now;
@@ -212,7 +250,9 @@ impl Engine {
                     while accumulator >= fixed_dt {
                         self.schedule.run(&mut self.world);
                         // Flush input messages after all game systems have consumed them.
-                        if let Some(mut messages) = self.world.get_resource_mut::<Messages<InputMessage>>() {
+                        if let Some(mut messages) =
+                            self.world.get_resource_mut::<Messages<InputMessage>>()
+                        {
                             messages.update();
                         }
                         accumulator -= fixed_dt;
@@ -220,7 +260,8 @@ impl Engine {
 
                     // 1. Extract instance data AFTER systems run
                     let instances: Vec<RenderInstance> = {
-                        let render_queue = self.world
+                        let render_queue = self
+                            .world
                             .get_resource::<RenderQueue>()
                             .expect("RenderQueue resource not found");
                         render_queue.instances.clone()
@@ -234,12 +275,18 @@ impl Engine {
                     );
 
                     // 3. Get the render data manager
-                    let mut render_data_manager = self.world
+                    let mut render_data_manager = self
+                        .world
                         .get_resource_mut::<RenderResourceManager>()
                         .expect("RenderDataManager resource not found");
 
                     // 4. Render
-                    renderer.render(render_params, &mut *render_data_manager, instances, camera_data);
+                    renderer.render(
+                        render_params,
+                        &mut *render_data_manager,
+                        instances,
+                        camera_data,
+                    );
                 }
                 self.window.gl_swap_window();
                 let frame_time = frame_start.elapsed();
@@ -278,11 +325,7 @@ impl Engine {
     }
 
     /// Builds camera render data from the ECS world.
-    fn camera_render_data(
-        world: &mut World,
-        width: u32,
-        height: u32,
-    ) -> Option<CameraRenderData> {
+    fn camera_render_data(world: &mut World, width: u32, height: u32) -> Option<CameraRenderData> {
         let active = world.get_resource::<ActiveCamera>()?;
         let entity = active.0?;
 

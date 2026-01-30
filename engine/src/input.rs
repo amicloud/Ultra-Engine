@@ -37,4 +37,3 @@ pub enum InputMessage {
     KeyDown { keycode: Keycode },
     KeyUp { keycode: Keycode },
 }
-
