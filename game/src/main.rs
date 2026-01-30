@@ -1,19 +1,22 @@
 mod camera_controller;
 mod input_controller;
-mod player_controller;
 mod settings;
 
-use camera_controller::{apply_flying_camera_input, FlyingCameraComponent};
-use input_controller::{update_input_state, InputState};
+use camera_controller::{
+    apply_flying_camera_input, apply_flying_camera_movement, FlyingCameraComponent,
+    FlyingCameraMovementComponent,
+};
+// use input_controller::{update_input_state, InputState};
 use nalgebra::Vector3;
-use player_controller::{apply_player_input, PlayerComponent};
 use rand::random_range;
 use ultramayor_engine::{
     ActiveCamera, CameraComponent, Engine, RenderBodyComponent, TransformComponent,
     VelocityComponent,
 };
 
-use crate::camera_controller::{apply_orbit_camera_input, OrbitCameraComponent};
+use crate::camera_controller::{
+    apply_orbit_camera_input, apply_switch_camera_input, OrbitCameraComponent,
+};
 fn main() {
     println!("Welcome to the Game!");
     let mut engine = Engine::new();
@@ -45,7 +48,7 @@ fn main() {
                 translational: Vector3::new(0.0, 0.0, 0.0),
                 angular: Vector3::new(0.0, 0.0, 0.0),
             },
-            PlayerComponent { speed: 100.0 },
+            FlyingCameraMovementComponent { speed: 100.0 },
         ))
         .id();
 
@@ -75,12 +78,11 @@ fn main() {
         .get_resource_mut::<ActiveCamera>()
         .unwrap()
         .set(flying_camera);
-    engine.world.insert_resource(InputState::default());
     engine.schedule.add_systems((
-        update_input_state,
         apply_orbit_camera_input,
         apply_flying_camera_input,
-        apply_player_input,
+        apply_flying_camera_movement,
+        apply_switch_camera_input,
     ));
 
     let assets = [
@@ -163,6 +165,11 @@ fn main() {
         ),
     };
 
+    let antique_camera_velocity = VelocityComponent {
+        translational: Vector3::new(0.0, 0.0, 0.0),
+        angular: Vector3::new(0.0, 1.0, 0.0),
+    };
+
     antique_camera_transform.position.x += 50.0;
     antique_camera_transform.position.y += 50.0;
 
@@ -171,6 +178,21 @@ fn main() {
         RenderBodyComponent {
             render_body_id: antique_camera,
         },
+        antique_camera_velocity,
+    ));
+    engine.world.spawn((
+        antique_camera_transform,
+        RenderBodyComponent {
+            render_body_id: antique_camera,
+        },
+        antique_camera_velocity / 2.0,
+    ));
+    engine.world.spawn((
+        antique_camera_transform,
+        RenderBodyComponent {
+            render_body_id: antique_camera,
+        },
+        antique_camera_velocity / 3.0,
     ));
 
     engine.run();

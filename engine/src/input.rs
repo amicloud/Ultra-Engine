@@ -1,10 +1,12 @@
 // Distributed under the GNU Affero General Public License v3.0 or later.
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 
-use bevy_ecs::message::Message;
+use std::collections::HashSet;
+
+use bevy_ecs::resource::Resource;
 use sdl2::keyboard::Keycode;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MouseButton {
     Left,
     Middle,
@@ -27,13 +29,41 @@ impl From<sdl2::mouse::MouseButton> for MouseButton {
     }
 }
 
-/// Generic input messages that the engine writes and game logic consumes.
-#[derive(Copy, Clone, Debug, Message)]
-pub enum InputMessage {
-    MouseMove { x: f32, y: f32 },
-    MouseScroll { delta: f32 },
-    MouseButtonDown { button: MouseButton },
-    MouseButtonUp { button: MouseButton },
-    KeyDown { keycode: Keycode },
-    KeyUp { keycode: Keycode },
+#[derive(Default, Resource)]
+pub struct InputStateResource {
+    pub(crate) current_keys: HashSet<Keycode>,
+    pub(crate) previous_keys: HashSet<Keycode>,
+
+    pub mouse_delta: (f32, f32),
+    pub scroll_delta: f32,
+    pub current_mouse_buttons: HashSet<MouseButton>,
+    pub previous_mouse_buttons: HashSet<MouseButton>,
+}
+
+impl InputStateResource {
+    pub fn is_key_down(&self, key: Keycode) -> bool {
+        self.current_keys.contains(&key)
+    }
+
+    pub fn is_key_pressed(&self, key: Keycode) -> bool {
+        self.current_keys.contains(&key) && !self.previous_keys.contains(&key)
+    }
+
+    pub fn is_key_released(&self, key: Keycode) -> bool {
+        !self.current_keys.contains(&key) && self.previous_keys.contains(&key)
+    }
+
+    pub fn is_mouse_button_down(&self, button: MouseButton) -> bool {
+        self.current_mouse_buttons.contains(&button)
+    }
+
+    pub fn is_mouse_button_pressed(&self, button: MouseButton) -> bool {
+        self.current_mouse_buttons.contains(&button)
+            && !self.previous_mouse_buttons.contains(&button)
+    }
+
+    pub fn is_mouse_button_released(&self, button: MouseButton) -> bool {
+        !self.current_mouse_buttons.contains(&button)
+            && self.previous_mouse_buttons.contains(&button)
+    }
 }

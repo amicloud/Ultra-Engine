@@ -7,7 +7,7 @@ mod basic_physics_system;
 mod camera_component;
 mod frustum;
 mod handles;
-mod input;
+pub mod input;
 mod material;
 mod material_component;
 mod material_resource;
@@ -26,7 +26,6 @@ mod texture;
 mod texture_resource_manager;
 mod transform_component;
 mod velocity_component;
-use bevy_ecs::message::Messages;
 use bevy_ecs::prelude::*;
 use glow::HasContext;
 use renderer::Renderer;
@@ -38,6 +37,7 @@ use std::time::Duration;
 use std::time::Instant;
 
 use crate::basic_physics_system::BasicPhysicsSystem;
+use crate::input::InputStateResource;
 use crate::mesh::Mesh;
 use crate::mesh_resource::MeshResource;
 use crate::render_body::{RenderBody, RenderBodyPart};
@@ -49,7 +49,7 @@ use crate::renderer::{CameraRenderData, RenderParams};
 
 pub use crate::camera_component::{ActiveCamera, CameraComponent};
 pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
-pub use crate::input::{InputMessage, MouseButton};
+pub use crate::input::MouseButton;
 pub use crate::material_component::MaterialComponent;
 pub use crate::render_body_component::RenderBodyComponent;
 pub use crate::transform_component::TransformComponent;
@@ -73,7 +73,7 @@ impl Engine {
         world.insert_resource(RenderQueue::default());
         world.insert_resource(RenderResourceManager::new());
         world.insert_resource(ActiveCamera::default());
-        world.init_resource::<Messages<InputMessage>>();
+        world.insert_resource(InputStateResource::default());
 
         let mut schedule = Schedule::default();
         // Engine-only systems. Game code adds its own systems to this schedule.
@@ -183,49 +183,49 @@ impl Engine {
             'render: loop {
                 let frame_start = Instant::now();
                 {
-                    // Engine responsibility: translate SDL2 events into generic ECS messages.
-                    let mut input_messages = self
+                    let mut input_state = self
                         .world
-                        .get_resource_mut::<Messages<InputMessage>>()
-                        .expect("InputMessage resource not found");
+                        .get_resource_mut::<InputStateResource>()
+                        .expect("InputStateResource resource not found");
+                    input_state.previous_keys = input_state.current_keys.clone();
+                    input_state.previous_mouse_buttons = input_state.current_mouse_buttons.clone();
+                    input_state.mouse_delta = (0.0, 0.0);
+                    input_state.scroll_delta = 0.0;
 
                     for event in self.events_loop.poll_iter() {
                         match event {
                             sdl2::event::Event::Quit { .. } => {
                                 break 'render;
                             }
-                            sdl2::event::Event::MouseMotion { x, y, .. } => {
-                                input_messages.write(InputMessage::MouseMove {
-                                    x: x as f32,
-                                    y: y as f32,
-                                });
+                            sdl2::event::Event::MouseMotion { xrel, yrel, .. } => {
+                                input_state.mouse_delta = (xrel as f32, yrel as f32);
                             }
                             sdl2::event::Event::MouseWheel { y, direction, .. } => {
                                 let mut delta = y as f32;
                                 if direction == sdl2::mouse::MouseWheelDirection::Flipped {
                                     delta = -delta;
                                 }
-                                input_messages.write(InputMessage::MouseScroll { delta: delta });
+                                input_state.scroll_delta = delta;
                             }
                             sdl2::event::Event::MouseButtonDown { mouse_btn, .. } => {
                                 let button = MouseButton::from(mouse_btn);
-                                input_messages.write(InputMessage::MouseButtonDown { button });
+                                input_state.current_mouse_buttons.insert(button);
                             }
                             sdl2::event::Event::MouseButtonUp { mouse_btn, .. } => {
                                 let button = MouseButton::from(mouse_btn);
-                                input_messages.write(InputMessage::MouseButtonUp { button });
+                                input_state.current_mouse_buttons.remove(&button);
                             }
                             sdl2::event::Event::KeyDown {
                                 keycode: Some(keycode),
                                 ..
                             } => {
-                                input_messages.write(InputMessage::KeyDown { keycode });
+                                input_state.current_keys.insert(keycode);
                             }
                             sdl2::event::Event::KeyUp {
                                 keycode: Some(keycode),
                                 ..
                             } => {
-                                input_messages.write(InputMessage::KeyUp { keycode });
+                                input_state.current_keys.remove(&keycode);
                             }
                             _ => {}
                         }
@@ -249,12 +249,6 @@ impl Engine {
 
                     while accumulator >= fixed_dt {
                         self.schedule.run(&mut self.world);
-                        // Flush input messages after all game systems have consumed them.
-                        if let Some(mut messages) =
-                            self.world.get_resource_mut::<Messages<InputMessage>>()
-                        {
-                            messages.update();
-                        }
                         accumulator -= fixed_dt;
                     }
 
