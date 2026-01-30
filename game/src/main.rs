@@ -24,8 +24,8 @@ fn main() {
     // Create an ECS-driven camera entity and mark it active.
     let aspect_ratio = 1024.0 / 769.0;
     let camera_transform = TransformComponent {
-        position: Vector3::new(0.0, 0.0, 300.0),
-        rotation: nalgebra::UnitQuaternion::identity().inverse(),
+        position: Vector3::new(0.0, 0.0, 0.0),
+        rotation: nalgebra::UnitQuaternion::identity(),
         scale: Vector3::new(1.0, 1.0, 1.0),
     };
 
@@ -145,7 +145,7 @@ fn main() {
     let ground_scale = 1.0;
     engine.world.spawn((
         TransformComponent {
-            position: Vector3::new(0.0, 0.0, 10.0),
+            position: Vector3::new(0.0, 0.0, -300.0),
             rotation: nalgebra::UnitQuaternion::identity(),
             scale: Vector3::new(ground_scale, ground_scale, 1.0),
         },

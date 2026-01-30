@@ -2,9 +2,10 @@ use bevy_ecs::prelude::*;
 use nalgebra::{Matrix3, UnitQuaternion, Vector3};
 use sdl2::keyboard::Keycode;
 use ultramayor_engine::{
-    input::InputStateResource, ActiveCamera, CameraComponent, MouseButton, TransformComponent,
+    ActiveCamera, CameraComponent, MouseButton, TransformComponent,
     VelocityComponent, WorldBasis,
 };
+use ultramayor_engine::input::InputStateResource;
 
 /// Orbit-style camera parameters controlled by input.
 #[derive(Component, Debug)]
@@ -150,11 +151,11 @@ pub fn apply_orbit_camera_input(
     };
 
     let (dx, dy) = input_state.mouse_delta;
-    if input_state.is_mouse_button_down(MouseButton::Left) {
+    if input_state.mouse_button_held(MouseButton::Left) {
         orbit.pitch_yaw(dx, dy);
-    } else if input_state.is_mouse_button_down(MouseButton::Middle) {
+    } else if input_state.mouse_button_held(MouseButton::Middle) {
         orbit.pan(dx, -dy, &world_basis);
-    } else if input_state.is_mouse_button_down(MouseButton::Right) {
+    } else if input_state.mouse_button_held(MouseButton::Right) {
         orbit.zoom(dy);
     }
 
@@ -181,22 +182,22 @@ pub fn apply_flying_camera_input(
     };
 
     let (dx, dy) = input_state.mouse_delta;
-    if input_state.is_mouse_button_down(MouseButton::Left) {
+    if input_state.mouse_button_held(MouseButton::Left) {
         camera.look(dx, dy, &mut transform, &world_basis);
     }
 
     let arrow_sensitivity = 10.0;
 
-    if input_state.is_key_down(Keycode::Up) {
+    if input_state.key_held(Keycode::Up) {
         camera.look(0.0, -1.0 * arrow_sensitivity, &mut transform, &world_basis);
     }
-    if input_state.is_key_down(Keycode::Down) {
+    if input_state.key_held(Keycode::Down) {
         camera.look(0.0, 1.0 * arrow_sensitivity, &mut transform, &world_basis);
     }
-    if input_state.is_key_down(Keycode::Left) {
+    if input_state.key_held(Keycode::Left) {
         camera.look(-1.0 * arrow_sensitivity, 0.0, &mut transform, &world_basis);
     }
-    if input_state.is_key_down(Keycode::Right) {
+    if input_state.key_held(Keycode::Right) {
         camera.look(1.0 * arrow_sensitivity, 0.0, &mut transform, &world_basis);
     }
 }
@@ -230,26 +231,26 @@ pub fn apply_flying_camera_movement(
         .transform_vector(&Vector3::new(0.0, 1.0, 0.0));
 
     let mut direction = Vector3::new(0.0, 0.0, 0.0);
-    if input_state.is_key_down(Keycode::W) {
+    if input_state.key_held(Keycode::W) {
         direction += forward;
     }
-    if input_state.is_key_down(Keycode::S) {
+    if input_state.key_held(Keycode::S) {
         direction -= forward;
     }
-    if input_state.is_key_down(Keycode::D) {
+    if input_state.key_held(Keycode::D) {
         direction += right;
     }
-    if input_state.is_key_down(Keycode::A) {
+    if input_state.key_held(Keycode::A) {
         direction -= right;
     }
-    if input_state.is_key_down(Keycode::LShift) {
+    if input_state.key_held(Keycode::LShift) {
         direction += up;
     }
-    if input_state.is_key_down(Keycode::LCTRL) {
+    if input_state.key_held(Keycode::LCTRL) {
         direction -= up;
     }
 
-    if input_state.is_key_pressed(Keycode::P) {
+    if input_state.key_pressed(Keycode::P) {
         println!(
             "Position: {:?}, Velocity: {:?}",
             transform.position, velocity.translational
@@ -270,7 +271,7 @@ pub fn apply_switch_camera_input(
     mut active_camera: ResMut<ActiveCamera>,
     query: Query<(Entity, &CameraComponent)>,
 ) {
-    if input_state.is_key_pressed(Keycode::V) {
+    if input_state.key_pressed(Keycode::V) {
         println!("Toggling active camera.");
         for (entity, _camera) in &query {
             if Some(entity) != active_camera.0 {

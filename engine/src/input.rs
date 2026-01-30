@@ -41,28 +41,28 @@ pub struct InputStateResource {
 }
 
 impl InputStateResource {
-    pub fn is_key_down(&self, key: Keycode) -> bool {
+    pub fn key_held(&self, key: Keycode) -> bool {
         self.current_keys.contains(&key)
     }
 
-    pub fn is_key_pressed(&self, key: Keycode) -> bool {
+    pub fn key_pressed(&self, key: Keycode) -> bool {
         self.current_keys.contains(&key) && !self.previous_keys.contains(&key)
     }
 
-    pub fn is_key_released(&self, key: Keycode) -> bool {
+    pub fn key_released(&self, key: Keycode) -> bool {
         !self.current_keys.contains(&key) && self.previous_keys.contains(&key)
     }
 
-    pub fn is_mouse_button_down(&self, button: MouseButton) -> bool {
+    pub fn mouse_button_held(&self, button: MouseButton) -> bool {
         self.current_mouse_buttons.contains(&button)
     }
 
-    pub fn is_mouse_button_pressed(&self, button: MouseButton) -> bool {
+    pub fn mouse_button_pressed(&self, button: MouseButton) -> bool {
         self.current_mouse_buttons.contains(&button)
             && !self.previous_mouse_buttons.contains(&button)
     }
 
-    pub fn is_mouse_button_released(&self, button: MouseButton) -> bool {
+    pub fn mouse_button_released(&self, button: MouseButton) -> bool {
         !self.current_mouse_buttons.contains(&button)
             && self.previous_mouse_buttons.contains(&button)
     }
