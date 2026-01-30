@@ -27,6 +27,7 @@ mod texture;
 mod texture_resource_manager;
 mod transform_component;
 mod velocity_component;
+mod world_basis;
 use bevy_ecs::prelude::*;
 use glow::HasContext;
 use renderer::Renderer;
@@ -55,6 +56,7 @@ pub use crate::material_component::MaterialComponent;
 pub use crate::render_body_component::RenderBodyComponent;
 pub use crate::transform_component::TransformComponent;
 pub use crate::velocity_component::VelocityComponent;
+pub use crate::world_basis::WorldBasis;
 pub struct Engine {
     pub world: World,
     pub schedule: Schedule,
@@ -75,6 +77,7 @@ impl Engine {
         world.insert_resource(RenderResourceManager::new());
         world.insert_resource(ActiveCamera::default());
         world.insert_resource(InputStateResource::default());
+        world.insert_resource(crate::world_basis::WorldBasis::canonical());
 
         let mut schedule = Schedule::default();
         // Engine-only systems. Game code adds its own systems to this schedule.

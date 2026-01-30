@@ -3,7 +3,7 @@ use nalgebra::{Matrix3, UnitQuaternion, Vector3};
 use sdl2::keyboard::Keycode;
 use ultramayor_engine::{
     input::InputStateResource, ActiveCamera, CameraComponent, MouseButton, TransformComponent,
-    VelocityComponent,
+    VelocityComponent, WorldBasis,
 };
 
 /// Orbit-style camera parameters controlled by input.
@@ -19,7 +19,7 @@ pub struct OrbitCameraComponent {
 
 impl OrbitCameraComponent {
     /// Updates a transform to match this orbit camera state.
-    pub fn apply_to_transform(&mut self, transform: &mut TransformComponent) {
+    pub fn apply_to_transform(&mut self, transform: &mut TransformComponent, world: &WorldBasis) {
         let yaw_rad = self.yaw.to_radians();
         let pitch_rad = self.pitch.to_radians();
 
@@ -34,7 +34,7 @@ impl OrbitCameraComponent {
         transform.position = self.target - (direction * self.distance);
 
         let forward = (self.target - transform.position).normalize();
-        let world_up = Vector3::new(0.0, 0.0, -1.0);
+        let world_up = -world.up();
         let right = forward.cross(&world_up).normalize();
         let up = right.cross(&forward).normalize();
 
@@ -43,15 +43,14 @@ impl OrbitCameraComponent {
         transform.rotation = UnitQuaternion::from_matrix(&rotation_matrix);
     }
 
-    fn right(&self) -> Vector3<f32> {
+    fn right(&self, world: &WorldBasis) -> Vector3<f32> {
         let forward = self.direction();
-        let world_up = Vector3::new(0.0, 0.0, 1.0);
-        forward.cross(&world_up).normalize()
+        forward.cross(&world.up()).normalize()
     }
 
-    fn up(&self) -> Vector3<f32> {
+    fn up(&self, world: &WorldBasis) -> Vector3<f32> {
         let forward = self.direction();
-        self.right().cross(&forward).normalize()
+        self.right(world).cross(&forward).normalize()
     }
 
     fn direction(&self) -> Vector3<f32> {
@@ -71,9 +70,9 @@ impl OrbitCameraComponent {
         self.pitch = self.pitch.clamp(-89.9, 89.9);
     }
 
-    fn pan(&mut self, delta_x: f32, delta_y: f32) {
-        let right = self.right();
-        let up = self.up();
+    fn pan(&mut self, delta_x: f32, delta_y: f32, world: &WorldBasis) {
+        let right = self.right(world);
+        let up = self.up(world);
         let pan_scale = self.distance * (self.sensitivity * self.sensitivity);
 
         self.target -= (right * delta_x * self.sensitivity) * pan_scale;
@@ -105,7 +104,13 @@ pub struct FlyingCameraMovementComponent {
 
 #[allow(dead_code)]
 impl FlyingCameraComponent {
-    fn look(&mut self, delta_x: f32, delta_y: f32, transform: &mut TransformComponent) {
+    fn look(
+        &mut self,
+        delta_x: f32,
+        delta_y: f32,
+        transform: &mut TransformComponent,
+        world: &WorldBasis,
+    ) {
         self.yaw -= delta_x * self.sensitivity;
         self.pitch -= delta_y * self.sensitivity;
         self.pitch = self.pitch.clamp(-89.9, 89.9);
@@ -120,8 +125,7 @@ impl FlyingCameraComponent {
         )
         .normalize();
 
-        let world_up = Vector3::new(0.0, 0.0, 1.0);
-        let right = forward.cross(&world_up).normalize();
+        let right = forward.cross(&world.up()).normalize();
         let up = right.cross(&forward).normalize();
 
         let rotation_matrix = Matrix3::from_columns(&[right, up, -forward]);
@@ -134,6 +138,7 @@ impl FlyingCameraComponent {
 pub fn apply_orbit_camera_input(
     active_camera: Res<ActiveCamera>,
     input_state: Res<InputStateResource>,
+    world_basis: Res<WorldBasis>,
     mut query: Query<(&mut TransformComponent, &mut OrbitCameraComponent)>,
 ) {
     let Some(camera_entity) = active_camera.0 else {
@@ -148,7 +153,7 @@ pub fn apply_orbit_camera_input(
     if input_state.is_mouse_button_down(MouseButton::Left) {
         orbit.pitch_yaw(dx, dy);
     } else if input_state.is_mouse_button_down(MouseButton::Middle) {
-        orbit.pan(dx, -dy);
+        orbit.pan(dx, -dy, &world_basis);
     } else if input_state.is_mouse_button_down(MouseButton::Right) {
         orbit.zoom(dy);
     }
@@ -157,13 +162,14 @@ pub fn apply_orbit_camera_input(
         orbit.zoom(input_state.scroll_delta);
     }
 
-    orbit.apply_to_transform(&mut transform);
+    orbit.apply_to_transform(&mut transform, &world_basis);
 }
 
 /// Applies first-person mouse look to the active camera entity.
 pub fn apply_flying_camera_input(
     active_camera: Res<ActiveCamera>,
     input_state: Res<InputStateResource>,
+    world_basis: Res<WorldBasis>,
     mut query: Query<(&mut TransformComponent, &mut FlyingCameraComponent)>,
 ) {
     let Some(camera_entity) = active_camera.0 else {
@@ -176,22 +182,22 @@ pub fn apply_flying_camera_input(
 
     let (dx, dy) = input_state.mouse_delta;
     if input_state.is_mouse_button_down(MouseButton::Left) {
-        camera.look(dx, dy, &mut transform);
+        camera.look(dx, dy, &mut transform, &world_basis);
     }
 
     let arrow_sensitivity = 10.0;
 
     if input_state.is_key_down(Keycode::Up) {
-        camera.look(0.0, -1.0 * arrow_sensitivity, &mut transform);
+        camera.look(0.0, -1.0 * arrow_sensitivity, &mut transform, &world_basis);
     }
     if input_state.is_key_down(Keycode::Down) {
-        camera.look(0.0, 1.0 * arrow_sensitivity, &mut transform);
+        camera.look(0.0, 1.0 * arrow_sensitivity, &mut transform, &world_basis);
     }
     if input_state.is_key_down(Keycode::Left) {
-        camera.look(-1.0 * arrow_sensitivity, 0.0, &mut transform);
+        camera.look(-1.0 * arrow_sensitivity, 0.0, &mut transform, &world_basis);
     }
     if input_state.is_key_down(Keycode::Right) {
-        camera.look(1.0 * arrow_sensitivity, 0.0, &mut transform);
+        camera.look(1.0 * arrow_sensitivity, 0.0, &mut transform, &world_basis);
     }
 }
 
