@@ -46,6 +46,13 @@ pub fn apply_player_input(
             direction -= up;
         }
 
+        if input_state.keys.p {
+            println!(
+                "Position: {:?}, Velocity: {:?}",
+                transform.position, velocity.translational
+            );
+        }
+
         if direction.magnitude() > 0.0 {
             velocity.translational = direction.normalize() * controller.speed;
         } else {

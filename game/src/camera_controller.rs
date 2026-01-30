@@ -17,7 +17,7 @@ pub struct OrbitCameraComponent {
 
 impl OrbitCameraComponent {
     /// Updates a transform to match this orbit camera state.
-    pub fn apply_to_transform(&self, transform: &mut TransformComponent) {
+    pub fn apply_to_transform(&mut self, transform: &mut TransformComponent) {
         let yaw_rad = self.yaw.to_radians();
         let pitch_rad = self.pitch.to_radians();
 
@@ -27,6 +27,7 @@ impl OrbitCameraComponent {
             pitch_rad.sin(),
         )
         .normalize();
+        self.target.z = 0.0; // Keep the target on the ground plane.
 
         transform.position = self.target - (direction * self.distance);
 
@@ -42,7 +43,7 @@ impl OrbitCameraComponent {
 
     fn right(&self) -> Vector3<f32> {
         let forward = self.direction();
-        let world_up = Vector3::new(0.0, 0.0, -1.0);
+        let world_up = Vector3::new(0.0, 0.0, 1.0);
         forward.cross(&world_up).normalize()
     }
 
@@ -87,17 +88,17 @@ impl OrbitCameraComponent {
 #[allow(dead_code)]
 #[derive(Component, Debug)]
 #[require(TransformComponent)]
-pub struct FirstPersonCameraComponent {
+pub struct FlyingCameraComponent {
     pub yaw: f32,
     pub pitch: f32,
     pub sensitivity: f32,
 }
 
 #[allow(dead_code)]
-impl FirstPersonCameraComponent {
+impl FlyingCameraComponent {
     fn look(&mut self, delta_x: f32, delta_y: f32, transform: &mut TransformComponent) {
-        self.yaw += delta_x * self.sensitivity;
-        self.pitch += delta_y * self.sensitivity;
+        self.yaw -= delta_x * self.sensitivity;
+        self.pitch -= delta_y * self.sensitivity;
         self.pitch = self.pitch.clamp(-89.9, 89.9);
 
         let yaw_rad = self.yaw.to_radians();
@@ -110,7 +111,7 @@ impl FirstPersonCameraComponent {
         )
         .normalize();
 
-        let world_up = Vector3::new(0.0, 0.0, -1.0);
+        let world_up = Vector3::new(0.0, 0.0, 1.0);
         let right = forward.cross(&world_up).normalize();
         let up = right.cross(&forward).normalize();
 
@@ -151,11 +152,10 @@ pub fn apply_orbit_camera_input(
 }
 
 /// Applies first-person mouse look to the active camera entity.
-#[allow(dead_code)]
-pub fn apply_first_person_camera_input(
+pub fn apply_flying_camera_input(
     active_camera: Res<ActiveCamera>,
     input_state: Res<InputState>,
-    mut query: Query<(&mut TransformComponent, &mut FirstPersonCameraComponent)>,
+    mut query: Query<(&mut TransformComponent, &mut FlyingCameraComponent)>,
 ) {
     let Some(camera_entity) = active_camera.0 else {
         return;

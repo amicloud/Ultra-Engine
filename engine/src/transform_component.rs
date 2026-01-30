@@ -1,7 +1,7 @@
 use bevy_ecs::component::Component;
 use nalgebra::{Matrix4, UnitQuaternion, Vector3};
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Copy, Clone)]
 pub struct TransformComponent {
     pub position: Vector3<f32>,
     pub rotation: UnitQuaternion<f32>,

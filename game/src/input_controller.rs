@@ -40,6 +40,7 @@ pub struct KeyButtons {
     pub right: bool,
     pub up: bool,
     pub down: bool,
+    pub p: bool,
 }
 
 impl KeyButtons {
@@ -51,6 +52,7 @@ impl KeyButtons {
             Keycode::D => self.right = state,
             Keycode::Space => self.up = state,
             Keycode::LShift | Keycode::RShift => self.down = state,
+            Keycode::P => self.p = state,
             _ => {}
         }
     }

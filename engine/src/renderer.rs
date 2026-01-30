@@ -7,6 +7,7 @@ use std::rc::Rc;
 // use crate::render_texture::RenderTexture;
 use glow::Context as GlowContext;
 use glow::HasContext;
+use log::debug;
 use nalgebra::{Matrix4, Vector3};
 pub struct Renderer {
     gl: Rc<GlowContext>,
@@ -242,13 +243,14 @@ impl Renderer {
             );
 
             self.frames_rendered += 1;
+
             if self.frames_rendered % 60 == 0 {
-                println!("Frames rendered: {}", self.frames_rendered);
-                println!(
+                debug!("Frames rendered: {}", self.frames_rendered);
+                debug!(
                     "Render time: {:.2} ms",
                     current_time.elapsed().as_secs_f32() * 1000.0
                 );
-                println!("Draw calls on last frame: {}", draw_calls);
+                debug!("Draw calls on last frame: {}", draw_calls);
             }
         }
     }

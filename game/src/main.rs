@@ -10,18 +10,24 @@ use ultramayor_engine::{
     ActiveCamera, CameraComponent, Engine, MaterialComponent, MeshComponent, TransformComponent,
     VelocityComponent,
 };
-use camera_controller::{apply_first_person_camera_input, FirstPersonCameraComponent};
+use camera_controller::{apply_flying_camera_input, FlyingCameraComponent};
 use input_controller::{update_input_state, InputState};
 use player_controller::{apply_player_input, PlayerComponent};
+
+use crate::camera_controller::{OrbitCameraComponent, apply_orbit_camera_input};
 fn main() {
     println!("Welcome to the Game!");
     let mut engine = Engine::new();
 
     // Create an ECS-driven camera entity and mark it active.
     let aspect_ratio = 1024.0 / 769.0;
-    let camera_transform = TransformComponent::default();
+    let camera_transform = TransformComponent{
+        position: Vector3::new(0.0, 0.0, 300.0),
+        rotation: nalgebra::UnitQuaternion::identity().inverse(),
+        scale: Vector3::new(1.0, 1.0, 1.0),
+    };
 
-    let camera_entity = engine
+    let flying_camera = engine
         .world
         .spawn((
             camera_transform,
@@ -31,7 +37,7 @@ fn main() {
                 near: 0.1,
                 far: 1000.0,
             },
-            FirstPersonCameraComponent {
+            FlyingCameraComponent {
                 yaw: -135.0,
                 pitch: -45.0,
                 sensitivity: 0.1,
@@ -40,15 +46,37 @@ fn main() {
                 translational: Vector3::new(0.0, 0.0, 0.0),
                 angular: Vector3::new(0.0, 0.0, 0.0),
             },
-            PlayerComponent { speed: 25.0 },
+            PlayerComponent { speed: 100.0 },
         ))
         .id();
 
-    engine.world.insert_resource(ActiveCamera(Some(camera_entity)));
+
+    #[allow(unused_variables)]
+    let orbit_camera = engine
+        .world
+        .spawn((
+            camera_transform,
+            CameraComponent {
+                fov_y_radians: 75.0_f32.to_radians(),
+                aspect_ratio,
+                near: 0.1,
+                far: 1000.0,
+            },
+            OrbitCameraComponent {
+                target: Vector3::new(0.0, 0.0, 0.0),
+                distance: 100.0,
+                yaw: -135.0,
+                pitch: -30.0,
+                sensitivity: 0.2,
+            },
+        ))
+        .id();
+
+    engine.world.get_resource_mut::<ActiveCamera>().unwrap().set(flying_camera);
     engine.world.insert_resource(InputState::default());
     engine
         .schedule
-        .add_systems((update_input_state, apply_first_person_camera_input, apply_player_input));
+        .add_systems((update_input_state, apply_orbit_camera_input, apply_flying_camera_input, apply_player_input));
 
     let assets = [
         // engine.load_gltf(OsStr::new("resources/models/cube/Cube.gltf")),
@@ -59,6 +87,8 @@ fn main() {
 
         engine.load_gltf(OsStr::new("resources/models/avocado/Avocado.gltf")),
     ];
+
+    let ground = engine.load_gltf(OsStr::new("resources/models/opalton/opalton3Dterrain.gltf"));
 
     let t_range = 2.0;
     for _ in 0..100 {
@@ -106,6 +136,21 @@ fn main() {
             ));
         }
     }
+
+    let ground_scale = 1.0;
+    engine.world.spawn((
+        TransformComponent {
+            position: Vector3::new(0.0, 0.0, 10.0),
+            rotation: nalgebra::UnitQuaternion::identity(),
+            scale: Vector3::new(ground_scale, ground_scale, 1.0),
+        },
+        MeshComponent {
+            mesh_id: ground.0,
+        },
+        MaterialComponent {
+            material_id: ground.1,
+        },
+    ));
 
     engine.run();
 }

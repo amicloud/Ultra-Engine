@@ -31,3 +31,14 @@ impl CameraComponent {
 /// This is optional so games can decide when a camera becomes active.
 #[derive(Resource, Default, Copy, Clone, Debug)]
 pub struct ActiveCamera(pub Option<Entity>);
+
+impl ActiveCamera {
+    pub fn get(&self) -> Option<Entity> {
+        self.0
+    }
+
+    /// Sets the active camera entity.
+    pub fn set(&mut self, entity: Entity) {
+        self.0 = Some(entity);
+    }
+}

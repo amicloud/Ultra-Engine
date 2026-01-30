@@ -75,7 +75,16 @@ impl Engine {
         let mut schedule = Schedule::default();
         // Engine-only systems. Game code adds its own systems to this schedule.
         schedule.add_systems((BasicPhysicsSystem::update, RenderSystem::extract_render_data).chain());
+
         
+        let mut render_data_manager = world
+                .get_resource_mut::<RenderResourceManager>()
+                .expect("RenderResourceManager resource not found");
+
+        render_data_manager
+            .texture_manager
+            .create_default_normal_map(&gl);
+
         Engine {
             world,
             schedule,
@@ -94,9 +103,6 @@ impl Engine {
                 .get_resource_mut::<RenderResourceManager>()
                 .expect("RenderResourceManager resource not found");
 
-            render_data_manager
-                .texture_manager
-                .create_default_normal_map(gl);
 
             let mesh_handle = render_data_manager
                 .mesh_manager
