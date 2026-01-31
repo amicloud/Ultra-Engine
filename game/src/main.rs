@@ -92,7 +92,7 @@ fn main() {
         // )),
         // engine.load_gltf(OsStr::new("resources/models/suzanne/Suzanne.gltf")),
         // engine.load_model("resources/models/avocado/Avocado.gltf").unwrap(),
-        engine.load_model("resources/models/building.fbx").unwrap(),
+        engine.load_model("resources/models/building/building.obj").unwrap(),
     ];
 
     let ground = engine.load_model("resources/models/opalton/opalton3Dterrain.gltf").unwrap();

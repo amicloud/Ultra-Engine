@@ -105,7 +105,7 @@ impl AABB {
         tmax >= tmin.max(0.0)
     }
 
-    fn from_vertices(vertices: &Vec<crate::mesh::Vertex>) -> Self {
+    pub(crate) fn from_vertices(vertices: &Vec<crate::mesh::Vertex>) -> Self {
         // Initialize min and max with the first vertex
         let mut min = vertices[0];
         let mut max = vertices[0];
@@ -386,7 +386,7 @@ impl Mesh {
         self.sphere_radius = (self.aabb.max - self.sphere_center).norm();
     }
 
-    fn compute_tangents(
+    pub(crate) fn compute_tangents(
         positions: &[[f32; 3]],
         normals: &[[f32; 3]],
         uvs: &[[f32; 2]],
