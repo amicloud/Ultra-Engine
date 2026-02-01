@@ -11,7 +11,7 @@ use engine::{
     ActiveCamera, CameraComponent, Engine, RenderBodyComponent, TransformComponent,
     VelocityComponent,
 };
-use nalgebra::Vector3;
+use glam::{Quat, Vec3};
 use rand::random_range;
 
 use crate::camera_controller::{
@@ -24,9 +24,9 @@ fn main() {
     // Create an ECS-driven camera entity and mark it active.
     let aspect_ratio = 1024.0 / 769.0;
     let camera_transform = TransformComponent {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        rotation: nalgebra::UnitQuaternion::identity(),
-        scale: Vector3::new(1.0, 1.0, 1.0),
+        position: Vec3::new(0.0, 0.0, 0.0),
+        rotation: Quat::IDENTITY,
+        scale: Vec3::new(1.0, 1.0, 1.0),
     };
 
     let flying_camera = engine
@@ -45,8 +45,8 @@ fn main() {
                 sensitivity: 0.1,
             },
             VelocityComponent {
-                translational: Vector3::new(0.0, 0.0, 0.0),
-                angular: Vector3::new(0.0, 0.0, 0.0),
+                translational: Vec3::new(0.0, 0.0, 0.0),
+                angular: Vec3::new(0.0, 0.0, 0.0),
             },
             FlyingCameraMovementComponent { speed: 100.0 },
         ))
@@ -64,7 +64,7 @@ fn main() {
                 far: 10000.0,
             },
             OrbitCameraComponent {
-                target: Vector3::new(0.0, 0.0, 0.0),
+                target: Vec3::new(0.0, 0.0, 0.0),
                 distance: 100.0,
                 yaw: -135.0,
                 pitch: -30.0,
@@ -109,22 +109,22 @@ fn main() {
     for _ in 0..1 {
         for render_body_handle in &assets {
             // Random position
-            let pos = Vector3::new(
+            let pos = Vec3::new(
                 random_range(-10.0..10.0),
                 random_range(-10.0..10.0),
                 random_range(300.0..325.0),
             );
 
             // Random translational velocity
-            let translational = Vector3::new(
+            let translational = Vec3::new(
                 random_range(-t_range..t_range),
                 random_range(-t_range..t_range),
                 random_range(-t_range..t_range),
             );
-            // let translational = Vector3::new(0.0, 0.0, 0.0);
+            // let translational = Vec3::new(0.0, 0.0, 0.0);
 
             // Random angular velocity
-            let angular = Vector3::new(
+            let angular = Vec3::new(
                 random_range(-1.0..1.0),
                 random_range(-1.0..1.0),
                 random_range(-1.0..1.0),
@@ -135,8 +135,8 @@ fn main() {
             engine.world.spawn((
                 TransformComponent {
                     position: pos,
-                    rotation: nalgebra::UnitQuaternion::identity(),
-                    scale: Vector3::new(scale, scale, scale),
+                    rotation: Quat::IDENTITY,
+                    scale: Vec3::new(scale, scale, scale),
                 },
                 VelocityComponent {
                     translational,
@@ -152,9 +152,9 @@ fn main() {
     let ground_scale = 1.0;
     engine.world.spawn((
         TransformComponent {
-            position: Vector3::new(0.0, 0.0, -300.0),
-            rotation: nalgebra::UnitQuaternion::identity(),
-            scale: Vector3::new(ground_scale, ground_scale, 1.0),
+            position: Vec3::new(0.0, 0.0, -300.0),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::new(ground_scale, ground_scale, 1.0),
         },
         RenderBodyComponent {
             render_body_id: ground,
@@ -164,8 +164,8 @@ fn main() {
     let antique_camera_scale = 10.0;
     let mut antique_camera_transform = TransformComponent {
         position: camera_transform.position,
-        rotation: nalgebra::UnitQuaternion::identity(),
-        scale: Vector3::new(
+        rotation: Quat::IDENTITY,
+        scale: Vec3::new(
             antique_camera_scale,
             antique_camera_scale,
             antique_camera_scale,
@@ -173,8 +173,8 @@ fn main() {
     };
 
     let antique_camera_velocity = VelocityComponent {
-        translational: Vector3::new(0.0, 0.0, 0.0),
-        angular: Vector3::new(0.0, 1.0, 0.0),
+        translational: Vec3::new(0.0, 0.0, 0.0),
+        angular: Vec3::new(0.0, 1.0, 0.0),
     };
 
     antique_camera_transform.position.x += 50.0;

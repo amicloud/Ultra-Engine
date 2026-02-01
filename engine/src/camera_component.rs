@@ -2,7 +2,7 @@
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 
 use bevy_ecs::prelude::*;
-use nalgebra::Matrix4;
+use glam::Mat4;
 
 use crate::transform_component::TransformComponent;
 
@@ -21,8 +21,8 @@ pub struct CameraComponent {
 }
 
 impl CameraComponent {
-    pub fn projection_matrix(&self) -> Matrix4<f32> {
-        Matrix4::new_perspective(self.aspect_ratio, self.fov_y_radians, self.near, self.far)
+    pub fn projection_matrix(&self) -> Mat4 {
+        Mat4::perspective_rh(self.fov_y_radians, self.aspect_ratio, self.near, self.far)
     }
 }
 

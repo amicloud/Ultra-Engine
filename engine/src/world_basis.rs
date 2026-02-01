@@ -2,40 +2,40 @@
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 
 use bevy_ecs::prelude::Resource;
-use nalgebra::Vector3;
+use glam::Vec3;
 
 /// Canonical world coordinate basis.
 ///
 /// Right-handed, Z-up, -Y forward.
 #[derive(Resource, Debug, Copy, Clone)]
 pub struct WorldBasis {
-    up: Vector3<f32>,
-    forward: Vector3<f32>,
-    right: Vector3<f32>,
+    up: Vec3,
+    forward: Vec3,
+    right: Vec3,
 }
 
 impl WorldBasis {
-    pub fn new(up: Vector3<f32>, forward: Vector3<f32>) -> Self {
+    pub fn new(up: Vec3, forward: Vec3) -> Self {
         let up = up.normalize();
         let forward = forward.normalize();
-        let right = forward.cross(&up).normalize();
+        let right = forward.cross(up).normalize();
 
         Self { up, forward, right }
     }
 
     pub fn canonical() -> Self {
-        Self::new(Vector3::new(0.0, 0.0, 1.0), Vector3::new(0.0, -1.0, 0.0))
+        Self::new(Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, -1.0, 0.0))
     }
 
-    pub fn up(&self) -> Vector3<f32> {
+    pub fn up(&self) -> Vec3 {
         self.up
     }
 
-    pub fn forward(&self) -> Vector3<f32> {
+    pub fn forward(&self) -> Vec3 {
         self.forward
     }
 
-    pub fn right(&self) -> Vector3<f32> {
+    pub fn right(&self) -> Vec3 {
         self.right
     }
 }

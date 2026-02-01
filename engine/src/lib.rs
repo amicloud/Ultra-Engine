@@ -30,6 +30,7 @@ mod transform_component;
 mod velocity_component;
 mod world_basis;
 use bevy_ecs::prelude::*;
+use glam::Mat4;
 use glow::HasContext;
 use renderer::Renderer;
 use std::rc::Rc;
@@ -282,7 +283,7 @@ impl Engine {
         let view = transform
             .to_mat4()
             .try_inverse()
-            .unwrap_or_else(nalgebra::Matrix4::identity);
+            .unwrap_or_else(|| Mat4::IDENTITY);
 
         let fallback_aspect = width as f32 / height as f32;
         let aspect_ratio = if camera.aspect_ratio > 0.0 {
@@ -291,12 +292,8 @@ impl Engine {
             fallback_aspect
         };
 
-        let projection = nalgebra::Matrix4::new_perspective(
-            aspect_ratio,
-            camera.fov_y_radians,
-            camera.near,
-            camera.far,
-        );
+        let projection =
+            Mat4::perspective_rh(aspect_ratio, camera.fov_y_radians, camera.near, camera.far);
 
         Some(CameraRenderData {
             view_proj: projection * view,

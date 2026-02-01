@@ -1,4 +1,4 @@
-use nalgebra::Matrix4;
+use glam::Mat4;
 
 use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 
@@ -6,7 +6,7 @@ use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub struct RenderBodyPart {
     pub mesh_id: MeshHandle,
     pub material_id: MaterialHandle,
-    pub local_transform: Matrix4<f32>,
+    pub local_transform: Mat4,
 }
 
 #[derive(Clone)]

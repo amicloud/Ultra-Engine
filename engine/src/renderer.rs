@@ -5,9 +5,9 @@ use crate::render_instance::RenderInstance;
 use crate::render_resource_manager::RenderResourceManager;
 use std::rc::Rc;
 // use crate::render_texture::RenderTexture;
+use glam::{Mat4, Vec3};
 use glow::Context as GlowContext;
 use glow::HasContext;
-use nalgebra::{Matrix4, Vector3};
 pub struct Renderer {
     gl: Rc<GlowContext>,
     // displayed_texture: RenderTexture,
@@ -21,10 +21,17 @@ pub struct RenderParams {
 
 /// Precomputed camera data required by the renderer.
 pub struct CameraRenderData {
-    pub view_proj: Matrix4<f32>,
-    pub position: Vector3<f32>,
+    pub view_proj: Mat4,
+    pub position: Vec3,
 }
 impl Renderer {
+    fn max_scale(mat: Mat4) -> f32 {
+        let x = mat.x_axis.truncate().length();
+        let y = mat.y_axis.truncate().length();
+        let z = mat.z_axis.truncate().length();
+        x.max(y).max(z)
+    }
+
     pub fn render(
         &mut self,
         render_params: RenderParams,
@@ -82,13 +89,13 @@ impl Renderer {
                     .get_mesh(inst.mesh_id)
                     .expect("Mesh not found");
 
-                let scale = inst.transform.fixed_view::<3, 3>(0, 0).abs().max();
+                let scale = Self::max_scale(inst.transform);
                 let world_center = inst
                     .transform
-                    .transform_point(&nalgebra::Point3::from(mesh.sphere_center));
+                    .transform_point3(Vec3::from(mesh.sphere_center));
                 let world_radius = mesh.sphere_radius * scale;
 
-                if frustum.intersects_sphere(world_center.coords, world_radius) {
+                if frustum.intersects_sphere(world_center, world_radius) {
                     visible_instances.push(inst);
                 }
             }
@@ -109,7 +116,7 @@ impl Renderer {
             // ------------------------------------------------------------
             // PASS 3: Render
             // ------------------------------------------------------------
-            let default_light_color = Vector3::new(1.0, 1.0, 1.0);
+            let default_light_color = Vec3::new(1.0, 1.0, 1.0);
             for (material_id, inst_group) in instances_by_material {
                 let material = render_data_manager
                     .material_manager
@@ -124,7 +131,7 @@ impl Renderer {
                 gl.use_program(Some(shader.program));
 
                 // Set common uniforms
-                let view_proj_matrix: [f32; 16] = view_proj.as_slice().try_into().unwrap();
+                let view_proj_matrix: [f32; 16] = view_proj.to_cols_array();
                 gl.uniform_matrix_4_f32_slice(
                     Some(&shader.u_view_proj_location),
                     false,
@@ -186,7 +193,7 @@ impl Renderer {
                     instances_by_mesh
                         .entry(inst.mesh_id)
                         .or_default()
-                        .push(inst.transform.as_slice().try_into().unwrap());
+                        .push(inst.transform.to_cols_array());
                 }
 
                 // Draw each mesh

@@ -1,11 +1,11 @@
 use bevy_ecs::component::Component;
-use nalgebra::Vector3;
+use glam::Vec3;
 use std::ops::{Div, Mul};
 
 #[derive(Default, Component, Clone, Copy)]
 pub struct VelocityComponent {
-    pub translational: Vector3<f32>,
-    pub angular: Vector3<f32>,
+    pub translational: Vec3,
+    pub angular: Vec3,
 }
 
 impl Mul<f32> for VelocityComponent {

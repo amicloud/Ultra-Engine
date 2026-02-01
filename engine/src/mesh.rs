@@ -2,8 +2,8 @@
 // See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
 use approx::relative_eq;
 use bytemuck::{Pod, Zeroable};
+use glam::Vec3;
 use glow::HasContext;
-use nalgebra::Vector3;
 use std::{hash::Hash, hash::Hasher};
 
 use crate::handles::MeshHandle;
@@ -80,15 +80,15 @@ impl Vertex {
 #[allow(dead_code)]
 #[derive(Default, Clone)]
 pub struct AABB {
-    pub min: Vector3<f32>,
-    pub max: Vector3<f32>,
+    pub min: Vec3,
+    pub max: Vec3,
 }
 
 #[allow(dead_code)]
 impl AABB {
     #[allow(dead_code)]
-    fn intersect_ray(&self, ray_origin: Vector3<f32>, ray_dir: Vector3<f32>) -> bool {
-        let inv_dir = Vector3::new(1.0 / ray_dir.x, 1.0 / ray_dir.y, 1.0 / ray_dir.z);
+    fn intersect_ray(&self, ray_origin: Vec3, ray_dir: Vec3) -> bool {
+        let inv_dir = Vec3::new(1.0 / ray_dir.x, 1.0 / ray_dir.y, 1.0 / ray_dir.z);
 
         let t1 = (self.min.x - ray_origin.x) * inv_dir.x;
         let t2 = (self.max.x - ray_origin.x) * inv_dir.x;
@@ -133,7 +133,7 @@ pub struct Mesh {
     pub indices: Vec<u32>,
     pub aabb: AABB,
     // Bounding sphere
-    pub sphere_center: Vector3<f32>,
+    pub sphere_center: Vec3,
     pub sphere_radius: f32,
 
     // GPU handles
@@ -287,7 +287,7 @@ impl Mesh {
         // Center = AABB center
         self.sphere_center = (self.aabb.min + self.aabb.max) * 0.5;
         // Radius = distance from center to farthest corner
-        self.sphere_radius = (self.aabb.max - self.sphere_center).norm();
+        self.sphere_radius = (self.aabb.max - self.sphere_center).length();
     }
 
     pub(crate) fn compute_tangents(
@@ -296,8 +296,8 @@ impl Mesh {
         uvs: &[[f32; 2]],
         indices: &[u32],
     ) -> Vec<[f32; 4]> {
-        let mut tan1 = vec![Vector3::new(0.0, 0.0, 0.0); positions.len()];
-        let mut tan2 = vec![Vector3::new(0.0, 0.0, 0.0); positions.len()];
+        let mut tan1 = vec![Vec3::new(0.0, 0.0, 0.0); positions.len()];
+        let mut tan2 = vec![Vec3::new(0.0, 0.0, 0.0); positions.len()];
 
         let tri_count = indices.len() / 3;
         for t in 0..tri_count {
@@ -305,9 +305,9 @@ impl Mesh {
             let i1 = indices[t * 3 + 1] as usize;
             let i2 = indices[t * 3 + 2] as usize;
 
-            let p0 = Vector3::from(positions[i0]);
-            let p1 = Vector3::from(positions[i1]);
-            let p2 = Vector3::from(positions[i2]);
+            let p0 = Vec3::from(positions[i0]);
+            let p1 = Vec3::from(positions[i1]);
+            let p2 = Vec3::from(positions[i2]);
 
             let w0 = uvs[i0];
             let w1 = uvs[i1];
@@ -330,12 +330,12 @@ impl Mesh {
                 continue;
             }
             let r = 1.0 / denom;
-            let sdir = Vector3::new(
+            let sdir = Vec3::new(
                 (t2 * x1 - t1 * x2) * r,
                 (t2 * y1 - t1 * y2) * r,
                 (t2 * z1 - t1 * z2) * r,
             );
-            let tdir = Vector3::new(
+            let tdir = Vec3::new(
                 (s1 * x2 - s2 * x1) * r,
                 (s1 * y2 - s2 * y1) * r,
                 (s1 * z2 - s2 * z1) * r,
@@ -352,13 +352,12 @@ impl Mesh {
 
         let mut tangents = Vec::with_capacity(positions.len());
         for i in 0..positions.len() {
-            let n = Vector3::from(normals[i]);
+            let n = Vec3::from(normals[i]);
             let t = tan1[i];
 
-            let tangent = (t - n * n.dot(&t)).try_normalize(f32::EPSILON);
-            let tangent = tangent.unwrap_or(Vector3::new(1.0, 0.0, 0.0));
+            let tangent = t - n * n.dot(t);
 
-            let handedness = if n.cross(&tangent).dot(&tan2[i]) < 0.0 {
+            let handedness = if n.cross(tangent).dot(tan2[i]) < 0.0 {
                 -1.0
             } else {
                 1.0
@@ -401,8 +400,8 @@ mod tests {
         ];
 
         let aabb = AABB::from_vertices(&vertices);
-        assert_eq!(aabb.min, Vector3::new(-4.0, -2.0, -6.0));
-        assert_eq!(aabb.max, Vector3::new(7.0, 8.0, 9.0));
+        assert_eq!(aabb.min, Vec3::new(-4.0, -2.0, -6.0));
+        assert_eq!(aabb.max, Vec3::new(7.0, 8.0, 9.0));
     }
 
     #[test]
@@ -422,7 +421,7 @@ mod tests {
         mesh.aabb = AABB::from_vertices(&mesh.vertices);
         mesh.compute_bounding_sphere();
 
-        assert_eq!(mesh.sphere_center, Vector3::new(1.0, 0.0, 0.0));
+        assert_eq!(mesh.sphere_center, Vec3::new(1.0, 0.0, 0.0));
         assert!((mesh.sphere_radius - 1.0).abs() < 1e-6);
     }
 }

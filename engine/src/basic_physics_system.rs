@@ -1,7 +1,7 @@
 use crate::transform_component::TransformComponent;
 use crate::velocity_component::VelocityComponent;
 use bevy_ecs::prelude::*;
-use nalgebra::{UnitQuaternion, Vector3};
+use glam::{Quat, Vec3};
 pub struct BasicPhysicsSystem {}
 
 impl BasicPhysicsSystem {
@@ -13,7 +13,7 @@ impl BasicPhysicsSystem {
                 Self::apply_translation(&transform.position, &velocity.translational, delta_time);
 
             // Update rotation based on angular velocity
-            let angular_velocity_magnitude = velocity.angular.norm();
+            let angular_velocity_magnitude = velocity.angular.length();
             if angular_velocity_magnitude > 0.0 {
                 transform.rotation =
                     Self::apply_rotation(&transform.rotation, &velocity.angular, delta_time);
@@ -21,29 +21,20 @@ impl BasicPhysicsSystem {
         }
     }
 
-    fn apply_rotation(
-        rotation: &UnitQuaternion<f32>,
-        angular_velocity: &Vector3<f32>,
-        delta_time: f32,
-    ) -> UnitQuaternion<f32> {
-        let angular_velocity_magnitude = angular_velocity.norm();
+    fn apply_rotation(rotation: &Quat, angular_velocity: &Vec3, delta_time: f32) -> Quat {
+        let angular_velocity_magnitude = angular_velocity.length();
         if angular_velocity_magnitude == 0.0 {
             return *rotation;
         }
 
         let axis = angular_velocity / angular_velocity_magnitude;
         let angle = angular_velocity_magnitude * delta_time;
-        let delta_rotation =
-            UnitQuaternion::from_axis_angle(&nalgebra::Unit::new_normalize(axis), angle);
-        let new_rotation = delta_rotation * rotation;
+        let delta_rotation = Quat::from_axis_angle(axis, angle);
+        let new_rotation = delta_rotation * *rotation;
         new_rotation
     }
 
-    fn apply_translation(
-        position: &Vector3<f32>,
-        translational_velocity: &Vector3<f32>,
-        delta_time: f32,
-    ) -> Vector3<f32> {
+    fn apply_translation(position: &Vec3, translational_velocity: &Vec3, delta_time: f32) -> Vec3 {
         *position + translational_velocity * delta_time
     }
 }
@@ -59,39 +50,39 @@ mod tests {
 
     #[test]
     fn test_apply_translation() {
-        let position = Vector3::new(0.0, 0.0, 0.0);
-        let velocity = Vector3::new(1.0, 2.0, 3.0);
+        let position = Vec3::new(0.0, 0.0, 0.0);
+        let velocity = Vec3::new(1.0, 2.0, 3.0);
         let new_position = BasicPhysicsSystem::apply_translation(&position, &velocity, DELTA_TIME);
-        assert_eq!(new_position, Vector3::new(1.0, 2.0, 3.0) * DELTA_TIME);
+        assert_eq!(new_position, Vec3::new(1.0, 2.0, 3.0) * DELTA_TIME);
         let newer_position =
             BasicPhysicsSystem::apply_translation(&new_position, &velocity, DELTA_TIME);
-        assert_eq!(newer_position, Vector3::new(2.0, 4.0, 6.0) * DELTA_TIME);
+        assert_eq!(newer_position, Vec3::new(2.0, 4.0, 6.0) * DELTA_TIME);
     }
 
     #[test]
     fn test_apply_rotation_x() {
-        let rotation = UnitQuaternion::identity();
-        let angular_velocity = Vector3::new(PI, 0.0, 0.0);
+        let rotation = Quat::IDENTITY;
+        let angular_velocity = Vec3::new(PI, 0.0, 0.0);
         let new_rotation =
             BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
-        assert_approx_eq!(new_rotation[0], 1.0 * DELTA_TIME, 1e-6);
+        assert_approx_eq!(new_rotation.x, 1.0 * DELTA_TIME, 1e-6);
     }
 
     #[test]
     fn test_apply_rotation_y() {
-        let rotation = UnitQuaternion::identity();
-        let angular_velocity = Vector3::new(0.0, PI, 0.0);
+        let rotation = Quat::IDENTITY;
+        let angular_velocity = Vec3::new(0.0, PI, 0.0);
         let new_rotation =
             BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
-        assert_approx_eq!(new_rotation[1], 1.0 * DELTA_TIME, 1e-6);
+        assert_approx_eq!(new_rotation.y, 1.0 * DELTA_TIME, 1e-6);
     }
 
     #[test]
     fn test_apply_rotation_z() {
-        let rotation = UnitQuaternion::identity();
-        let angular_velocity = Vector3::new(0.0, 0.0, PI);
+        let rotation = Quat::IDENTITY;
+        let angular_velocity = Vec3::new(0.0, 0.0, PI);
         let new_rotation =
             BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
-        assert_approx_eq!(new_rotation[2], 1.0 * DELTA_TIME, 1e-6);
+        assert_approx_eq!(new_rotation.z, 1.0 * DELTA_TIME, 1e-6);
     }
 }

@@ -232,7 +232,7 @@ impl Engine {
                 parts.push(RenderBodyPart {
                     mesh_id: mesh_handle,
                     material_id: material_handle,
-                    local_transform: nalgebra::Matrix4::identity(),
+                    local_transform: glam::Mat4::IDENTITY,
                 });
             }
 
@@ -295,7 +295,7 @@ impl Engine {
                 parts.push(RenderBodyPart {
                     mesh_id: mesh_handle,
                     material_id: material_handle,
-                    local_transform: nalgebra::Matrix4::identity(),
+                    local_transform: glam::Mat4::IDENTITY,
                 });
             }
 

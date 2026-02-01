@@ -3,14 +3,14 @@ use engine::input::InputStateResource;
 use engine::{
     ActiveCamera, CameraComponent, MouseButton, TransformComponent, VelocityComponent, WorldBasis,
 };
-use nalgebra::{Matrix3, UnitQuaternion, Vector3};
+use glam::{Mat3, Quat, Vec3};
 use sdl2::keyboard::Keycode;
 
 /// Orbit-style camera parameters controlled by input.
 #[derive(Component, Debug)]
 #[require(TransformComponent)]
 pub struct OrbitCameraComponent {
-    pub target: Vector3<f32>,
+    pub target: Vec3,
     pub yaw: f32,
     pub pitch: f32,
     pub distance: f32,
@@ -23,7 +23,7 @@ impl OrbitCameraComponent {
         let yaw_rad = self.yaw.to_radians();
         let pitch_rad = self.pitch.to_radians();
 
-        let direction = Vector3::new(
+        let direction = Vec3::new(
             yaw_rad.cos() * pitch_rad.cos(),
             yaw_rad.sin() * pitch_rad.cos(),
             pitch_rad.sin(),
@@ -35,28 +35,28 @@ impl OrbitCameraComponent {
 
         let forward = (self.target - transform.position).normalize();
         let world_up = -world.up();
-        let right = forward.cross(&world_up).normalize();
-        let up = right.cross(&forward).normalize();
+        let right = forward.cross(world_up).normalize();
+        let up = right.cross(forward).normalize();
 
         // Camera looks down -Z, so map local -Z to the forward direction explicitly.
-        let rotation_matrix = Matrix3::from_columns(&[right, up, -forward]);
-        transform.rotation = UnitQuaternion::from_matrix(&rotation_matrix);
+        let rotation_matrix = Mat3::from_cols(right, up, -forward);
+        transform.rotation = Quat::from_mat3(&rotation_matrix);
     }
 
-    fn right(&self, world: &WorldBasis) -> Vector3<f32> {
+    fn right(&self, world: &WorldBasis) -> Vec3 {
         let forward = self.direction();
-        forward.cross(&world.up()).normalize()
+        forward.cross(world.up()).normalize()
     }
 
-    fn up(&self, world: &WorldBasis) -> Vector3<f32> {
+    fn up(&self, world: &WorldBasis) -> Vec3 {
         let forward = self.direction();
-        self.right(world).cross(&forward).normalize()
+        self.right(world).cross(forward).normalize()
     }
 
-    fn direction(&self) -> Vector3<f32> {
+    fn direction(&self) -> Vec3 {
         let yaw_rad = self.yaw.to_radians();
         let pitch_rad = self.pitch.to_radians();
-        Vector3::new(
+        Vec3::new(
             yaw_rad.cos() * pitch_rad.cos(),
             yaw_rad.sin() * pitch_rad.cos(),
             pitch_rad.sin(),
@@ -118,18 +118,18 @@ impl FlyingCameraComponent {
         let yaw_rad = self.yaw.to_radians();
         let pitch_rad = self.pitch.to_radians();
 
-        let forward = Vector3::new(
+        let forward = Vec3::new(
             yaw_rad.cos() * pitch_rad.cos(),
             yaw_rad.sin() * pitch_rad.cos(),
             pitch_rad.sin(),
         )
         .normalize();
 
-        let right = forward.cross(&world.up()).normalize();
-        let up = right.cross(&forward).normalize();
+        let right = forward.cross(world.up()).normalize();
+        let up = right.cross(forward).normalize();
 
-        let rotation_matrix = Matrix3::from_columns(&[right, up, -forward]);
-        transform.rotation = UnitQuaternion::from_matrix(&rotation_matrix);
+        let rotation_matrix = Mat3::from_cols(right, up, -forward);
+        transform.rotation = Quat::from_mat3(&rotation_matrix);
     }
 }
 
@@ -219,17 +219,11 @@ pub fn apply_flying_camera_movement(
         return;
     };
 
-    let forward = transform
-        .rotation
-        .transform_vector(&Vector3::new(0.0, 0.0, -1.0));
-    let right = transform
-        .rotation
-        .transform_vector(&Vector3::new(1.0, 0.0, 0.0));
-    let up = transform
-        .rotation
-        .transform_vector(&Vector3::new(0.0, 1.0, 0.0));
+    let forward = transform.rotation * Vec3::NEG_Z;
+    let right = transform.rotation * Vec3::X;
+    let up = transform.rotation * Vec3::Y;
 
-    let mut direction = Vector3::new(0.0, 0.0, 0.0);
+    let mut direction = Vec3::new(0.0, 0.0, 0.0);
     if input_state.key_held(Keycode::W) {
         direction += forward;
     }
@@ -256,7 +250,7 @@ pub fn apply_flying_camera_movement(
         );
     }
 
-    if direction.magnitude() > 0.0 {
+    if direction.length() > 0.0 {
         velocity.translational = direction.normalize() * controller.speed;
     }
 
