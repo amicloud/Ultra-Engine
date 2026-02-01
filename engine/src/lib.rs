@@ -3,7 +3,6 @@
 
 mod action;
 mod action_manager;
-mod basic_physics_system;
 mod camera_component;
 mod frustum;
 mod handles;
@@ -14,6 +13,9 @@ mod material_resource;
 mod mesh;
 mod mesh_resource;
 mod model_loader;
+mod movement_system;
+pub mod physics_component;
+mod physics_system;
 mod render_body;
 mod render_body_component;
 mod render_body_resource;
@@ -38,9 +40,10 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
-use crate::basic_physics_system::BasicPhysicsSystem;
 use crate::input::InputStateResource;
 use crate::mesh_resource::MeshResource;
+use crate::movement_system::MovementSystem;
+use crate::physics_system::PhysicsSystem;
 use crate::render_instance::RenderInstance;
 use crate::render_queue::RenderQueue;
 use crate::render_resource_manager::RenderResourceManager;
@@ -81,7 +84,8 @@ impl Engine {
         // Engine-only systems. Game code adds its own systems to this schedule.
         schedule.add_systems(
             (
-                BasicPhysicsSystem::update,
+                PhysicsSystem::update_bodies,
+                MovementSystem::update,
                 RenderSystem::extract_render_data,
             )
                 .chain(),
@@ -299,5 +303,11 @@ impl Engine {
             view_proj: projection * view,
             position: transform.position,
         })
+    }
+}
+
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new()
     }
 }

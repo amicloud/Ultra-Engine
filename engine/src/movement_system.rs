@@ -1,11 +1,13 @@
-use crate::transform_component::TransformComponent;
 use crate::velocity_component::VelocityComponent;
+use crate::{physics_component::PhysicsComponent, transform_component::TransformComponent};
 use bevy_ecs::prelude::*;
 use glam::{Quat, Vec3};
-pub struct BasicPhysicsSystem {}
+pub struct MovementSystem {}
 
-impl BasicPhysicsSystem {
-    pub fn update(mut query: Query<(&mut TransformComponent, &VelocityComponent)>) {
+impl MovementSystem {
+    pub fn update(
+        mut query: Query<(&mut TransformComponent, &VelocityComponent), Without<PhysicsComponent>>,
+    ) {
         let delta_time = 1.0 / 60.0; // Assuming a fixed time step of 1/60 seconds
         for (mut transform, velocity) in query.iter_mut() {
             // Update position based on translational velocity
@@ -21,7 +23,7 @@ impl BasicPhysicsSystem {
         }
     }
 
-    fn apply_rotation(rotation: &Quat, angular_velocity: &Vec3, delta_time: f32) -> Quat {
+    pub fn apply_rotation(rotation: &Quat, angular_velocity: &Vec3, delta_time: f32) -> Quat {
         let angular_velocity_magnitude = angular_velocity.length();
         if angular_velocity_magnitude == 0.0 {
             return *rotation;
@@ -52,10 +54,10 @@ mod tests {
     fn test_apply_translation() {
         let position = Vec3::new(0.0, 0.0, 0.0);
         let velocity = Vec3::new(1.0, 2.0, 3.0);
-        let new_position = BasicPhysicsSystem::apply_translation(&position, &velocity, DELTA_TIME);
+        let new_position = MovementSystem::apply_translation(&position, &velocity, DELTA_TIME);
         assert_eq!(new_position, Vec3::new(1.0, 2.0, 3.0) * DELTA_TIME);
         let newer_position =
-            BasicPhysicsSystem::apply_translation(&new_position, &velocity, DELTA_TIME);
+            MovementSystem::apply_translation(&new_position, &velocity, DELTA_TIME);
         assert_eq!(newer_position, Vec3::new(2.0, 4.0, 6.0) * DELTA_TIME);
     }
 
@@ -63,8 +65,7 @@ mod tests {
     fn test_apply_rotation_x() {
         let rotation = Quat::IDENTITY;
         let angular_velocity = Vec3::new(PI, 0.0, 0.0);
-        let new_rotation =
-            BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
+        let new_rotation = MovementSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
         assert_approx_eq!(new_rotation.x, 1.0 * DELTA_TIME, 1e-6);
     }
 
@@ -72,8 +73,7 @@ mod tests {
     fn test_apply_rotation_y() {
         let rotation = Quat::IDENTITY;
         let angular_velocity = Vec3::new(0.0, PI, 0.0);
-        let new_rotation =
-            BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
+        let new_rotation = MovementSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
         assert_approx_eq!(new_rotation.y, 1.0 * DELTA_TIME, 1e-6);
     }
 
@@ -81,8 +81,7 @@ mod tests {
     fn test_apply_rotation_z() {
         let rotation = Quat::IDENTITY;
         let angular_velocity = Vec3::new(0.0, 0.0, PI);
-        let new_rotation =
-            BasicPhysicsSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
+        let new_rotation = MovementSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
         assert_approx_eq!(new_rotation.z, 1.0 * DELTA_TIME, 1e-6);
     }
 }

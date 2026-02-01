@@ -38,6 +38,10 @@ impl WorldBasis {
     pub fn right(&self) -> Vec3 {
         self.right
     }
+
+    pub fn gravity_vector() -> Vec3 {
+        -Self::canonical().up() * 9.81
+    }
 }
 
 impl Default for WorldBasis {

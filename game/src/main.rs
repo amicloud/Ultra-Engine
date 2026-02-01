@@ -8,6 +8,7 @@ use camera_controller::{
 };
 // use input_controller::{update_input_state, InputState};
 use engine::{
+    physics_component::{PhysicsComponent, PhysicsType},
     ActiveCamera, CameraComponent, Engine, RenderBodyComponent, TransformComponent,
     VelocityComponent,
 };
@@ -200,6 +201,10 @@ fn main() {
             render_body_id: antique_camera,
         },
         antique_camera_velocity / 3.0,
+        PhysicsComponent {
+            mass: 1.0,
+            physics_type: PhysicsType::Dynamic,
+        },
     ));
 
     engine.run();
