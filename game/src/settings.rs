@@ -191,16 +191,21 @@ mod tests {
     /// Helper function to override the config_dir() function from dirs-next
     /// by temporarily setting the HOME and XDG_CONFIG_HOME environment variables to the temp config directory
     fn override_config_dir(temp_config_dir: &PathBuf) {
-        env::set_var("HOME", temp_config_dir);
-        env::set_var("XDG_CONFIG_HOME", temp_config_dir);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("HOME", temp_config_dir) };
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("XDG_CONFIG_HOME", temp_config_dir) };
     }
 
     /// Helper function to reset the HOME and XDG_CONFIG_HOME environment variables after tests
     fn reset_config_dir(original_home: &str, original_xdg_config_home: Option<&str>) {
-        env::set_var("HOME", original_home);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("HOME", original_home) };
         match original_xdg_config_home {
-            Some(val) => env::set_var("XDG_CONFIG_HOME", val),
-            None => env::remove_var("XDG_CONFIG_HOME"),
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            Some(val) => unsafe { env::set_var("XDG_CONFIG_HOME", val) },
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            None => unsafe { env::remove_var("XDG_CONFIG_HOME") },
         }
     }
 
@@ -258,8 +263,10 @@ mod tests {
         // Temporarily unset the HOME and XDG_CONFIG_HOME environment variables
         let original_home = env::var("HOME").unwrap_or_default();
         let original_xdg_config_home = env::var("XDG_CONFIG_HOME").ok();
-        env::remove_var("HOME");
-        env::remove_var("XDG_CONFIG_HOME");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("HOME") };
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("XDG_CONFIG_HOME") };
 
         let result = Settings::user_settings_path();
         assert!(matches!(result, Err(SettingsError::ConfigDirNotFound)));

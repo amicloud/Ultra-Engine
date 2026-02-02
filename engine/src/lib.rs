@@ -260,7 +260,7 @@ impl Engine {
         sdl2::video::Window,
         sdl2::EventPump,
         sdl2::video::GLContext,
-    ) {
+    ) { unsafe {
         let sdl = sdl2::init().unwrap();
         let video = sdl.video().unwrap();
         let gl_attr = video.gl_attr();
@@ -280,7 +280,7 @@ impl Engine {
         let event_loop = sdl.event_pump().unwrap();
 
         (gl, window, event_loop, gl_context)
-    }
+    }}
 
     /// Builds camera render data from the ECS world.
     /// Returns `None` if there is no active camera or if the camera entity is invalid.
