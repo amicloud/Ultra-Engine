@@ -95,10 +95,10 @@ fn main() {
         //     "resources/models/normal_tangent_test/NormalTangentMirrorTest.gltf",
         // )),
         // engine.load_gltf(OsStr::new("resources/models/suzanne/Suzanne.gltf")),
-        // engine.load_model("resources/models/avocado/Avocado.gltf").unwrap(),
-        engine
-            .load_model("resources/models/building/building.obj")
-            .unwrap(),
+        engine.load_model("resources/models/avocado/Avocado.gltf").unwrap(),
+        // engine
+        //     .load_model("resources/models/building/building.obj")
+        //     .unwrap(),
     ];
 
     let ground = engine
@@ -110,7 +110,7 @@ fn main() {
         .unwrap();
 
     let t_range = 2.0;
-    for _ in 0..1 {
+    for _ in 0..1000 {
         for render_body_handle in &assets {
             // Random position
             let pos = Vec3::new(
@@ -152,7 +152,7 @@ fn main() {
                 RenderBodyComponent {
                     render_body_id: *render_body_handle,
                 },
-                collider,
+                // collider,
             ));
         }
     }
