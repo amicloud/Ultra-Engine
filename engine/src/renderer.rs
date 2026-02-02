@@ -3,6 +3,7 @@ use crate::handles::MeshHandle;
 use crate::mesh::Mesh;
 use crate::render_instance::RenderInstance;
 use crate::render_resource_manager::RenderResourceManager;
+use crate::shader::UniformValue;
 use std::rc::Rc;
 // use crate::render_texture::RenderTexture;
 use glam::{Mat4, Vec3};
@@ -113,10 +114,26 @@ impl Renderer {
                     .push(inst);
             }
 
+            // Set common uniforms
+            let default_light_color = Vec3::new(1.0, 1.0, 1.0);
+            let mut frame_uniforms = HashMap::<String, UniformValue>::new();
+            frame_uniforms.insert("u_view_proj".into(), UniformValue::Mat4(view_proj));
+            frame_uniforms.insert(
+                "u_camera_position".into(),
+                UniformValue::Vec3(camera.position),
+            );
+            frame_uniforms.insert(
+                "u_light_direction".into(),
+                UniformValue::Vec3(Vec3::new(0.0, 0.0, 1.0)),
+            );
+            frame_uniforms.insert(
+                "u_light_color".into(),
+                UniformValue::Vec3(default_light_color),
+            );
+
             // ------------------------------------------------------------
             // PASS 3: Render
             // ------------------------------------------------------------
-            let default_light_color = Vec3::new(1.0, 1.0, 1.0);
             for (material_id, inst_group) in instances_by_material {
                 let material = render_data_manager
                     .material_manager
@@ -129,63 +146,28 @@ impl Renderer {
 
                 // Bind shader
                 gl.use_program(Some(shader.program));
+                for name in material.desc.params.keys() {
+                    if !shader.uniforms.contains_key(name) {
+                        println!(
+                            "Warning: material provides uniform '{}' not used by shader",
+                            name
+                        );
+                    }
+                }
 
-                // Set common uniforms
-                let view_proj_matrix: [f32; 16] = view_proj.to_cols_array();
-                gl.uniform_matrix_4_f32_slice(
-                    Some(&shader.u_view_proj_location),
-                    false,
-                    &view_proj_matrix,
-                );
-                gl.uniform_3_f32(
-                    Some(&shader.u_camera_position_location),
-                    camera.position.x,
-                    camera.position.y,
-                    camera.position.z,
-                );
+                // 1. Bind frame uniforms
+                for (name, value) in &frame_uniforms {
+                    if let Some(loc) = shader.uniforms.get(name) {
+                        Self::bind_uniform(gl, loc, value, render_data_manager);
+                    }
+                }
 
-                // Material-specific uniforms
-                gl.uniform_1_f32(
-                    Some(&shader.u_roughness_location),
-                    f32::from_bits(material.desc.roughness),
-                );
-                gl.uniform_1_f32(
-                    Some(&shader.u_base_reflectance_location),
-                    f32::from_bits(material.desc.base_reflectance),
-                );
-
-                // Light uniforms
-                gl.uniform_3_f32(Some(&shader.u_light_direction_location), 0.0, 0.0, 1.0);
-                gl.uniform_3_f32(
-                    Some(&shader.u_light_color_location),
-                    default_light_color.x,
-                    default_light_color.y,
-                    default_light_color.z,
-                );
-
-                // Bind textures
-                let albedo_tex = material.desc.albedo;
-                let tex = render_data_manager
-                    .texture_manager
-                    .get_texture(albedo_tex)
-                    .expect("Albedo texture missing");
-                gl.active_texture(glow::TEXTURE0);
-                gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
-                gl.uniform_1_i32(Some(&shader.u_albedo_location), 0);
-
-                // Optional normal map
-                let normal_tex_handle = material
-                    .desc
-                    .normal
-                    .unwrap_or(render_data_manager.texture_manager.default_normal_map);
-
-                let tex = render_data_manager
-                    .texture_manager
-                    .get_texture(normal_tex_handle)
-                    .expect("Normal texture missing");
-                gl.active_texture(glow::TEXTURE1);
-                gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
-                gl.uniform_1_i32(Some(&shader.u_normal_location), 1);
+                // 2. Bind material uniforms
+                for (name, value) in &material.desc.params {
+                    if let Some(loc) = shader.uniforms.get(name) {
+                        Self::bind_uniform(gl, loc, value, render_data_manager);
+                    }
+                }
 
                 // Group by mesh
                 let mut instances_by_mesh: HashMap<MeshHandle, Vec<[f32; 16]>> = HashMap::new();
@@ -214,12 +196,11 @@ impl Renderer {
                     );
                     draw_calls += 1;
                 }
-
-                // Unbind textures after drawing material
-                gl.active_texture(glow::TEXTURE0);
-                gl.bind_texture(glow::TEXTURE_2D, None);
-                gl.active_texture(glow::TEXTURE1);
-                gl.bind_texture(glow::TEXTURE_2D, None);
+                // Now that we are done with the material, unbind any textures it used
+                for unit in 0..16 {
+                    gl.active_texture(glow::TEXTURE0 + unit);
+                    gl.bind_texture(glow::TEXTURE_2D, None);
+                }
             }
 
             gl.bind_vertex_array(None);
@@ -245,15 +226,6 @@ impl Renderer {
 
     pub fn new(gl: Rc<GlowContext>) -> Self {
         unsafe {
-            // let depth_buffer = gl.create_renderbuffer().unwrap();
-            // gl.bind_renderbuffer(glow::RENDERBUFFER, Some(depth_buffer));
-            // gl.framebuffer_renderbuffer(
-            //     glow::FRAMEBUFFER,
-            //     glow::DEPTH_ATTACHMENT,
-            //     glow::RENDERBUFFER,
-            //     Some(depth_buffer),
-            // );
-
             gl.enable(glow::DEPTH_TEST);
             gl.depth_func(glow::LESS);
 
@@ -282,6 +254,40 @@ impl Renderer {
                 self.gl.delete_buffer(inst);
             }
             mesh.instance_count = 0;
+        }
+    }
+
+    fn bind_uniform(
+        gl: &glow::Context,
+        loc: &glow::UniformLocation,
+        value: &UniformValue,
+        render_data_manager: &RenderResourceManager,
+    ) {
+        unsafe {
+            match value {
+                UniformValue::Float(v) => {
+                    gl.uniform_1_f32(Some(loc), *v);
+                }
+                UniformValue::Vec3(v) => {
+                    gl.uniform_3_f32(Some(loc), v.x, v.y, v.z);
+                }
+                UniformValue::Mat4(m) => {
+                    gl.uniform_matrix_4_f32_slice(Some(loc), false, &m.to_cols_array());
+                }
+                UniformValue::Int(i) => {
+                    gl.uniform_1_i32(Some(loc), *i);
+                }
+                UniformValue::Texture { handle, unit } => {
+                    let tex = render_data_manager
+                        .texture_manager
+                        .get_texture(*handle)
+                        .expect("Texture missing");
+
+                    gl.active_texture(glow::TEXTURE0 + *unit);
+                    gl.bind_texture(glow::TEXTURE_2D, tex.gl_tex);
+                    gl.uniform_1_i32(Some(loc), *unit as i32);
+                }
+            }
         }
     }
 }

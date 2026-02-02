@@ -16,7 +16,7 @@ approx = "0.5.1"
 bevy_ecs = "0.18.0"
 
 # rendering / assets
-glow = "0.14.2"
+glow = "0.16.0"
 bytemuck = "1.18.0"
 image = "0.25.9"
 gltf = "1.4.1"

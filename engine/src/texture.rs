@@ -24,6 +24,7 @@ impl Texture {
         unsafe {
             let tex = gl.create_texture().expect("Failed to create texture");
             gl.bind_texture(glow::TEXTURE_2D, Some(tex));
+            gl.pixel_store_i32(glow::UNPACK_ALIGNMENT, 1);
 
             // Set wrapping
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
@@ -39,7 +40,7 @@ impl Texture {
                 0,          // border must be 0
                 glow::RGBA, // format
                 glow::UNSIGNED_BYTE,
-                Some(data),
+                glow::PixelUnpackData::Slice(Some(data)),
             );
 
             // Generate mipmaps
@@ -54,7 +55,7 @@ impl Texture {
             gl.tex_parameter_i32(
                 glow::TEXTURE_2D,
                 glow::TEXTURE_MAG_FILTER,
-                glow::LINEAR as i32, // magnification
+                glow::LINEAR_MIPMAP_LINEAR as i32, // magnification
             );
 
             gl.bind_texture(glow::TEXTURE_2D, None);

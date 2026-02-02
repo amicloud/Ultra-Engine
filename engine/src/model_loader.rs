@@ -1,5 +1,6 @@
 use log::warn;
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::{Hash, Hasher};
 
@@ -8,6 +9,7 @@ use crate::material::{Material, MaterialDesc};
 use crate::mesh::{GltfPrimitiveMesh, Mesh, Vertex, AABB};
 use crate::render_body::{RenderBody, RenderBodyPart};
 use crate::render_resource_manager::RenderResourceManager;
+use crate::shader::UniformValue;
 use crate::Engine;
 
 impl Engine {
@@ -103,16 +105,14 @@ impl Engine {
                     let normal_handle = if let Some(tex) = material.normal_texture.as_ref() {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
-                            Some(
-                                render_resource_manager
-                                    .texture_manager
-                                    .load_from_file(gl, tex_path.as_os_str()),
-                            )
+                            render_resource_manager
+                                .texture_manager
+                                .load_from_file(gl, tex_path.as_os_str())
                         } else {
-                            None
+                            render_resource_manager.texture_manager.default_normal_map
                         }
                     } else {
-                        None
+                        render_resource_manager.texture_manager.default_normal_map
                     };
 
                     let roughness = if let Some(shininess) = material.shininess {
@@ -125,13 +125,25 @@ impl Engine {
                         1.0
                     };
 
-                    let desc = MaterialDesc::new(
-                        shader_handle,
-                        albedo_handle,
-                        normal_handle,
-                        roughness,
-                        0.04,
+                    let mut params = HashMap::new();
+                    params.insert("u_roughness".to_string(), UniformValue::Float(roughness));
+                    params.insert("u_base_reflectance".to_string(), UniformValue::Float(0.04));
+                    params.insert(
+                        "u_albedo".to_string(),
+                        UniformValue::Texture {
+                            handle: albedo_handle,
+                            unit: 0,
+                        },
                     );
+                    params.insert(
+                        "u_normal".to_string(),
+                        UniformValue::Texture {
+                            handle: normal_handle,
+                            unit: 1,
+                        },
+                    );
+
+                    let desc = MaterialDesc::new(shader_handle, params);
                     let handle = render_resource_manager
                         .material_manager
                         .add_material(Material::new(desc));
@@ -145,7 +157,24 @@ impl Engine {
                 let albedo = render_resource_manager
                     .texture_manager
                     .create_solid_rgba(gl, [255, 255, 255, 255]);
-                let desc = MaterialDesc::new(shader_handle, albedo, None, 1.0, 0.04);
+                let mut params = HashMap::new();
+                params.insert("u_roughness".to_string(), UniformValue::Float(1.0));
+                params.insert("u_base_reflectance".to_string(), UniformValue::Float(0.04));
+                params.insert(
+                    "u_albedo".to_string(),
+                    UniformValue::Texture {
+                        handle: albedo,
+                        unit: 0,
+                    },
+                );
+                params.insert(
+                    "u_normal".to_string(),
+                    UniformValue::Texture {
+                        handle: render_resource_manager.texture_manager.default_normal_map,
+                        unit: 1,
+                    },
+                );
+                let desc = MaterialDesc::new(shader_handle, params);
                 render_resource_manager
                     .material_manager
                     .add_material(Material::new(desc))

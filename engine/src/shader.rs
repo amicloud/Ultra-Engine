@@ -1,19 +1,30 @@
-use std::{ffi::OsStr, fs};
+use std::{collections::HashMap, ffi::OsStr, fs};
 
+use crate::handles::TextureHandle;
 use glow::HasContext;
+use std::hash::Hash;
+pub enum UniformValue {
+    Float(f32),
+    Vec3(glam::Vec3),
+    Mat4(glam::Mat4),
+    #[allow(dead_code)]
+    Int(i32),
+    Texture {
+        handle: TextureHandle,
+        unit: u32,
+    },
+}
 
-#[derive(Hash)]
 pub struct Shader {
     pub program: glow::Program,
-    // cached uniform locations
-    pub u_view_proj_location: glow::UniformLocation,
-    pub u_camera_position_location: glow::UniformLocation,
-    pub u_light_direction_location: glow::UniformLocation,
-    pub u_light_color_location: glow::UniformLocation,
-    pub u_albedo_location: glow::UniformLocation,
-    pub u_normal_location: glow::UniformLocation,
-    pub u_roughness_location: glow::UniformLocation,
-    pub u_base_reflectance_location: glow::UniformLocation,
+    pub uniforms: HashMap<String, glow::UniformLocation>,
+}
+
+impl Hash for Shader {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // Hash based on the program ID
+        self.program.hash(state);
+    }
 }
 
 impl Shader {
@@ -60,23 +71,19 @@ impl Shader {
                 println!("Program linked successfully");
             }
 
-            let shader = Shader {
-                program,
-                u_view_proj_location: gl.get_uniform_location(program, "u_view_proj").unwrap(),
-                u_camera_position_location: gl
-                    .get_uniform_location(program, "u_camera_position")
-                    .unwrap(),
-                u_light_direction_location: gl
-                    .get_uniform_location(program, "u_light_direction")
-                    .unwrap(),
-                u_light_color_location: gl.get_uniform_location(program, "u_light_color").unwrap(),
-                u_albedo_location: gl.get_uniform_location(program, "u_albedo").unwrap(),
-                u_normal_location: gl.get_uniform_location(program, "u_normal").unwrap(),
-                u_roughness_location: gl.get_uniform_location(program, "u_roughness").unwrap(),
-                u_base_reflectance_location: gl
-                    .get_uniform_location(program, "u_base_reflectance")
-                    .unwrap(),
-            };
+            let mut uniforms = HashMap::new();
+            let count = gl.get_program_parameter_i32(program, glow::ACTIVE_UNIFORMS);
+
+            for i in 0..count {
+                if let Some(info) = gl.get_active_uniform(program, i as u32) {
+                    if let Some(loc) = gl.get_uniform_location(program, &info.name) {
+                        println!("Found uniform: {}", info.name);
+                        uniforms.insert(info.name, loc);
+                    }
+                }
+            }
+
+            let shader = Shader { program, uniforms };
 
             gl.delete_shader(vertex_shader);
             gl.delete_shader(fragment_shader);

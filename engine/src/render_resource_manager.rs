@@ -1,7 +1,8 @@
 use bevy_ecs::prelude::*;
-use std::error::Error;
 use std::ffi::OsStr;
+use std::{collections::HashMap, error::Error};
 
+use crate::shader::UniformValue;
 use crate::{
     material::Material, material::MaterialDesc, material_resource::MaterialResource,
     mesh_resource::MeshResource, render_body_resource::RenderBodyResource,
@@ -67,15 +68,30 @@ impl RenderResourceManager {
 
             let normal_handle = material
                 .normal_texture()
-                .and_then(|info| texture_map.get(&info.texture().index()).copied());
+                .and_then(|info| texture_map.get(&info.texture().index()).copied())
+                .unwrap_or(self.texture_manager.default_normal_map);
 
-            let desc = MaterialDesc::new(
-                shader_handle,
-                albedo_handle,
-                normal_handle,
-                roughness,
-                base_reflectance,
+            let mut params = HashMap::new();
+            params.insert("u_roughness".to_string(), UniformValue::Float(roughness));
+            params.insert(
+                "u_base_reflectance".to_string(),
+                UniformValue::Float(base_reflectance),
             );
+            params.insert(
+                "u_albedo".to_string(),
+                UniformValue::Texture {
+                    handle: albedo_handle,
+                    unit: 0,
+                },
+            );
+            params.insert(
+                "u_normal".to_string(),
+                UniformValue::Texture {
+                    handle: normal_handle,
+                    unit: 1,
+                },
+            );
+            let desc = MaterialDesc::new(shader_handle, params);
             let handle = self.material_manager.add_material(Material::new(desc));
             material_handles.push(handle);
         }

@@ -24,32 +24,41 @@ impl CollisionSystem {
     }
 
     pub fn do_aabb_collisions(
-    moving_query: Query<(Entity, &ColliderComponent, &TransformComponent), Changed<TransformComponent>>,
-    all_query: Query<(Entity, &ColliderComponent), With<ColliderComponent>>,
-    phys: Res<PhysicsResource>,
-) {
-    // Collect moving entities
-    let moving_entities: Vec<Entity> = moving_query.iter().map(|(e, _, _)| e).collect();
-    
-    // Iterate over moving entities only
-    for &entity_a in &moving_entities {
-        let Some(aabb_a) = phys.world_aabbs.get(&entity_a) else { continue; };
+        moving_query: Query<
+            (Entity, &ColliderComponent, &TransformComponent),
+            Changed<TransformComponent>,
+        >,
+        all_query: Query<(Entity, &ColliderComponent), With<ColliderComponent>>,
+        phys: Res<PhysicsResource>,
+    ) {
+        // Collect moving entities
+        let moving_entities: Vec<Entity> = moving_query.iter().map(|(e, _, _)| e).collect();
 
-        // Compare against all colliders (moving + static)
-        for (entity_b, _collider_b) in &all_query {
-            if entity_a == entity_b { continue; } // skip self
+        // Iterate over moving entities only
+        for &entity_a in &moving_entities {
+            let Some(aabb_a) = phys.world_aabbs.get(&entity_a) else {
+                continue;
+            };
 
-            let Some(aabb_b) = phys.world_aabbs.get(&entity_b) else { continue; };
+            // Compare against all colliders (moving + static)
+            for (entity_b, _collider_b) in &all_query {
+                if entity_a == entity_b {
+                    continue;
+                } // skip self
 
-            if aabb_intersects(aabb_a, aabb_b) {
-                println!(
-                    "Collision detected between Entity {:?} and Entity {:?}",
-                    entity_a, entity_b
-                );
+                let Some(aabb_b) = phys.world_aabbs.get(&entity_b) else {
+                    continue;
+                };
+
+                if aabb_intersects(aabb_a, aabb_b) {
+                    println!(
+                        "Collision detected between Entity {:?} and Entity {:?}",
+                        entity_a, entity_b
+                    );
+                }
             }
         }
     }
-}
 }
 
 fn transform_aabb(local: AABB, transform: &TransformComponent) -> AABB {

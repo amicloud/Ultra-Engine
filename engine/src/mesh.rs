@@ -84,6 +84,7 @@ pub struct AABB {
 }
 
 impl AABB {
+    #[allow(dead_code)]
     fn intersect_ray(&self, ray_origin: Vec3, ray_dir: Vec3) -> bool {
         let inv_dir = Vec3::new(1.0 / ray_dir.x, 1.0 / ray_dir.y, 1.0 / ray_dir.z);
 
@@ -258,7 +259,6 @@ impl Mesh {
                 byte_len,
                 glow::MAP_WRITE_BIT
                     | glow::MAP_INVALIDATE_BUFFER_BIT
-                    | glow::MAP_UNSYNCHRONIZED_BIT,
             );
 
             if ptr.is_null() {

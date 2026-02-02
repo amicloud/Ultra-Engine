@@ -158,21 +158,7 @@ fn main() {
         }
     }
 
-    let ground_scale = 1.0;
-    let ground_collider = engine
-        .collider_from_render_body(ground, CollisionLayer::Default)
-        .expect("Render body AABB not found");
-    engine.world.spawn((
-        TransformComponent {
-            position: Vec3::new(0.0, 0.0, -300.0),
-            rotation: Quat::IDENTITY,
-            scale: Vec3::new(ground_scale, ground_scale, 1.0),
-        },
-        RenderBodyComponent {
-            render_body_id: ground,
-        },
-        ground_collider,
-    ));
+    
 
     let antique_camera_scale = 10.0;
     let mut antique_camera_transform = TransformComponent {
@@ -235,6 +221,22 @@ fn main() {
         linear: Vec3::new(5.0, 2.0, 100.0) * 1.0,
         angular: Vec3::new(0.0, 0.0, 0.0),
     });
+
+    let ground_scale = 1.0;
+    let ground_collider = engine
+        .collider_from_render_body(ground, CollisionLayer::Default)
+        .expect("Render body AABB not found");
+    engine.world.spawn((
+        TransformComponent {
+            position: Vec3::new(0.0, 0.0, -300.0),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::new(ground_scale, ground_scale, 1.0),
+        },
+        RenderBodyComponent {
+            render_body_id: ground,
+        },
+        ground_collider,
+    ));
 
     engine.run();
 }
