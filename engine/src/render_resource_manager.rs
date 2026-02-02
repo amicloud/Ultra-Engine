@@ -1,12 +1,9 @@
 use bevy_ecs::prelude::*;
-use std::ffi::OsStr;
-use std::{collections::HashMap, error::Error};
 
-use crate::shader::UniformValue;
 use crate::{
-    material::Material, material::MaterialDesc, material_resource::MaterialResource,
-    mesh_resource::MeshResource, render_body_resource::RenderBodyResource,
-    shader_resource::ShaderResource, texture_resource_manager::TextureResource,
+    material_resource::MaterialResource, mesh_resource::MeshResource,
+    render_body_resource::RenderBodyResource, shader_resource::ShaderResource,
+    texture_resource_manager::TextureResource,
 };
 
 #[derive(Resource)]
@@ -27,75 +24,5 @@ impl RenderResourceManager {
             texture_manager: TextureResource::default(),
             shader_manager: ShaderResource::default(),
         }
-    }
-
-    pub fn load_materials_from_gltf(
-        &mut self,
-        gl: &glow::Context,
-        gltf_path: &OsStr,
-        vertex_shader: &OsStr,
-        fragment_shader: &OsStr,
-    ) -> Result<Vec<crate::handles::MaterialHandle>, Box<dyn Error>> {
-        let path_str = gltf_path.to_str().ok_or("Invalid UTF-8 in glTF path")?;
-        let (gltf, _buffers, images) = gltf::import(path_str)?;
-
-        let texture_map = self
-            .texture_manager
-            .load_from_gltf_data(gl, gltf_path, &gltf, &images)?;
-
-        let mut material_handles = Vec::new();
-        let shader_handle = self
-            .shader_manager
-            .get_or_load(gl, vertex_shader, fragment_shader);
-        for material in gltf.materials() {
-            let pbr = material.pbr_metallic_roughness();
-            let roughness = pbr.roughness_factor();
-            let base_reflectance = 0.04;
-
-            let albedo_handle = pbr
-                .base_color_texture()
-                .and_then(|info| texture_map.get(&info.texture().index()).copied())
-                .unwrap_or_else(|| {
-                    let base_color = pbr.base_color_factor();
-                    let rgba = [
-                        (base_color[0] * 255.0) as u8,
-                        (base_color[1] * 255.0) as u8,
-                        (base_color[2] * 255.0) as u8,
-                        (base_color[3] * 255.0) as u8,
-                    ];
-                    self.texture_manager.create_solid_rgba(gl, rgba)
-                });
-
-            let normal_handle = material
-                .normal_texture()
-                .and_then(|info| texture_map.get(&info.texture().index()).copied())
-                .unwrap_or(self.texture_manager.default_normal_map);
-
-            let mut params = HashMap::new();
-            params.insert("u_roughness".to_string(), UniformValue::Float(roughness));
-            params.insert(
-                "u_base_reflectance".to_string(),
-                UniformValue::Float(base_reflectance),
-            );
-            params.insert(
-                "u_albedo".to_string(),
-                UniformValue::Texture {
-                    handle: albedo_handle,
-                    unit: 0,
-                },
-            );
-            params.insert(
-                "u_normal".to_string(),
-                UniformValue::Texture {
-                    handle: normal_handle,
-                    unit: 1,
-                },
-            );
-            let desc = MaterialDesc::new(shader_handle, params);
-            let handle = self.material_manager.add_material(Material::new(desc));
-            material_handles.push(handle);
-        }
-
-        Ok(material_handles)
     }
 }

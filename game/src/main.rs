@@ -158,8 +158,6 @@ fn main() {
         }
     }
 
-    
-
     let antique_camera_scale = 10.0;
     let mut antique_camera_transform = TransformComponent {
         position: camera_transform.position,

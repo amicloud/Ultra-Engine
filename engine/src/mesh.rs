@@ -257,8 +257,7 @@ impl Mesh {
                 glow::ARRAY_BUFFER,
                 0,
                 byte_len,
-                glow::MAP_WRITE_BIT
-                    | glow::MAP_INVALIDATE_BUFFER_BIT
+                glow::MAP_WRITE_BIT | glow::MAP_INVALIDATE_BUFFER_BIT,
             );
 
             if ptr.is_null() {

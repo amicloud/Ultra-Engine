@@ -4,12 +4,13 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::{Hash, Hasher};
 
-use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
+use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle, TextureHandle};
 use crate::material::{Material, MaterialDesc};
 use crate::mesh::{GltfPrimitiveMesh, Mesh, Vertex, AABB};
 use crate::render_body::{RenderBody, RenderBodyPart};
 use crate::render_resource_manager::RenderResourceManager;
 use crate::shader::UniformValue;
+use crate::texture_resource_manager::TextureResource;
 use crate::Engine;
 
 impl Engine {
@@ -20,7 +21,6 @@ impl Engine {
     ///
     /// FBX (.fbx) loading is not yet implemented.
     pub fn load_model(&mut self, model_path: &str) -> Option<RenderBodyHandle> {
-        // Get the file extension to determine the loader
         let extension = std::path::Path::new(model_path)
             .extension()
             .and_then(|ext| ext.to_str())
@@ -285,8 +285,6 @@ impl Engine {
         unimplemented!("FBX loading is not yet implemented");
     }
 
-    // Not particularly happy with how this works, but it will do for now.
-    // It's a bit of a disorganized mess
     /// Loads a glTF model from the specified file path and returns a `RenderBodyHandle`.
     fn load_gltf(&mut self, gltf_path: &str) -> RenderBodyHandle {
         let gl = &self.gl;
@@ -299,14 +297,14 @@ impl Engine {
 
             let mesh_primitives = Self::mesh_primatives_from_gltf(os_path).unwrap();
 
-            let material_handles = render_resource_manager
-                .load_materials_from_gltf(
-                    gl,
-                    os_path,
-                    OsStr::new("resources/shaders/pbr.vert"),
-                    OsStr::new("resources/shaders/pbr.frag"),
-                )
-                .expect("Failed to load glTF materials");
+            let material_handles = Self::load_materials_from_gltf(
+                &mut render_resource_manager,
+                gl,
+                os_path,
+                OsStr::new("resources/shaders/pbr.vert"),
+                OsStr::new("resources/shaders/pbr.frag"),
+            )
+            .expect("Failed to load glTF materials");
 
             let default_material = *material_handles
                 .first()
@@ -341,6 +339,142 @@ impl Engine {
         };
 
         render_body_handle
+    }
+
+    fn load_materials_from_gltf(
+        render_resource_manager: &mut RenderResourceManager,
+        gl: &glow::Context,
+        gltf_path: &OsStr,
+        vertex_shader: &OsStr,
+        fragment_shader: &OsStr,
+    ) -> Result<Vec<MaterialHandle>, Box<dyn std::error::Error>> {
+        let path_str = gltf_path.to_str().ok_or("Invalid UTF-8 in glTF path")?;
+        let (gltf, _buffers, images) = gltf::import(path_str)?;
+
+        let texture_map = Self::load_textures_from_gltf_data(
+            &mut render_resource_manager.texture_manager,
+            gl,
+            gltf_path,
+            &gltf,
+            &images,
+        )?;
+
+        let mut material_handles = Vec::new();
+        let shader_handle =
+            render_resource_manager
+                .shader_manager
+                .get_or_load(gl, vertex_shader, fragment_shader);
+        for material in gltf.materials() {
+            let pbr = material.pbr_metallic_roughness();
+            let roughness = pbr.roughness_factor();
+            let base_reflectance = 0.04;
+
+            let albedo_handle = pbr
+                .base_color_texture()
+                .and_then(|info| texture_map.get(&info.texture().index()).copied())
+                .unwrap_or_else(|| {
+                    let base_color = pbr.base_color_factor();
+                    let rgba = [
+                        (base_color[0] * 255.0) as u8,
+                        (base_color[1] * 255.0) as u8,
+                        (base_color[2] * 255.0) as u8,
+                        (base_color[3] * 255.0) as u8,
+                    ];
+                    render_resource_manager
+                        .texture_manager
+                        .create_solid_rgba(gl, rgba)
+                });
+
+            let normal_handle = material
+                .normal_texture()
+                .and_then(|info| texture_map.get(&info.texture().index()).copied())
+                .unwrap_or(render_resource_manager.texture_manager.default_normal_map);
+
+            let mut params = HashMap::new();
+            params.insert("u_roughness".to_string(), UniformValue::Float(roughness));
+            params.insert(
+                "u_base_reflectance".to_string(),
+                UniformValue::Float(base_reflectance),
+            );
+            params.insert(
+                "u_albedo".to_string(),
+                UniformValue::Texture {
+                    handle: albedo_handle,
+                    unit: 0,
+                },
+            );
+            params.insert(
+                "u_normal".to_string(),
+                UniformValue::Texture {
+                    handle: normal_handle,
+                    unit: 1,
+                },
+            );
+            let desc = MaterialDesc::new(shader_handle, params);
+            let handle = render_resource_manager
+                .material_manager
+                .add_material(Material::new(desc));
+            material_handles.push(handle);
+        }
+
+        Ok(material_handles)
+    }
+
+    fn load_textures_from_gltf_data(
+        texture_manager: &mut TextureResource,
+        gl: &glow::Context,
+        path: &OsStr,
+        gltf: &gltf::Document,
+        images: &[gltf::image::Data],
+    ) -> Result<HashMap<usize, TextureHandle>, Box<dyn std::error::Error>> {
+        let mut texture_map = HashMap::new();
+
+        for texture in gltf.textures() {
+            let texture_index = texture.index();
+            let image_index = texture.source().index();
+            let image = images
+                .get(image_index)
+                .ok_or("glTF image index out of bounds")?;
+            let rgba = Self::gltf_image_to_rgba(image)
+                .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidData, message))?;
+
+            let handle = texture_manager.create_from_rgba_with_key(
+                gl,
+                &(path, texture_index),
+                image.width,
+                image.height,
+                &rgba,
+            );
+            texture_map.insert(texture_index, handle);
+        }
+
+        Ok(texture_map)
+    }
+
+    fn gltf_image_to_rgba(image: &gltf::image::Data) -> Result<Vec<u8>, String> {
+        use gltf::image::Format;
+
+        let rgba = match image.format {
+            Format::R8 => image
+                .pixels
+                .iter()
+                .flat_map(|r| [*r, *r, *r, 255])
+                .collect(),
+            Format::R8G8 => image
+                .pixels
+                .chunks(2)
+                .flat_map(|rg| [rg[0], rg[1], 0, 255])
+                .collect(),
+            Format::R8G8B8 => image
+                .pixels
+                .chunks(3)
+                .flat_map(|rgb| [rgb[0], rgb[1], rgb[2], 255])
+                .collect(),
+            Format::R8G8B8A8 => image.pixels.clone(),
+            _ => return Err(format!("Unsupported glTF image format: {:?}", image.format)),
+        };
+
+        Ok(rgba)
     }
 
     fn mesh_primatives_from_gltf(
@@ -437,5 +571,54 @@ impl Engine {
         }
 
         Ok(meshes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_image_data(format: gltf::image::Format, pixels: Vec<u8>) -> gltf::image::Data {
+        gltf::image::Data {
+            pixels,
+            width: 1,
+            height: 1,
+            format,
+        }
+    }
+
+    #[test]
+    fn test_gltf_image_to_rgba_r8() {
+        let image = make_image_data(gltf::image::Format::R8, vec![10]);
+        let rgba = Engine::gltf_image_to_rgba(&image).unwrap();
+        assert_eq!(rgba, vec![10, 10, 10, 255]);
+    }
+
+    #[test]
+    fn test_gltf_image_to_rgba_r8g8() {
+        let image = make_image_data(gltf::image::Format::R8G8, vec![10, 20]);
+        let rgba = Engine::gltf_image_to_rgba(&image).unwrap();
+        assert_eq!(rgba, vec![10, 20, 0, 255]);
+    }
+
+    #[test]
+    fn test_gltf_image_to_rgba_r8g8b8() {
+        let image = make_image_data(gltf::image::Format::R8G8B8, vec![10, 20, 30]);
+        let rgba = Engine::gltf_image_to_rgba(&image).unwrap();
+        assert_eq!(rgba, vec![10, 20, 30, 255]);
+    }
+
+    #[test]
+    fn test_gltf_image_to_rgba_r8g8b8a8() {
+        let image = make_image_data(gltf::image::Format::R8G8B8A8, vec![10, 20, 30, 40]);
+        let rgba = Engine::gltf_image_to_rgba(&image).unwrap();
+        assert_eq!(rgba, vec![10, 20, 30, 40]);
+    }
+
+    #[test]
+    fn test_gltf_image_to_rgba_unsupported_format() {
+        let image = make_image_data(gltf::image::Format::R16, vec![0, 0]);
+        let result = Engine::gltf_image_to_rgba(&image);
+        assert!(result.is_err());
     }
 }
