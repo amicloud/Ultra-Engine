@@ -2,7 +2,10 @@ use crate::movement_system::MovementSystem;
 use crate::physics_resource::PhysicsResource;
 use crate::velocity_component::VelocityComponent;
 use crate::WorldBasis;
-use crate::{physics_component::PhysicsComponent, transform_component::TransformComponent};
+use crate::{
+    physics_component::PhysicsComponent, sleep_component::SleepComponent,
+    transform_component::TransformComponent,
+};
 use bevy_ecs::prelude::*;
 pub struct PhysicsSystem {}
 
@@ -12,22 +15,65 @@ impl PhysicsSystem {
             &mut TransformComponent,
             &mut VelocityComponent,
             &PhysicsComponent,
+            Option<&mut SleepComponent>,
         )>,
     ) {
         let delta_time = 1.0 / 60.0; // Assuming a fixed time step of 1/60 seconds
         let g = WorldBasis::gravity_vector();
-        for (mut transform, mut velocity, physics) in query.iter_mut() {
+        for (mut transform, mut velocity, physics, mut sleep) in query.iter_mut() {
+            if !matches!(physics.physics_type, crate::physics_component::PhysicsType::Dynamic) {
+                continue;
+            }
+
+            if let Some(sleep) = sleep.as_deref_mut() {
+                if sleep.is_sleeping {
+                    velocity.translational = glam::Vec3::ZERO;
+                    velocity.angular = glam::Vec3::ZERO;
+                    continue;
+                }
+            }
+
             Self::update_body(&mut transform, &mut velocity, physics, delta_time, g);
+
+            if let Some(sleep) = sleep.as_deref_mut() {
+                let linear_speed = velocity.translational.length();
+                let angular_speed = velocity.angular.length();
+                if linear_speed < sleep.linear_threshold && angular_speed < sleep.angular_threshold {
+                    sleep.sleep_timer += delta_time;
+                    if sleep.sleep_timer >= sleep.time_to_sleep {
+                        sleep.is_sleeping = true;
+                        velocity.translational = glam::Vec3::ZERO;
+                        velocity.angular = glam::Vec3::ZERO;
+                    }
+                } else {
+                    sleep.sleep_timer = 0.0;
+                }
+            }
         }
     }
 
     pub fn apply_impulses(
-        mut query: Query<(&mut VelocityComponent, &PhysicsComponent)>,
+        mut query: Query<(
+            &mut VelocityComponent,
+            &PhysicsComponent,
+            Option<&mut SleepComponent>,
+        )>,
         mut phys: ResMut<PhysicsResource>, // (entity, linear_impulse, angular_impulse)
     ) {
         for impulse in phys.impulses.drain(..) {
-            println!("Applying impulse to entity {:?}", impulse.entity);
-            if let Ok((mut velocity, physics)) = query.get_mut(impulse.entity) {
+            if let Ok((mut velocity, physics, sleep)) = query.get_mut(impulse.entity) {
+                if !matches!(
+                    physics.physics_type,
+                    crate::physics_component::PhysicsType::Dynamic
+                ) {
+                    continue;
+                }
+                if let Some(mut sleep) = sleep {
+                    if sleep.is_sleeping {
+                        sleep.is_sleeping = false;
+                        sleep.sleep_timer = 0.0;
+                    }
+                }
                 Self::apply_impulse(&mut velocity, physics, impulse.linear, impulse.angular);
             }
         }

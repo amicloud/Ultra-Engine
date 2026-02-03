@@ -9,8 +9,8 @@ use camera_controller::{
 use engine::{
     physics_component::{PhysicsComponent, PhysicsType},
     physics_resource::Impulse,
-    ActiveCamera, CameraComponent, CollisionLayer, Engine, RenderBodyComponent, TransformComponent,
-    VelocityComponent
+    ActiveCamera, CameraComponent, CollisionLayer, Engine, RenderBodyComponent, SleepComponent,
+    TransformComponent, VelocityComponent
 };
 use glam::{Quat, Vec3};
 use rand::random_range;
@@ -110,13 +110,14 @@ fn main() {
         .unwrap();
 
     let t_range = 2.0;
-    for _ in 0..100 {
+
+    for _ in 0..10 {
         for render_body_handle in &assets {
             // Random position
             let pos = Vec3::new(
                 random_range(-10.0..10.0),
                 random_range(-10.0..10.0),
-                random_range(300.0..325.0),
+                random_range(25.0..50.0),
             );
 
             // Random translational velocity
@@ -135,7 +136,7 @@ fn main() {
             );
 
             let scale = 100.0;
-            let _collider = engine
+            let collider = engine
                 .collider_from_render_body(*render_body_handle, CollisionLayer::Default)
                 .expect("Render body AABB not found");
             // Spawn test objects
@@ -152,7 +153,16 @@ fn main() {
                 RenderBodyComponent {
                     render_body_id: *render_body_handle,
                 },
-                // collider,
+                collider,
+                PhysicsComponent {
+                    mass: 1.0,
+                    physics_type: PhysicsType::Dynamic,
+                    friction: 0.5,
+                    drag_coefficient: 0.1,
+                    angular_drag_coefficient: 0.1,
+                    restitution: 0.1,
+                },
+                SleepComponent::default(),
             ));
         }
     }
@@ -210,6 +220,7 @@ fn main() {
                 restitution: 0.5,
             },
             antique_collider,
+            SleepComponent::default(),
         ))
         .id();
 
