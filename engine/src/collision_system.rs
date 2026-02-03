@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::{
     TransformComponent,
-    collider_component::{BoxCollider, MeshCollider},
+    collider_component::{BoxCollider, Collider, MeshCollider, SphereCollider, Triangle},
     mesh::AABB,
     physics_component::{PhysicsComponent, PhysicsType},
     physics_resource::{Contact, Impulse, PhysicsResource},
@@ -22,6 +22,7 @@ impl CollisionSystem {
                 Entity,
                 &TransformComponent,
                 Option<&BoxCollider>,
+                Option<&SphereCollider>,
                 Option<&MeshCollider>,
             ),
             Changed<TransformComponent>,
@@ -29,7 +30,7 @@ impl CollisionSystem {
         render_resources: Res<RenderResourceManager>,
         mut phys: ResMut<PhysicsResource>,
     ) {
-        for (entity, transform, box_collider, mesh_collider) in &query {
+        for (entity, transform, box_collider, sphere_collider, mesh_collider) in &query {
             if let Some(mesh_collider) = mesh_collider {
                 if let Some(local_aabb) = render_body_local_aabb(
                     mesh_collider.render_body_id,
@@ -44,6 +45,12 @@ impl CollisionSystem {
             if let Some(box_collider) = box_collider {
                 let world_aabb = transform_aabb(box_collider.aabb, transform);
                 phys.world_aabbs.insert(entity, world_aabb);
+                continue;
+            }
+
+            if let Some(sphere_collider) = sphere_collider {
+                let world_aabb = sphere_collider.aabb(&transform.to_mat4());
+                phys.world_aabbs.insert(entity, world_aabb);
             }
         }
     }
@@ -55,6 +62,7 @@ impl CollisionSystem {
                 &TransformComponent,
                 Option<&VelocityComponent>,
                 Option<&BoxCollider>,
+                Option<&SphereCollider>,
                 Option<&MeshCollider>,
             ),
             Changed<TransformComponent>,
@@ -64,6 +72,7 @@ impl CollisionSystem {
             &TransformComponent,
             Option<&VelocityComponent>,
             Option<&BoxCollider>,
+            Option<&SphereCollider>,
             Option<&MeshCollider>,
         )>,
         render_resources: Res<RenderResourceManager>,
@@ -71,7 +80,7 @@ impl CollisionSystem {
     ) {
         // Collect moving entities
         let moving_entities: Vec<Entity> =
-            moving_query.iter().map(|(e, _, _, _, _)| e).collect();
+            moving_query.iter().map(|(e, _, _, _, _, _)| e).collect();
         let mut contacts = Vec::new();
 
         // Iterate over moving entities only
@@ -80,12 +89,14 @@ impl CollisionSystem {
                 continue;
             };
 
-            let Ok((_, transform_a, velocity_a, box_a, mesh_a)) = moving_query.get(entity_a) else {
+            let Ok((_, transform_a, velocity_a, box_a, sphere_a, mesh_a)) =
+                moving_query.get(entity_a)
+            else {
                 continue;
             };
 
             // Compare against all colliders (moving + static)
-            for (entity_b, transform_b, velocity_b, box_b, mesh_b) in &all_query {
+            for (entity_b, transform_b, velocity_b, box_b, sphere_b, mesh_b) in &all_query {
                 if entity_a == entity_b {
                     continue;
                 } // skip self
@@ -106,6 +117,38 @@ impl CollisionSystem {
                     if box_a.is_some() && box_b.is_some() {
                         if let Some(contact) = box_box_contact(entity_a, aabb_a, entity_b, aabb_b)
                         {
+                            contacts.push(contact);
+                        }
+                        continue;
+                    }
+
+                    if let (Some(sphere_a), Some(mesh_b)) = (sphere_a, mesh_b) {
+                        if let Some(contact) = sphere_mesh_contact(
+                            entity_a,
+                            sphere_a,
+                            transform_a,
+                            velocity_a,
+                            entity_b,
+                            mesh_b,
+                            transform_b,
+                            &render_resources,
+                        ) {
+                            contacts.push(contact);
+                        }
+                        continue;
+                    }
+
+                    if let (Some(mesh_a), Some(sphere_b)) = (mesh_a, sphere_b) {
+                        if let Some(contact) = sphere_mesh_contact(
+                            entity_b,
+                            sphere_b,
+                            transform_b,
+                            velocity_b,
+                            entity_a,
+                            mesh_a,
+                            transform_a,
+                            &render_resources,
+                        ) {
                             contacts.push(contact);
                         }
                         continue;
@@ -158,7 +201,6 @@ impl CollisionSystem {
     ) {
         let mut impulses = Vec::new();
         let mut corrections: HashMap<Entity, Vec3> = HashMap::new();
-        println!("Number of contacts to resolve: {}", phys.contacts.len());
         for contact in phys.contacts.iter() {
             let (vel_a, phys_a) = query
                 .get(contact.entity_a)
@@ -183,7 +225,6 @@ impl CollisionSystem {
             let inv_mass_sum = inv_mass_a + inv_mass_b;
 
             if inv_mass_sum == 0.0 {
-                println!("Both entities have infinite mass, skipping contact resolution.");
                 continue;
             }
 
@@ -202,7 +243,6 @@ impl CollisionSystem {
             if vel_along_normal.abs() < resting_threshold
                 && contact.penetration <= penetration_slop
             {
-                println!("Resting contact detected, skipping impulse resolution.");
                 continue;
             }
             let effective_restitution = if vel_along_normal.abs() < resting_threshold {
@@ -212,10 +252,9 @@ impl CollisionSystem {
             };
 
             let mut normal_impulse = 0.0;
-            if vel_along_normal < -resting_threshold {
+            if vel_along_normal < 0.0 {
                 normal_impulse = (-(1.0 + effective_restitution) * vel_along_normal) / inv_mass_sum;
                 let impulse = contact.normal * normal_impulse;
-                println!("Applying normal impulse: {:?}", impulse);
                 impulses.push(Impulse {
                     entity: contact.entity_a,
                     linear: -impulse,
@@ -226,8 +265,6 @@ impl CollisionSystem {
                     linear: impulse,
                     angular: Vec3::ZERO,
                 });
-            } else {
-                println!("No normal impulse applied for non-colliding contact.");
             }
 
             if normal_impulse > 0.0 {
@@ -247,7 +284,6 @@ impl CollisionSystem {
                     let max_friction = friction * normal_impulse;
                     let friction_impulse = jt.clamp(-max_friction, max_friction);
                     let impulse = tangent_dir * friction_impulse;
-                    println!("Applying friction impulse: {:?}", impulse);
                     impulses.push(Impulse {
                         entity: contact.entity_a,
                         linear: -impulse,
@@ -259,14 +295,11 @@ impl CollisionSystem {
                         angular: Vec3::ZERO,
                     });
                 }
-            } else {
-                println!("No normal impulse applied, skipping friction resolution.");
             }
 
             let correction_percent = 0.2;
             let penetration = (contact.penetration - penetration_slop).max(0.0);
             if penetration > 0.0 {
-                println!("Applying positional correction for penetration: {}", penetration);
                 let correction =
                     contact.normal * (penetration * correction_percent / inv_mass_sum);
 
@@ -281,7 +314,6 @@ impl CollisionSystem {
             }
         }
         for impulse in impulses {
-            println!("Adding impulse...");
             phys.add_impulse(impulse.entity, impulse.linear, impulse.angular);
         }
         for (entity, correction) in corrections {
@@ -441,6 +473,150 @@ fn box_mesh_contact(
     None
 }
 
+fn sphere_mesh_contact(
+    sphere_entity: Entity,
+    sphere_collider: &SphereCollider,
+    sphere_transform: &TransformComponent,
+    sphere_velocity: Option<&VelocityComponent>,
+    mesh_entity: Entity,
+    mesh_collider: &MeshCollider,
+    mesh_transform: &TransformComponent,
+    render_resources: &RenderResourceManager,
+) -> Option<Contact> {
+    let render_body = render_resources
+        .render_body_manager
+        .get_render_body(mesh_collider.render_body_id)?;
+
+    let sphere_world = sphere_transform.to_mat4();
+    let mesh_entity_world = mesh_transform.to_mat4();
+
+    for part in &render_body.parts {
+        let mesh = render_resources.mesh_manager.get_mesh(part.mesh_id)?;
+        let bvh = mesh.bvh.as_ref()?;
+
+        let mesh_world = mesh_entity_world * part.local_transform;
+        let mesh_world_inv = mesh_world.try_inverse()?;
+        if let Some(contact) = sphere_mesh_contact_at_transform(
+            sphere_entity,
+            mesh_entity,
+            sphere_collider,
+            sphere_transform,
+            sphere_world,
+            &mesh_world,
+            &mesh_world_inv,
+            bvh,
+        ) {
+            return Some(contact);
+        }
+
+        if let Some(velocity) = sphere_velocity {
+            let delta = velocity.translational * fixed_dt();
+            let distance = delta.length();
+            if distance > 0.0 {
+                let step = (sphere_collider.radius * sphere_transform.scale.max_element())
+                    .max(0.01)
+                    * 0.5;
+                let steps = ((distance / step).ceil() as i32).clamp(1, 20);
+
+                for i in 1..=steps {
+                    let t = i as f32 / steps as f32;
+                    let swept_position = sphere_transform.position + delta * t;
+                    let swept_transform = TransformComponent {
+                        position: swept_position,
+                        rotation: sphere_transform.rotation,
+                        scale: sphere_transform.scale,
+                    };
+                    let swept_world = swept_transform.to_mat4();
+                    if let Some(contact) = sphere_mesh_contact_at_transform(
+                        sphere_entity,
+                        mesh_entity,
+                        sphere_collider,
+                        &swept_transform,
+                        swept_world,
+                        &mesh_world,
+                        &mesh_world_inv,
+                        bvh,
+                    ) {
+                        return Some(contact);
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn sphere_mesh_contact_at_transform(
+    sphere_entity: Entity,
+    mesh_entity: Entity,
+    sphere_collider: &SphereCollider,
+    sphere_transform: &TransformComponent,
+    sphere_world: Mat4,
+    mesh_world: &Mat4,
+    mesh_world_inv: &Mat4,
+    bvh: &crate::collider_component::BVHNode,
+) -> Option<Contact> {
+    let sphere_aabb_mesh = sphere_aabb_in_mesh_space(sphere_collider, sphere_transform, mesh_world_inv);
+    let mut candidates = Vec::new();
+    bvh_collect_triangles(bvh, &sphere_aabb_mesh, &mut candidates);
+    if candidates.is_empty() {
+        return None;
+    }
+
+    let sphere_center_world = sphere_world.transform_point3(Vec3::ZERO);
+    let radius_world = sphere_collider.radius * max_scale(&sphere_world);
+    if radius_world <= f32::EPSILON {
+        return None;
+    }
+
+    let mut best_contact: Option<Contact> = None;
+    let mut best_penetration = 0.0;
+    for tri in candidates {
+        let v0 = mesh_world.transform_point3(tri.v0);
+        let v1 = mesh_world.transform_point3(tri.v1);
+        let v2 = mesh_world.transform_point3(tri.v2);
+
+        let closest = closest_point_on_triangle_world(sphere_center_world, v0, v1, v2);
+        let delta = closest - sphere_center_world;
+        let dist_sq = delta.length_squared();
+        let radius_sq = radius_world * radius_world;
+        if dist_sq > radius_sq {
+            continue;
+        }
+
+        let dist = dist_sq.sqrt();
+        let mut normal = if dist > f32::EPSILON {
+            delta / dist
+        } else {
+            let n = (v1 - v0).cross(v2 - v0);
+            if n.length_squared() > f32::EPSILON {
+                n.normalize()
+            } else {
+                Vec3::Z
+            }
+        };
+
+        let tri_point_world = v0;
+        if (sphere_center_world - tri_point_world).dot(normal) > 0.0 {
+            normal = -normal;
+        }
+
+        let contact = Contact {
+            entity_a: sphere_entity,
+            entity_b: mesh_entity,
+            normal,
+            penetration: radius_world - dist,
+        };
+        if contact.penetration > best_penetration {
+            best_penetration = contact.penetration;
+            best_contact = Some(contact);
+        }
+    }
+
+    best_contact
+}
+
 fn box_mesh_contact_at_transform(
     box_entity: Entity,
     mesh_entity: Entity,
@@ -498,6 +674,117 @@ fn swept_aabb(aabb: &AABB, delta: Vec3) -> AABB {
 
 fn fixed_dt() -> f32 {
     1.0 / 60.0
+}
+
+fn bvh_collect_triangles(
+    node: &crate::collider_component::BVHNode,
+    query: &AABB,
+    out: &mut Vec<Triangle>,
+) {
+    if !aabb_intersects(&node.aabb, query) {
+        return;
+    }
+
+    if node.left.is_none() && node.right.is_none() {
+        out.extend(node.triangles.iter().cloned());
+        return;
+    }
+
+    if let Some(left) = &node.left {
+        bvh_collect_triangles(left, query, out);
+    }
+    if let Some(right) = &node.right {
+        bvh_collect_triangles(right, query, out);
+    }
+}
+
+fn sphere_aabb_in_mesh_space(
+    sphere: &SphereCollider,
+    sphere_transform: &TransformComponent,
+    mesh_world_inv: &Mat4,
+) -> AABB {
+    let sphere_world = sphere_transform.to_mat4();
+    let world_aabb = sphere.aabb(&sphere_world);
+    let corners = aabb_corners(&world_aabb);
+    let mut min = mesh_world_inv.transform_point3(corners[0]);
+    let mut max = min;
+    for corner in corners.iter().skip(1) {
+        let p = mesh_world_inv.transform_point3(*corner);
+        min = min.min(p);
+        max = max.max(p);
+    }
+    AABB { min, max }
+}
+
+fn aabb_corners(aabb: &AABB) -> [Vec3; 8] {
+    let min = aabb.min;
+    let max = aabb.max;
+    [
+        Vec3::new(min.x, min.y, min.z),
+        Vec3::new(min.x, min.y, max.z),
+        Vec3::new(min.x, max.y, min.z),
+        Vec3::new(min.x, max.y, max.z),
+        Vec3::new(max.x, min.y, min.z),
+        Vec3::new(max.x, min.y, max.z),
+        Vec3::new(max.x, max.y, min.z),
+        Vec3::new(max.x, max.y, max.z),
+    ]
+}
+
+fn max_scale(transform: &Mat4) -> f32 {
+    let x = transform.x_axis.truncate().length();
+    let y = transform.y_axis.truncate().length();
+    let z = transform.z_axis.truncate().length();
+    x.max(y).max(z)
+}
+
+fn closest_point_on_triangle_world(p: Vec3, a: Vec3, b: Vec3, c: Vec3) -> Vec3 {
+    let ab = b - a;
+    let ac = c - a;
+    let ap = p - a;
+
+    let d1 = ab.dot(ap);
+    let d2 = ac.dot(ap);
+    if d1 <= 0.0 && d2 <= 0.0 {
+        return a;
+    }
+
+    let bp = p - b;
+    let d3 = ab.dot(bp);
+    let d4 = ac.dot(bp);
+    if d3 >= 0.0 && d4 <= d3 {
+        return b;
+    }
+
+    let vc = d1 * d4 - d3 * d2;
+    if vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0 {
+        let v = d1 / (d1 - d3);
+        return a + ab * v;
+    }
+
+    let cp = p - c;
+    let d5 = ab.dot(cp);
+    let d6 = ac.dot(cp);
+    if d6 >= 0.0 && d5 <= d6 {
+        return c;
+    }
+
+    let vb = d5 * d2 - d1 * d6;
+    if vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0 {
+        let w = d2 / (d2 - d6);
+        return a + ac * w;
+    }
+
+    let va = d3 * d6 - d5 * d4;
+    if va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0 {
+        let w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        return b + (c - b) * w;
+    }
+
+    let denom = 1.0 / (va + vb + vc);
+    let v = vb * denom;
+    let w = vc * denom;
+    a + ab * v + ac * w
 }
 
 fn render_body_local_aabb(

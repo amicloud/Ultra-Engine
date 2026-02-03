@@ -7,19 +7,16 @@ use camera_controller::{
     update_orbit_camera_target, FlyingCameraComponent, PlayerComponent,
 };
 // use input_controller::{update_input_state, InputState};
-use engine::{
-    physics_component::{PhysicsComponent, PhysicsType},
-    physics_resource::Impulse,
-    ActiveCamera, CameraComponent, CollisionLayer, Engine, RenderBodyComponent, SleepComponent,
-    TransformComponent, VelocityComponent
-};
-use glam::{Quat, Vec3};
-use rand::random_range;
-use bevy_ecs::schedule::IntoScheduleConfigs;
 use crate::camera_controller::{
     apply_orbit_camera_input, apply_switch_camera_input, initialize_flying_camera_rotation,
     OrbitCameraComponent,
 };
+use bevy_ecs::schedule::IntoScheduleConfigs;
+use engine::{
+    ActiveCamera, CameraComponent, CollisionLayer, Engine, RenderBodyComponent, SleepComponent, SphereCollider, TransformComponent, VelocityComponent, physics_component::{PhysicsComponent, PhysicsType}, physics_resource::Impulse
+};
+use glam::{Quat, Vec3};
+use rand::random_range;
 fn main() {
     println!("Welcome to the Game!");
     let mut engine = Engine::new();
@@ -90,8 +87,8 @@ fn main() {
             apply_flying_camera_movement,
             apply_player_movement_impulses,
             apply_switch_camera_input,
-        ).chain()
-            ,
+        )
+            .chain(),
     );
 
     let assets = [
@@ -100,45 +97,48 @@ fn main() {
         //     "resources/models/normal_tangent_test/NormalTangentMirrorTest.gltf",
         // )),
         // engine.load_gltf(OsStr::new("resources/models/suzanne/Suzanne.gltf")),
-        engine.load_model("resources/models/avocado/Avocado.gltf").unwrap(),
+        engine
+            .load_model("resources/models/avocado/Avocado.gltf")
+            .unwrap(),
         // engine
         //     .load_model("resources/models/building/building.obj")
         //     .unwrap(),
     ];
 
-    let player_render_body = assets[0];
-    let player_scale = 100.0;
+    let player_render_body = engine
+        .load_model("resources/models/sphere/sphere.obj")
+        .unwrap();
+
+    let player_scale = 10.0;
     let player_start = Vec3::new(0.0, 0.0, 50.0);
-    let player_collider = engine
-        .collider_from_render_body(player_render_body, CollisionLayer::Default)
-        .expect("Render body AABB not found");
+    let player_collider = SphereCollider::new(1.0, CollisionLayer::Player);
     engine.world.spawn((
-            TransformComponent {
-                position: player_start,
-                rotation: Quat::IDENTITY,
-                scale: Vec3::new(player_scale, player_scale, player_scale),
-            },
-            VelocityComponent {
-                translational: Vec3::ZERO,
-                angular: Vec3::ZERO,
-            },
-            RenderBodyComponent {
-                render_body_id: player_render_body,
-            },
-            player_collider,
-            PhysicsComponent {
-                mass: 1.0,
-                physics_type: PhysicsType::Dynamic,
-                friction: 0.5,
-                drag_coefficient: 0.1,
-                angular_drag_coefficient: 0.1,
-                restitution: 0.1,
-            },
-            SleepComponent::default(),
-            PlayerComponent {
-                impulse_strength: 1.0,
-            },
-        ));
+        TransformComponent {
+            position: player_start,
+            rotation: Quat::IDENTITY,
+            scale: Vec3::new(player_scale, player_scale, player_scale),
+        },
+        VelocityComponent {
+            translational: Vec3::ZERO,
+            angular: Vec3::ZERO,
+        },
+        RenderBodyComponent {
+            render_body_id: player_render_body,
+        },
+        player_collider,
+        PhysicsComponent {
+            mass: 1.0,
+            physics_type: PhysicsType::Dynamic,
+            friction: 0.5,
+            drag_coefficient: 0.1,
+            angular_drag_coefficient: 0.1,
+            restitution: 0.1,
+        },
+        SleepComponent::default(),
+        PlayerComponent {
+            impulse_strength: 1.0,
+        },
+    ));
 
     let ground = engine
         .load_model("resources/models/opalton/opalton3Dterrain.gltf")
@@ -228,48 +228,62 @@ fn main() {
     let antique_collider = engine
         .collider_from_render_body(antique_camera, CollisionLayer::Default)
         .expect("Render body AABB not found");
-    let phys_cam = engine
-        .world
-        .spawn((
-            antique_camera_transform,
-            RenderBodyComponent {
-                render_body_id: antique_camera,
-            },
-            antique_camera_velocity / 3.0,
-            PhysicsComponent {
-                mass: 10.0,
-                physics_type: PhysicsType::Dynamic,
-                friction: 0.5,
-                drag_coefficient: 0.1,
-                angular_drag_coefficient: 0.1,
-                restitution: 0.5,
-            },
-            antique_collider,
-            SleepComponent::default(),
-        ))
-        .id();
+    // let phys_cam = engine
+    //     .world
+    //     .spawn((
+    //         antique_camera_transform,
+    //         RenderBodyComponent {
+    //             render_body_id: antique_camera,
+    //         },
+    //         antique_camera_velocity / 3.0,
+    //         PhysicsComponent {
+    //             mass: 10.0,
+    //             physics_type: PhysicsType::Dynamic,
+    //             friction: 0.5,
+    //             drag_coefficient: 0.1,
+    //             angular_drag_coefficient: 0.1,
+    //             restitution: 0.5,
+    //         },
+    //         antique_collider,
+    //         SleepComponent::default(),
+    //     ))
+    //     .id();
 
-    engine.add_impulse(Impulse {
-        entity: phys_cam,
-        linear: Vec3::new(5.0, 2.0, 100.0) * 10.0,
-        angular: Vec3::new(0.0, 0.0, 0.0),
-    });
+    // engine.add_impulse(Impulse {
+    //     entity: phys_cam,
+    //     linear: Vec3::new(5.0, 2.0, 100.0) * 10.0,
+    //     angular: Vec3::new(0.0, 0.0, 0.0),
+    // });
 
     let ground_scale = 0.1;
     let ground_collider = engine
         .mesh_collider_from_render_body(ground, CollisionLayer::Default)
         .expect("Render body not found");
+    // engine.world.spawn((
+    //     TransformComponent {
+    //         position: Vec3::new(0.0, 0.0, -300.0),
+    //         rotation: Quat::IDENTITY,
+    //         scale: Vec3::new(ground_scale, ground_scale, 1.0),
+    //     },
+    //     RenderBodyComponent {
+    //         render_body_id: ground,
+    //     },
+    //     ground_collider,
+    // ));
+
+    let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
+    let money_ball_collider = engine.mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
+        .expect("Render body AABB not found");
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::new(0.0, 0.0, -300.0),
+            position: Vec3::new(20.0, 0.0, 0.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::new(ground_scale, ground_scale, 1.0),
+            scale: Vec3::new(10.0,10.0,10.0),
         },
         RenderBodyComponent {
-            render_body_id: ground,
+            render_body_id: monkey_ball_platform.unwrap(),
         },
-        ground_collider,
+        money_ball_collider,
     ));
-
     engine.run();
 }

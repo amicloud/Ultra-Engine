@@ -60,7 +60,7 @@ use crate::render_system::RenderSystem;
 use crate::renderer::{CameraRenderData, RenderParams};
 
 pub use crate::camera_component::{ActiveCamera, CameraComponent};
-pub use crate::collider_component::{BoxCollider, CollisionLayer, MeshCollider};
+pub use crate::collider_component::{BoxCollider, CollisionLayer, MeshCollider, SphereCollider};
 pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::input::MouseButton;
 pub use crate::material_component::MaterialComponent;
