@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Changed, Entity, Query, Res, ResMut, With};
+use bevy_ecs::prelude::{Changed, Entity, Query, ResMut, With};
 use glam::Vec3;
 use std::collections::HashMap;
 

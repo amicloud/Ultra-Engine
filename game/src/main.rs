@@ -3,7 +3,8 @@ mod input_controller;
 mod settings;
 
 use camera_controller::{
-    apply_flying_camera_input, apply_flying_camera_movement, FlyingCameraComponent,
+    apply_flying_camera_input, apply_flying_camera_movement, apply_player_movement_impulses,
+    update_orbit_camera_target, FlyingCameraComponent, PlayerComponent,
 };
 // use input_controller::{update_input_state, InputState};
 use engine::{
@@ -14,7 +15,7 @@ use engine::{
 };
 use glam::{Quat, Vec3};
 use rand::random_range;
-
+use bevy_ecs::schedule::IntoScheduleConfigs;
 use crate::camera_controller::{
     apply_orbit_camera_input, apply_switch_camera_input, initialize_flying_camera_rotation,
     OrbitCameraComponent,
@@ -31,7 +32,7 @@ fn main() {
         scale: Vec3::new(1.0, 1.0, 1.0),
     };
 
-    let flying_camera = engine
+    let _flying_camera = engine
         .world
         .spawn((
             camera_transform,
@@ -45,7 +46,7 @@ fn main() {
                 yaw: -135.0,
                 pitch: -45.0,
                 sensitivity: 0.1,
-                speed: 100.0
+                speed: 100.0,
             },
             VelocityComponent {
                 translational: Vec3::new(0.0, 0.0, 0.0),
@@ -54,7 +55,6 @@ fn main() {
         ))
         .id();
 
-    #[allow(unused_variables)]
     let orbit_camera = engine
         .world
         .spawn((
@@ -79,15 +79,20 @@ fn main() {
         .world
         .get_resource_mut::<ActiveCamera>()
         .unwrap()
-        .set(flying_camera);
+        .set(orbit_camera);
 
-    engine.schedule.add_systems((
-        initialize_flying_camera_rotation,
-        apply_orbit_camera_input,
-        apply_flying_camera_input,
-        apply_flying_camera_movement,
-        apply_switch_camera_input,
-    ));
+    engine.schedule.add_systems(
+        (
+            initialize_flying_camera_rotation,
+            apply_orbit_camera_input,
+            update_orbit_camera_target,
+            apply_flying_camera_input,
+            apply_flying_camera_movement,
+            apply_player_movement_impulses,
+            apply_switch_camera_input,
+        ).chain()
+            ,
+    );
 
     let assets = [
         // engine.load_gltf(OsStr::new("resources/models/cube/Cube.gltf")),
@@ -100,6 +105,40 @@ fn main() {
         //     .load_model("resources/models/building/building.obj")
         //     .unwrap(),
     ];
+
+    let player_render_body = assets[0];
+    let player_scale = 100.0;
+    let player_start = Vec3::new(0.0, 0.0, 50.0);
+    let player_collider = engine
+        .collider_from_render_body(player_render_body, CollisionLayer::Default)
+        .expect("Render body AABB not found");
+    engine.world.spawn((
+            TransformComponent {
+                position: player_start,
+                rotation: Quat::IDENTITY,
+                scale: Vec3::new(player_scale, player_scale, player_scale),
+            },
+            VelocityComponent {
+                translational: Vec3::ZERO,
+                angular: Vec3::ZERO,
+            },
+            RenderBodyComponent {
+                render_body_id: player_render_body,
+            },
+            player_collider,
+            PhysicsComponent {
+                mass: 1.0,
+                physics_type: PhysicsType::Dynamic,
+                friction: 0.5,
+                drag_coefficient: 0.1,
+                angular_drag_coefficient: 0.1,
+                restitution: 0.1,
+            },
+            SleepComponent::default(),
+            PlayerComponent {
+                impulse_strength: 1.0,
+            },
+        ));
 
     let ground = engine
         .load_model("resources/models/opalton/opalton3Dterrain.gltf")
@@ -186,20 +225,6 @@ fn main() {
     antique_camera_transform.position.x += 50.0;
     antique_camera_transform.position.y += 50.0;
 
-    engine.world.spawn((
-        antique_camera_transform,
-        RenderBodyComponent {
-            render_body_id: antique_camera,
-        },
-        antique_camera_velocity,
-    ));
-    engine.world.spawn((
-        antique_camera_transform,
-        RenderBodyComponent {
-            render_body_id: antique_camera,
-        },
-        antique_camera_velocity / 2.0,
-    ));
     let antique_collider = engine
         .collider_from_render_body(antique_camera, CollisionLayer::Default)
         .expect("Render body AABB not found");
@@ -212,7 +237,7 @@ fn main() {
             },
             antique_camera_velocity / 3.0,
             PhysicsComponent {
-                mass: 1.0,
+                mass: 10.0,
                 physics_type: PhysicsType::Dynamic,
                 friction: 0.5,
                 drag_coefficient: 0.1,
@@ -226,7 +251,7 @@ fn main() {
 
     engine.add_impulse(Impulse {
         entity: phys_cam,
-        linear: Vec3::new(5.0, 2.0, 100.0) * 1.0,
+        linear: Vec3::new(5.0, 2.0, 100.0) * 10.0,
         angular: Vec3::new(0.0, 0.0, 0.0),
     });
 

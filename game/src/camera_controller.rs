@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::*;
 use engine::input::InputStateResource;
+use engine::physics_resource::PhysicsResource;
 use engine::{
     ActiveCamera, CameraComponent, MouseButton, TransformComponent, VelocityComponent, WorldBasis,
 };
@@ -30,7 +31,7 @@ impl OrbitCameraComponent {
         )
         .normalize();
     
-        self.target.z = 0.0; // Keep the target on the ground plane.
+        // self.target.z = 0.0; // Keep the target on the ground plane.
 
         transform.position = self.target - (direction * self.distance);
 
@@ -94,6 +95,13 @@ pub struct FlyingCameraComponent {
     pub pitch: f32,
     pub sensitivity: f32,
     pub speed: f32,
+}
+
+/// Player marker + movement tuning for impulse-based motion.
+#[derive(Component, Debug)]
+#[require(TransformComponent, VelocityComponent)]
+pub struct PlayerComponent {
+    pub impulse_strength: f32,
 }
 
 
@@ -281,5 +289,81 @@ pub fn apply_switch_camera_input(
                 break;
             }
         }
+    }
+}
+
+/// Applies WASD impulses to the player based on the active camera's facing.
+pub fn apply_player_movement_impulses(
+    input_state: Res<InputStateResource>,
+    active_camera: Res<ActiveCamera>,
+    world_basis: Res<WorldBasis>,
+    camera_query: Query<&TransformComponent, With<CameraComponent>>,
+    player_query: Query<(Entity, &PlayerComponent), Without<CameraComponent>>,
+    mut physics: ResMut<PhysicsResource>,
+) {
+    let (camera_forward, camera_right) = if let Some(camera_entity) = active_camera.0 {
+        if let Ok(camera_transform) = camera_query.get(camera_entity) {
+            let forward = camera_transform.rotation * Vec3::NEG_Z;
+            let right = camera_transform.rotation * Vec3::X;
+            (forward, right)
+        } else {
+            (world_basis.forward(), world_basis.right())
+        }
+    } else {
+        (world_basis.forward(), world_basis.right())
+    };
+
+    let mut forward = Vec3::new(camera_forward.x, camera_forward.y, 0.0);
+    let mut right = Vec3::new(camera_right.x, camera_right.y, 0.0);
+    if forward.length_squared() > 0.0 {
+        forward = forward.normalize();
+    }
+    if right.length_squared() > 0.0 {
+        right = right.normalize();
+    }
+
+    let mut move_dir = Vec3::ZERO;
+    if input_state.key_held(Keycode::W) {
+        move_dir += forward;
+    }
+    if input_state.key_held(Keycode::S) {
+        move_dir -= forward;
+    }
+    if input_state.key_held(Keycode::D) {
+        move_dir += right;
+    }
+    if input_state.key_held(Keycode::A) {
+        move_dir -= right;
+    }
+    if input_state.key_pressed(Keycode::Space) {
+        move_dir += world_basis.up();
+    }
+
+    if move_dir.length_squared() == 0.0 {
+        return;
+    }
+
+    let move_dir = move_dir.normalize();
+    for (entity, player) in &player_query {
+        physics.add_impulse(entity, move_dir * player.impulse_strength, Vec3::ZERO);
+    }
+}
+
+/// Keeps orbit cameras locked to the player's position.
+pub fn update_orbit_camera_target(
+    world_basis: Res<WorldBasis>,
+    player_query: Query<&TransformComponent, With<PlayerComponent>>,
+    mut orbit_query: Query<
+        (&mut TransformComponent, &mut OrbitCameraComponent),
+        Without<PlayerComponent>,
+    >,
+) {
+    let Ok(player_transform) = player_query.single() else {
+        return;
+    };
+
+    for (mut transform, mut orbit) in &mut orbit_query {
+        orbit.target = player_transform.position;
+        orbit.apply_to_transform(&mut transform, &world_basis);
     }
 }
