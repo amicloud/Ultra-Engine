@@ -1,14 +1,14 @@
-use bevy_ecs::prelude::{Changed, Entity, Query, ResMut, With};
-use glam::Vec3;
+use bevy_ecs::prelude::{Changed, Entity, Query, Res, ResMut};
+use glam::{Mat4, Vec3};
 use std::collections::HashMap;
 
 use crate::{
     TransformComponent,
-    collider_component::ColliderComponent,
+    collider_component::{BoxCollider, MeshCollider},
     mesh::AABB,
-    physics_component::PhysicsType,
-    physics_component::PhysicsComponent,
+    physics_component::{PhysicsComponent, PhysicsType},
     physics_resource::{Contact, Impulse, PhysicsResource},
+    render_resource_manager::RenderResourceManager,
     velocity_component::VelocityComponent,
 };
 
@@ -18,27 +18,57 @@ pub struct CollisionSystem {}
 impl CollisionSystem {
     pub fn update_world_aabb_cache(
         query: Query<
-            (Entity, &ColliderComponent, &TransformComponent),
+            (
+                Entity,
+                &TransformComponent,
+                Option<&BoxCollider>,
+                Option<&MeshCollider>,
+            ),
             Changed<TransformComponent>,
         >,
+        render_resources: Res<RenderResourceManager>,
         mut phys: ResMut<PhysicsResource>,
     ) {
-        for (entity, collider, transform) in &query {
-            let world_aabb = transform_aabb(collider.aabb(), transform);
-            phys.world_aabbs.insert(entity, world_aabb);
+        for (entity, transform, box_collider, mesh_collider) in &query {
+            if let Some(mesh_collider) = mesh_collider {
+                if let Some(local_aabb) = render_body_local_aabb(
+                    mesh_collider.render_body_id,
+                    &render_resources,
+                ) {
+                    let world_aabb = transform_aabb(local_aabb, transform);
+                    phys.world_aabbs.insert(entity, world_aabb);
+                    continue;
+                }
+            }
+
+            if let Some(box_collider) = box_collider {
+                let world_aabb = transform_aabb(box_collider.aabb, transform);
+                phys.world_aabbs.insert(entity, world_aabb);
+            }
         }
     }
 
     pub fn generate_contacts(
         moving_query: Query<
-            (Entity, &ColliderComponent, &TransformComponent),
+            (
+                Entity,
+                &TransformComponent,
+                Option<&BoxCollider>,
+                Option<&MeshCollider>,
+            ),
             Changed<TransformComponent>,
         >,
-        all_query: Query<(Entity, &ColliderComponent), With<ColliderComponent>>,
+        all_query: Query<(
+            Entity,
+            &TransformComponent,
+            Option<&BoxCollider>,
+            Option<&MeshCollider>,
+        )>,
+        render_resources: Res<RenderResourceManager>,
         mut phys: ResMut<PhysicsResource>,
     ) {
         // Collect moving entities
-        let moving_entities: Vec<Entity> = moving_query.iter().map(|(e, _, _)| e).collect();
+        let moving_entities: Vec<Entity> = moving_query.iter().map(|(e, _, _, _)| e).collect();
         let mut contacts = Vec::new();
 
         // Iterate over moving entities only
@@ -47,8 +77,12 @@ impl CollisionSystem {
                 continue;
             };
 
+            let Ok((_, transform_a, box_a, mesh_a)) = moving_query.get(entity_a) else {
+                continue;
+            };
+
             // Compare against all colliders (moving + static)
-            for (entity_b, _collider_b) in &all_query {
+            for (entity_b, transform_b, box_b, mesh_b) in &all_query {
                 if entity_a == entity_b {
                     continue;
                 } // skip self
@@ -58,32 +92,47 @@ impl CollisionSystem {
                 };
 
                 if aabb_intersects(aabb_a, aabb_b) {
-                    // Simple approximation: normal along the largest penetration axis
-                    let delta = (aabb_b.min + aabb_b.max) * 0.5 - (aabb_a.min + aabb_a.max) * 0.5;
-                    let overlap_x = (aabb_a.max.x - aabb_a.min.x + aabb_b.max.x - aabb_b.min.x)
-                        * 0.5
-                        - delta.x.abs();
-                    let overlap_y = (aabb_a.max.y - aabb_a.min.y + aabb_b.max.y - aabb_b.min.y)
-                        * 0.5
-                        - delta.y.abs();
-                    let overlap_z = (aabb_a.max.z - aabb_a.min.z + aabb_b.max.z - aabb_b.min.z)
-                        * 0.5
-                        - delta.z.abs();
+                    if box_a.is_some() && box_b.is_some() {
+                        if let Some(contact) = box_box_contact(entity_a, aabb_a, entity_b, aabb_b)
+                        {
+                            contacts.push(contact);
+                        }
+                        continue;
+                    }
 
-                    let (penetration, normal) = if overlap_x < overlap_y && overlap_x < overlap_z {
-                        (overlap_x, Vec3::new(delta.x.signum(), 0.0, 0.0))
-                    } else if overlap_y < overlap_z {
-                        (overlap_y, Vec3::new(0.0, delta.y.signum(), 0.0))
-                    } else {
-                        (overlap_z, Vec3::new(0.0, 0.0, delta.z.signum()))
-                    };
+                    if let (Some(box_a), Some(mesh_b)) = (box_a, mesh_b) {
+                        if let Some(contact) = box_mesh_contact(
+                            entity_a,
+                            box_a,
+                            transform_a,
+                            aabb_a,
+                            entity_b,
+                            mesh_b,
+                            transform_b,
+                            aabb_b,
+                            &render_resources,
+                        ) {
+                            contacts.push(contact);
+                        }
+                        continue;
+                    }
 
-                    contacts.push(Contact {
-                        entity_a,
-                        entity_b,
-                        normal,
-                        penetration,
-                    });
+                    if let (Some(mesh_a), Some(box_b)) = (mesh_a, box_b) {
+                        if let Some(contact) = box_mesh_contact(
+                            entity_b,
+                            box_b,
+                            transform_b,
+                            aabb_b,
+                            entity_a,
+                            mesh_a,
+                            transform_a,
+                            aabb_a,
+                            &render_resources,
+                        ) {
+                            contacts.push(contact);
+                        }
+                        continue;
+                    }
                 }
             }
         }
@@ -226,6 +275,10 @@ impl CollisionSystem {
 
 fn transform_aabb(local: AABB, transform: &TransformComponent) -> AABB {
     let matrix = transform.to_mat4();
+    transform_aabb_with_mat4(local, &matrix)
+}
+
+fn transform_aabb_with_mat4(local: AABB, transform: &Mat4) -> AABB {
     let min = local.min;
     let max = local.max;
 
@@ -240,11 +293,11 @@ fn transform_aabb(local: AABB, transform: &TransformComponent) -> AABB {
         Vec3::new(max.x, max.y, max.z),
     ];
 
-    let mut world_min = matrix.transform_point3(corners[0]);
+    let mut world_min = transform.transform_point3(corners[0]);
     let mut world_max = world_min;
 
     for corner in corners.iter().skip(1) {
-        let world = matrix.transform_point3(*corner);
+        let world = transform.transform_point3(*corner);
         world_min = world_min.min(world);
         world_max = world_max.max(world);
     }
@@ -259,4 +312,136 @@ fn aabb_intersects(a: &AABB, b: &AABB) -> bool {
     (a.min.x <= b.max.x && a.max.x >= b.min.x)
         && (a.min.y <= b.max.y && a.max.y >= b.min.y)
         && (a.min.z <= b.max.z && a.max.z >= b.min.z)
+}
+
+fn box_box_contact(
+    entity_a: Entity,
+    aabb_a: &AABB,
+    entity_b: Entity,
+    aabb_b: &AABB,
+) -> Option<Contact> {
+    let delta = (aabb_b.min + aabb_b.max) * 0.5 - (aabb_a.min + aabb_a.max) * 0.5;
+    let overlap_x = (aabb_a.max.x - aabb_a.min.x + aabb_b.max.x - aabb_b.min.x) * 0.5
+        - delta.x.abs();
+    let overlap_y = (aabb_a.max.y - aabb_a.min.y + aabb_b.max.y - aabb_b.min.y) * 0.5
+        - delta.y.abs();
+    let overlap_z = (aabb_a.max.z - aabb_a.min.z + aabb_b.max.z - aabb_b.min.z) * 0.5
+        - delta.z.abs();
+
+    let (penetration, normal) = if overlap_x < overlap_y && overlap_x < overlap_z {
+        (overlap_x, Vec3::new(delta.x.signum(), 0.0, 0.0))
+    } else if overlap_y < overlap_z {
+        (overlap_y, Vec3::new(0.0, delta.y.signum(), 0.0))
+    } else {
+        (overlap_z, Vec3::new(0.0, 0.0, delta.z.signum()))
+    };
+
+    Some(Contact {
+        entity_a,
+        entity_b,
+        normal,
+        penetration,
+    })
+}
+
+fn box_mesh_contact(
+    box_entity: Entity,
+    box_collider: &BoxCollider,
+    box_transform: &TransformComponent,
+    box_aabb_world: &AABB,
+    mesh_entity: Entity,
+    mesh_collider: &MeshCollider,
+    mesh_transform: &TransformComponent,
+    mesh_aabb_world: &AABB,
+    render_resources: &RenderResourceManager,
+) -> Option<Contact> {
+    let render_body = render_resources
+        .render_body_manager
+        .get_render_body(mesh_collider.render_body_id)?;
+
+    let box_world = box_transform.to_mat4();
+    let mesh_entity_world = mesh_transform.to_mat4();
+
+    for part in &render_body.parts {
+        let mesh = render_resources.mesh_manager.get_mesh(part.mesh_id)?;
+        let bvh = mesh.bvh.as_ref()?;
+
+        let mesh_world = mesh_entity_world * part.local_transform;
+        let mesh_world_inv = mesh_world.try_inverse()?;
+        let collider_in_mesh_space = mesh_world_inv * box_world;
+
+        let mut hits = Vec::new();
+        bvh.query_collider(box_collider, &collider_in_mesh_space, &mut hits);
+        if hits.is_empty() {
+            continue;
+        }
+
+        let mut normal_world = mesh_world.transform_vector3(hits[0].1);
+        let normal_len = normal_world.length();
+        if normal_len <= f32::EPSILON {
+            continue;
+        }
+        normal_world /= normal_len;
+
+        let center_delta = (mesh_aabb_world.min + mesh_aabb_world.max) * 0.5
+            - (box_aabb_world.min + box_aabb_world.max) * 0.5;
+        if normal_world.dot(center_delta) < 0.0 {
+            normal_world = -normal_world;
+        }
+
+        let penetration = penetration_depth(box_aabb_world, mesh_aabb_world);
+        let contact = Contact {
+            entity_a: box_entity,
+            entity_b: mesh_entity,
+            normal: normal_world,
+            penetration,
+        };
+        println!(
+            "Box-Mesh collision detected: Box Entity {:?}, Mesh Entity {:?}, Normal {:?}, Penetration {}",
+            box_entity, mesh_entity, contact.normal, contact.penetration
+        );
+        return Some(contact);
+    }
+
+    None
+}
+
+fn penetration_depth(aabb_a: &AABB, aabb_b: &AABB) -> f32 {
+    let delta = (aabb_b.min + aabb_b.max) * 0.5 - (aabb_a.min + aabb_a.max) * 0.5;
+    let overlap_x = (aabb_a.max.x - aabb_a.min.x + aabb_b.max.x - aabb_b.min.x) * 0.5
+        - delta.x.abs();
+    let overlap_y = (aabb_a.max.y - aabb_a.min.y + aabb_b.max.y - aabb_b.min.y) * 0.5
+        - delta.y.abs();
+    let overlap_z = (aabb_a.max.z - aabb_a.min.z + aabb_b.max.z - aabb_b.min.z) * 0.5
+        - delta.z.abs();
+
+    overlap_x.min(overlap_y).min(overlap_z).max(0.0)
+}
+
+fn render_body_local_aabb(
+    render_body_id: crate::handles::RenderBodyHandle,
+    render_resources: &RenderResourceManager,
+) -> Option<AABB> {
+    let render_body = render_resources
+        .render_body_manager
+        .get_render_body(render_body_id)?;
+
+    let mut combined: Option<AABB> = None;
+    for part in &render_body.parts {
+        let mesh = render_resources.mesh_manager.get_mesh(part.mesh_id)?;
+        let part_aabb = transform_aabb_with_mat4(mesh.aabb, &part.local_transform);
+        combined = Some(match combined {
+            Some(existing) => union_aabb(existing, part_aabb),
+            None => part_aabb,
+        });
+    }
+
+    combined
+}
+
+fn union_aabb(a: AABB, b: AABB) -> AABB {
+    AABB {
+        min: a.min.min(b.min),
+        max: a.max.max(b.max),
+    }
 }

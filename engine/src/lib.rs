@@ -60,7 +60,7 @@ use crate::render_system::RenderSystem;
 use crate::renderer::{CameraRenderData, RenderParams};
 
 pub use crate::camera_component::{ActiveCamera, CameraComponent};
-pub use crate::collider_component::{ColliderComponent, CollisionLayer};
+pub use crate::collider_component::{BoxCollider, CollisionLayer, MeshCollider};
 pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::input::MouseButton;
 pub use crate::material_component::MaterialComponent;
@@ -361,9 +361,22 @@ impl Engine {
         &self,
         render_body_id: RenderBodyHandle,
         layer: CollisionLayer,
-    ) -> Option<ColliderComponent> {
+    ) -> Option<BoxCollider> {
         self.aabb_from_render_body(render_body_id)
-            .map(|aabb| ColliderComponent::new(aabb, layer))
+            .map(|aabb| BoxCollider::new(aabb, layer))
+    }
+
+    pub fn mesh_collider_from_render_body(
+        &self,
+        render_body_id: RenderBodyHandle,
+        layer: CollisionLayer,
+    ) -> Option<MeshCollider> {
+        self.world
+            .get_resource::<RenderResourceManager>()?
+            .render_body_manager
+            .get_render_body(render_body_id)?;
+
+        Some(MeshCollider::new(render_body_id, layer))
     }
 }
 

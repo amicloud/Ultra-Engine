@@ -257,8 +257,8 @@ fn main() {
 
     let ground_scale = 1.0;
     let ground_collider = engine
-        .collider_from_render_body(ground, CollisionLayer::Default)
-        .expect("Render body AABB not found");
+        .mesh_collider_from_render_body(ground, CollisionLayer::Default)
+        .expect("Render body not found");
     engine.world.spawn((
         TransformComponent {
             position: Vec3::new(0.0, 0.0, -300.0),

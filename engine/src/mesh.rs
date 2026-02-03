@@ -6,6 +6,7 @@ use glam::Vec3;
 use glow::HasContext;
 use std::hash::{Hash, Hasher};
 
+use crate::collider_component::{BVHNode, Triangle};
 use crate::handles::MeshHandle;
 
 #[repr(C)]
@@ -81,7 +82,7 @@ impl Vertex {
     }
 }
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,
@@ -139,6 +140,9 @@ pub struct Mesh {
     pub sphere_center: Vec3,
     pub sphere_radius: f32,
 
+    // Collision
+    pub bvh: Option<BVHNode>,
+
     // GPU handles
     pub vbo: Option<glow::Buffer>,
     pub ebo: Option<glow::Buffer>,
@@ -156,6 +160,41 @@ pub struct GltfPrimitiveMesh {
 
 
 impl Mesh {
+    pub fn build_bvh(&mut self, max_leaf_size: usize) {
+        if self.indices.len() < 3 || self.vertices.is_empty() {
+            self.bvh = None;
+            return;
+        }
+
+        let triangles = self.triangles_from_indices();
+        if triangles.is_empty() {
+            self.bvh = None;
+            return;
+        }
+
+        self.bvh = Some(BVHNode::build(triangles, max_leaf_size));
+    }
+
+    fn triangles_from_indices(&self) -> Vec<Triangle> {
+        let mut tris = Vec::with_capacity(self.indices.len() / 3);
+        for indices in self.indices.chunks(3) {
+            if indices.len() < 3 {
+                continue;
+            }
+            let i0 = indices[0] as usize;
+            let i1 = indices[1] as usize;
+            let i2 = indices[2] as usize;
+            if i0 >= self.vertices.len() || i1 >= self.vertices.len() || i2 >= self.vertices.len() {
+                continue;
+            }
+            let v0 = Vec3::from(self.vertices[i0].position);
+            let v1 = Vec3::from(self.vertices[i1].position);
+            let v2 = Vec3::from(self.vertices[i2].position);
+            tris.push(Triangle { v0, v1, v2 });
+        }
+        tris
+    }
+
     pub fn upload_to_gpu(&mut self, gl: &glow::Context) {
         unsafe {
             // --- Create GPU objects ---

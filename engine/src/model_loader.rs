@@ -263,6 +263,7 @@ impl Engine {
                 };
                 built_mesh.aabb = crate::mesh::AABB::from_vertices(&built_mesh.vertices);
                 built_mesh.compute_bounding_sphere();
+                built_mesh.build_bvh(8);
 
                 let mesh_handle = render_resource_manager
                     .mesh_manager
@@ -553,6 +554,7 @@ impl Engine {
                 };
                 mesh.aabb = AABB::from_vertices(&mesh.vertices);
                 mesh.compute_bounding_sphere();
+                mesh.build_bvh(8);
 
                 meshes.push(GltfPrimitiveMesh {
                     mesh,
