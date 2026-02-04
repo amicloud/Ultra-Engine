@@ -231,6 +231,7 @@ fn face_outside(
 mod tests {
 	use super::*;
 	use crate::collider_component::CollisionLayer;
+	use crate::mesh::AABB;
 	use crate::transform_component::TransformComponent;
 	use glam::{Quat, Vec3};
 
@@ -265,6 +266,64 @@ mod tests {
 		let b_transform = transform_at(Vec3::new(5.0, 0.0, 0.0));
 
 		let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+		assert_eq!(result, GjkResult::NoIntersection);
+	}
+
+	#[test]
+	fn gjk_intersects_overlapping_spheres() {
+		let sphere = ConvexCollider::sphere(1.5, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(2.0, 0.0, 0.0));
+
+		let result = gjk_intersect(&sphere, a_transform, &sphere, b_transform);
+		match result {
+			GjkResult::Intersection(hit) => {
+				assert!(!hit.simplex.is_empty());
+			}
+			_ => panic!("Expected intersection."),
+		}
+	}
+
+	#[test]
+	fn gjk_no_intersection_separated_spheres() {
+		let sphere = ConvexCollider::sphere(1.0, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(3.5, 0.0, 0.0));
+
+		let result = gjk_intersect(&sphere, a_transform, &sphere, b_transform);
+		assert_eq!(result, GjkResult::NoIntersection);
+	}
+
+	#[test]
+	fn gjk_intersects_overlapping_cuboids() {
+		let aabb = AABB {
+			min: Vec3::splat(-1.0),
+			max: Vec3::splat(1.0),
+		};
+		let cuboid = ConvexCollider::cuboid(aabb, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(1.0, 0.0, 0.0));
+
+		let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
+		match result {
+			GjkResult::Intersection(hit) => {
+				assert!(!hit.simplex.is_empty());
+			}
+			_ => panic!("Expected intersection."),
+		}
+	}
+
+	#[test]
+	fn gjk_no_intersection_separated_cuboids() {
+		let aabb = AABB {
+			min: Vec3::splat(-1.0),
+			max: Vec3::splat(1.0),
+		};
+		let cuboid = ConvexCollider::cuboid(aabb, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(3.5, 0.0, 0.0));
+
+		let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
 		assert_eq!(result, GjkResult::NoIntersection);
 	}
 }
