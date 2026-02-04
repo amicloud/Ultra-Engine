@@ -297,7 +297,7 @@ mod tests {
 	#[test]
 	fn gjk_intersects_overlapping_cuboids() {
 		let aabb = AABB {
-			min: Vec3::splat(-1.0),
+			min: Vec3::splat(-2.0),
 			max: Vec3::splat(1.0),
 		};
 		let cuboid = ConvexCollider::cuboid(aabb, CollisionLayer::Default);
@@ -316,7 +316,7 @@ mod tests {
 	#[test]
 	fn gjk_no_intersection_separated_cuboids() {
 		let aabb = AABB {
-			min: Vec3::splat(-1.0),
+			min: Vec3::splat(-2.0),
 			max: Vec3::splat(1.0),
 		};
 		let cuboid = ConvexCollider::cuboid(aabb, CollisionLayer::Default);
