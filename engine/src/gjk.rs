@@ -127,16 +127,31 @@ fn handle_line(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
 	let a = simplex[1];
 	let b = simplex[0];
 	let ab = b - a;
-	let ao = -a;
-
-	if ab.dot(ao) > 0.0 {
-		*dir = ab.cross(ao).cross(ab);
-	} else {
+	let ab_len_sq = ab.length_squared();
+	if ab_len_sq <= EPSILON {
 		simplex.clear();
 		simplex.push(a);
-		*dir = ao;
+		*dir = -a;
+		return dir.length_squared() <= EPSILON;
 	}
 
+	let t = (-a).dot(ab) / ab_len_sq;
+	if t <= 0.0 {
+		simplex.clear();
+		simplex.push(a);
+		*dir = -a;
+		return dir.length_squared() <= EPSILON;
+	}
+	if t >= 1.0 {
+		simplex.clear();
+		simplex.push(b);
+		*dir = -b;
+		return dir.length_squared() <= EPSILON;
+	}
+
+	let closest = a + ab * t;
+	*dir = -closest;
+	*dir = if dir.length_squared() <= EPSILON { Vec3::ZERO } else { *dir };
 	false
 }
 
@@ -149,33 +164,74 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
 	let ac = c - a;
 	let ao = -a;
 
-	let abc = ab.cross(ac);
+	let d1 = ab.dot(ao);
+	let d2 = ac.dot(ao);
+	if d1 <= 0.0 && d2 <= 0.0 {
+		simplex.clear();
+		simplex.push(a);
+		*dir = -a;
+		return dir.length_squared() <= EPSILON;
+	}
 
-	let ab_perp = abc.cross(ab);
-	if ab_perp.dot(ao) > 0.0 {
+	let bo = -b;
+	let d3 = ab.dot(bo);
+	let d4 = ac.dot(bo);
+	if d3 >= 0.0 && d4 <= d3 {
+		simplex.clear();
+		simplex.push(b);
+		*dir = -b;
+		return dir.length_squared() <= EPSILON;
+	}
+
+	let vc = d1 * d4 - d3 * d2;
+	if vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0 {
+		let v = d1 / (d1 - d3);
+		let closest = a + ab * v;
 		simplex.clear();
 		simplex.push(b);
 		simplex.push(a);
-		*dir = ab.cross(ao).cross(ab);
-		return false;
+		*dir = -closest;
+		return dir.length_squared() <= EPSILON;
 	}
 
-	let ac_perp = ac.cross(abc);
-	if ac_perp.dot(ao) > 0.0 {
+	let co = -c;
+	let d5 = ab.dot(co);
+	let d6 = ac.dot(co);
+	if d6 >= 0.0 && d5 <= d6 {
+		simplex.clear();
+		simplex.push(c);
+		*dir = -c;
+		return dir.length_squared() <= EPSILON;
+	}
+
+	let vb = d5 * d2 - d1 * d6;
+	if vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0 {
+		let w = d2 / (d2 - d6);
+		let closest = a + ac * w;
 		simplex.clear();
 		simplex.push(c);
 		simplex.push(a);
-		*dir = ac.cross(ao).cross(ac);
-		return false;
+		*dir = -closest;
+		return dir.length_squared() <= EPSILON;
 	}
 
-	if abc.dot(ao) > 0.0 {
-		*dir = abc;
-	} else {
-		simplex.swap(0, 1);
-		*dir = -abc;
+	let va = d3 * d6 - d5 * d4;
+	if va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0 {
+		let w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+		let closest = b + (c - b) * w;
+		simplex.clear();
+		simplex.push(c);
+		simplex.push(b);
+		*dir = -closest;
+		return dir.length_squared() <= EPSILON;
 	}
 
+	let denom = 1.0 / (va + vb + vc);
+	let v = vb * denom;
+	let w = vc * denom;
+	let closest = a + ab * v + ac * w;
+	*dir = -closest;
+	*dir = if dir.length_squared() <= EPSILON { Vec3::ZERO } else { *dir };
 	false
 }
 
@@ -326,4 +382,41 @@ mod tests {
 		let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
 		assert_eq!(result, GjkResult::NoIntersection);
 	}
+
+	#[test]
+	fn gjk_intersects_cuboid_sphere() {
+		let aabb = AABB {
+			min: Vec3::splat(-1.0),
+			max: Vec3::splat(1.0),
+		};
+		let cuboid = ConvexCollider::cuboid(aabb, CollisionLayer::Default);
+		let sphere = ConvexCollider::sphere(1.5, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(1.0, 0.0, 0.0));
+
+		let result = gjk_intersect(&cuboid, a_transform, &sphere, b_transform);
+		match result {
+			GjkResult::Intersection(hit) => {
+				assert!(!hit.simplex.is_empty());
+			}
+			_ => panic!("Expected intersection."),
+		}
+	}
+
+	#[test]
+	fn gjk_no_intersection_cuboid_sphere() {
+		let aabb = AABB {
+			min: Vec3::splat(-1.0),
+			max: Vec3::splat(1.0),
+		};
+		let cuboid = ConvexCollider::cuboid(aabb, CollisionLayer::Default);
+		let sphere = ConvexCollider::sphere(1.0, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(3.1, 0.0, 0.0));
+
+		let result = gjk_intersect(&cuboid, a_transform, &sphere, b_transform);
+		assert_eq!(result, GjkResult::NoIntersection);
+	}
+
+    
 }
