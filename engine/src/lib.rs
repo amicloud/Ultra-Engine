@@ -7,6 +7,7 @@ mod camera_component;
 mod collider_component;
 mod collision_system;
 mod frustum;
+pub mod gjk;
 mod handles;
 pub mod input;
 mod material;

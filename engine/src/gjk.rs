@@ -1,0 +1,270 @@
+// Distributed under the GNU Affero General Public License v3.0 or later.
+// See accompanying file LICENSE or https://www.gnu.org/licenses/agpl-3.0.html for details.
+
+use glam::{Mat4, Vec3};
+
+use crate::collider_component::{ConvexCollider, ConvexShape};
+
+const DEFAULT_MAX_ITERATIONS: usize = 32;
+const EPSILON: f32 = 1e-6;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct GjkHit {
+	/// Simplex points for optional EPA expansion (may be line/triangle/tetrahedron).
+	pub simplex: Vec<Vec3>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum GjkResult {
+	NoIntersection,
+	Intersection(GjkHit),
+}
+
+/// Performs GJK intersection testing between two convex colliders.
+/// Returns a simplex (line/triangle/tetrahedron) suitable as EPA seed.
+pub fn gjk_intersect(
+	a: &ConvexCollider,
+	a_transform: Mat4,
+	b: &ConvexCollider,
+	b_transform: Mat4,
+) -> GjkResult {
+	gjk_intersect_with_params(a, a_transform, b, b_transform, DEFAULT_MAX_ITERATIONS)
+}
+
+pub fn gjk_intersect_with_params(
+	a: &ConvexCollider,
+	a_transform: Mat4,
+	b: &ConvexCollider,
+	b_transform: Mat4,
+	max_iterations: usize,
+) -> GjkResult {
+	let mut dir = initial_direction(a_transform, b_transform);
+	let mut simplex: Vec<Vec3> = Vec::with_capacity(4);
+
+	let support = support_minkowski(a, a_transform, b, b_transform, dir);
+	simplex.push(support);
+	dir = -support;
+
+	for _ in 0..max_iterations {
+		if dir.length_squared() <= EPSILON {
+			return GjkResult::Intersection(GjkHit { simplex });
+		}
+
+		let support = support_minkowski(a, a_transform, b, b_transform, dir);
+		if support.dot(dir) <= 0.0 {
+			return GjkResult::NoIntersection;
+		}
+
+		simplex.push(support);
+		if handle_simplex(&mut simplex, &mut dir) {
+			return GjkResult::Intersection(GjkHit { simplex });
+		}
+	}
+
+	GjkResult::NoIntersection
+}
+
+fn initial_direction(a_transform: Mat4, b_transform: Mat4) -> Vec3 {
+	let a_center = a_transform.transform_point3(Vec3::ZERO);
+	let b_center = b_transform.transform_point3(Vec3::ZERO);
+	let dir = b_center - a_center;
+	if dir.length_squared() <= EPSILON {
+		Vec3::X
+	} else {
+		dir
+	}
+}
+
+fn support_minkowski(
+	a: &ConvexCollider,
+	a_transform: Mat4,
+	b: &ConvexCollider,
+	b_transform: Mat4,
+	dir: Vec3,
+) -> Vec3 {
+	let p1 = support_collider(a, a_transform, dir);
+	let p2 = support_collider(b, b_transform, -dir);
+	p1 - p2
+}
+
+fn support_collider(collider: &ConvexCollider, transform: Mat4, dir_world: Vec3) -> Vec3 {
+	let local_dir = world_direction_to_local(transform, dir_world);
+	let local_point = match collider.shape {
+		ConvexShape::Cuboid { aabb } => Vec3::new(
+			if local_dir.x >= 0.0 { aabb.max.x } else { aabb.min.x },
+			if local_dir.y >= 0.0 { aabb.max.y } else { aabb.min.y },
+			if local_dir.z >= 0.0 { aabb.max.z } else { aabb.min.z },
+		),
+		ConvexShape::Sphere { radius } => {
+			if local_dir.length_squared() <= EPSILON {
+				Vec3::ZERO
+			} else {
+				local_dir.normalize() * radius
+			}
+		}
+	};
+
+	transform.transform_point3(local_point)
+}
+
+fn world_direction_to_local(transform: Mat4, dir_world: Vec3) -> Vec3 {
+	if dir_world.length_squared() <= EPSILON {
+		return Vec3::ZERO;
+	}
+	transform.inverse().transform_vector3(dir_world)
+}
+
+fn handle_simplex(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
+	match simplex.len() {
+		2 => handle_line(simplex, dir),
+		3 => handle_triangle(simplex, dir),
+		4 => handle_tetrahedron(simplex, dir),
+		_ => false,
+	}
+}
+
+fn handle_line(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
+	let a = simplex[1];
+	let b = simplex[0];
+	let ab = b - a;
+	let ao = -a;
+
+	if ab.dot(ao) > 0.0 {
+		*dir = ab.cross(ao).cross(ab);
+	} else {
+		simplex.clear();
+		simplex.push(a);
+		*dir = ao;
+	}
+
+	false
+}
+
+fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
+	let a = simplex[2];
+	let b = simplex[1];
+	let c = simplex[0];
+
+	let ab = b - a;
+	let ac = c - a;
+	let ao = -a;
+
+	let abc = ab.cross(ac);
+
+	let ab_perp = abc.cross(ab);
+	if ab_perp.dot(ao) > 0.0 {
+		simplex.clear();
+		simplex.push(b);
+		simplex.push(a);
+		*dir = ab.cross(ao).cross(ab);
+		return false;
+	}
+
+	let ac_perp = ac.cross(abc);
+	if ac_perp.dot(ao) > 0.0 {
+		simplex.clear();
+		simplex.push(c);
+		simplex.push(a);
+		*dir = ac.cross(ao).cross(ac);
+		return false;
+	}
+
+	if abc.dot(ao) > 0.0 {
+		*dir = abc;
+	} else {
+		simplex.swap(0, 1);
+		*dir = -abc;
+	}
+
+	false
+}
+
+fn handle_tetrahedron(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
+	let a = simplex[3];
+	let b = simplex[2];
+	let c = simplex[1];
+	let d = simplex[0];
+	let ao = -a;
+
+	if let Some((face, normal)) = face_outside(a, b, c, d, ao) {
+		*simplex = face;
+		*dir = normal;
+		return false;
+	}
+
+	if let Some((face, normal)) = face_outside(a, c, d, b, ao) {
+		*simplex = face;
+		*dir = normal;
+		return false;
+	}
+
+	if let Some((face, normal)) = face_outside(a, d, b, c, ao) {
+		*simplex = face;
+		*dir = normal;
+		return false;
+	}
+
+	true
+}
+
+fn face_outside(
+	a: Vec3,
+	b: Vec3,
+	c: Vec3,
+	opposite: Vec3,
+	ao: Vec3,
+) -> Option<(Vec<Vec3>, Vec3)> {
+	let mut normal = (b - a).cross(c - a);
+	if normal.dot(opposite - a) > 0.0 {
+		normal = -normal;
+	}
+
+	if normal.dot(ao) > 0.0 {
+		let face = vec![c, b, a];
+		return Some((face, normal));
+	}
+
+	None
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::collider_component::CollisionLayer;
+	use crate::transform_component::TransformComponent;
+	use glam::{Quat, Vec3};
+
+	fn transform_at(position: Vec3) -> Mat4 {
+		TransformComponent {
+			position,
+			rotation: Quat::IDENTITY,
+			scale: Vec3::ONE,
+		}
+		.to_mat4()
+	}
+
+	#[test]
+	fn gjk_intersects_overlapping_cubes() {
+		let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(0.5, 0.0, 0.0));
+
+		let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+		match result {
+			GjkResult::Intersection(hit) => {
+				assert!(!hit.simplex.is_empty());
+			}
+			_ => panic!("Expected intersection."),
+		}
+	}
+
+	#[test]
+	fn gjk_no_intersection_separated_cubes() {
+		let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+		let a_transform = transform_at(Vec3::ZERO);
+		let b_transform = transform_at(Vec3::new(5.0, 0.0, 0.0));
+
+		let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+		assert_eq!(result, GjkResult::NoIntersection);
+	}
+}
