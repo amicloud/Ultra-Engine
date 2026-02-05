@@ -13,8 +13,6 @@
 - To render new models, use `Engine::load_model(...)` (supports glTF/glb/obj) which returns a `RenderBodyHandle`, then spawn an entity with `TransformComponent` + `RenderBodyComponent`. See [engine/src/model_loader.rs](../engine/src/model_loader.rs) and [engine/src/render_body_component.rs](../engine/src/render_body_component.rs).
 - Materials/shaders are managed centrally in `RenderResourceManager`; PBR shaders live in resources/shaders. See [engine/src/render_resource_manager.rs](../engine/src/render_resource_manager.rs) and resources/shaders.
 
-## Physics & collisions
-- Physics is currently fixed-step at 1/60s in `PhysicsSystem::update_bodies`; impulses should be added via `Engine::add_impulse` (queues into `PhysicsResource`). See [engine/src/physics_system.rs](../engine/src/physics_system.rs) and [engine/src/lib.rs](../engine/src/lib.rs).
 
 ## Settings & tests
 - User settings live in TOML under the OS config dir and are loaded/saved by `Settings` (tests rely on temp dirs + `serial_test`). See [game/src/settings.rs](../game/src/settings.rs).

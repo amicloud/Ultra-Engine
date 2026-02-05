@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::mesh::AABB;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Contact {
     pub entity_a: Entity,
     pub entity_b: Entity,

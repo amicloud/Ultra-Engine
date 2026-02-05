@@ -309,8 +309,6 @@ impl MeshCollider {
     }
 }
 
-// Sphere collider is now represented by ConvexCollider::new_sphere.
-
 fn transform_aabb(local: AABB, transform: &Mat4) -> AABB {
     let min = local.min;
     let max = local.max;

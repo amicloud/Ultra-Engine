@@ -13,7 +13,9 @@ use crate::camera_controller::{
 };
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
-    ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent, SleepComponent, TransformComponent, VelocityComponent, physics_component::{PhysicsComponent, PhysicsType},
+    physics_component::{PhysicsComponent, PhysicsType},
+    ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
+    SleepComponent, TransformComponent, VelocityComponent,
 };
 use glam::{Quat, Vec3};
 use rand::random_range;
@@ -132,12 +134,10 @@ fn main() {
             friction: 0.5,
             drag_coefficient: 0.1,
             angular_drag_coefficient: 0.1,
-            restitution: 0.1,
+            restitution: 0.2,
         },
-        SleepComponent::default(),
-        PlayerComponent {
-            speed: 1.0,
-        },
+        // SleepComponent::default(),
+        PlayerComponent { speed: 1.0 },
     ));
 
     let ground = engine
@@ -150,7 +150,7 @@ fn main() {
 
     let t_range = 2.0;
 
-    for _ in 0..100 {
+    for _ in 0..300 {
         for render_body_handle in &assets {
             // Random position
             let pos = Vec3::new(
@@ -200,7 +200,7 @@ fn main() {
                     friction: 0.5,
                     drag_coefficient: 0.1,
                     angular_drag_coefficient: 0.1,
-                    restitution: 0.1,
+                    restitution: 0.3,
                 },
                 SleepComponent::default(),
             ));
@@ -257,35 +257,43 @@ fn main() {
     //     angular: Vec3::new(0.0, 0.0, 0.0),
     // });
 
-    // let ground_scale = 0.1;
-    // let ground_collider = engine
-    //     .mesh_collider_from_render_body(ground, CollisionLayer::Default)
-    //     .expect("Render body not found");
-    // engine.world.spawn((
-    //     TransformComponent {
-    //         position: Vec3::new(0.0, 0.0, -300.0),
-    //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::new(ground_scale, ground_scale, 1.0),
-    //     },
-    //     RenderBodyComponent {
-    //         render_body_id: ground,
-    //     },
-    //     ground_collider,
-    // ));
-
-    let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
-    let money_ball_collider = engine.mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
-        .expect("Render body AABB not found");
+    let ground_scale = 0.1;
+    let ground_collider = engine
+        .mesh_collider_from_render_body(ground, CollisionLayer::Default)
+        .expect("Render body not found");
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::new(20.0, 0.0, 0.0),
+            position: Vec3::new(0.0, 0.0, -300.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::new(10.0,10.0,10.0),
+            scale: Vec3::new(ground_scale, ground_scale, 1.0),
         },
         RenderBodyComponent {
-            render_body_id: monkey_ball_platform.unwrap(),
+            render_body_id: ground,
         },
-        money_ball_collider,
+        ground_collider,
+        PhysicsComponent {
+            mass:f32::INFINITY,
+            physics_type: PhysicsType::Static,
+            friction: 0.5,
+            drag_coefficient: 0.1,
+            angular_drag_coefficient: 0.1,
+            restitution: 0.3,
+        },
     ));
+
+    // let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
+    // let money_ball_collider = engine.mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
+    //     .expect("Render body AABB not found");
+    // engine.world.spawn((
+    //     TransformComponent {
+    //         position: Vec3::new(20.0, 0.0, 0.0),
+    //         rotation: Quat::IDENTITY,
+    //         scale: Vec3::new(10.0,10.0,10.0),
+    //     },
+    //     RenderBodyComponent {
+    //         render_body_id: monkey_ball_platform.unwrap(),
+    //     },
+    //     money_ball_collider,
+    // ));
     engine.run();
 }
