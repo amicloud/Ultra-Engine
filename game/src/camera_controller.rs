@@ -30,7 +30,7 @@ impl OrbitCameraComponent {
             pitch_rad.sin(),
         )
         .normalize();
-    
+
         // self.target.z = 0.0; // Keep the target on the ground plane.
 
         transform.position = self.target - (direction * self.distance);
@@ -103,7 +103,6 @@ pub struct FlyingCameraComponent {
 pub struct PlayerComponent {
     pub speed: f32,
 }
-
 
 #[allow(dead_code)]
 impl FlyingCameraComponent {
@@ -210,7 +209,10 @@ pub fn apply_flying_camera_input(
 /// Initializes newly spawned flying cameras so their transform matches their yaw/pitch.
 pub fn initialize_flying_camera_rotation(
     world_basis: Res<WorldBasis>,
-    mut query: Query<(&mut TransformComponent, &FlyingCameraComponent), Added<FlyingCameraComponent>>,
+    mut query: Query<
+        (&mut TransformComponent, &FlyingCameraComponent),
+        Added<FlyingCameraComponent>,
+    >,
 ) {
     for (mut transform, camera) in &mut query {
         camera.apply_to_transform(&mut transform, &world_basis);
@@ -298,7 +300,10 @@ pub fn apply_player_movement_impulses(
     active_camera: Res<ActiveCamera>,
     world_basis: Res<WorldBasis>,
     camera_query: Query<&TransformComponent, With<CameraComponent>>,
-    mut player_query: Query<(Entity, &PlayerComponent, &mut VelocityComponent), Without<CameraComponent>>,
+    mut player_query: Query<
+        (Entity, &PlayerComponent, &mut VelocityComponent),
+        Without<CameraComponent>,
+    >,
     mut physics: ResMut<PhysicsResource>,
 ) {
     let (camera_forward, camera_right) = if let Some(camera_entity) = active_camera.0 {

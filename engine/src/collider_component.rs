@@ -14,7 +14,6 @@ pub enum CollisionLayer {
 
 const SUPPORT_EPSILON: f32 = 1e-6;
 
-
 #[derive(Clone, Debug)]
 pub struct Triangle {
     pub v0: Vec3,
@@ -128,7 +127,6 @@ impl BVHNode {
     }
 }
 
-
 pub trait Collider {
     fn aabb(&self, transform: &Mat4) -> AABB;
     fn collide_triangle(&self, tri: &Triangle, transform: &Mat4) -> Option<CollisionHit>;
@@ -199,9 +197,21 @@ impl ConvexCollider {
 
         let local_point = match self.shape {
             ConvexShape::Cuboid { aabb } => Vec3::new(
-                if local_dir.x >= 0.0 { aabb.max.x } else { aabb.min.x },
-                if local_dir.y >= 0.0 { aabb.max.y } else { aabb.min.y },
-                if local_dir.z >= 0.0 { aabb.max.z } else { aabb.min.z },
+                if local_dir.x >= 0.0 {
+                    aabb.max.x
+                } else {
+                    aabb.min.x
+                },
+                if local_dir.y >= 0.0 {
+                    aabb.max.y
+                } else {
+                    aabb.min.y
+                },
+                if local_dir.z >= 0.0 {
+                    aabb.max.z
+                } else {
+                    aabb.min.z
+                },
             ),
             ConvexShape::Sphere { radius } => {
                 if local_dir.length_squared() <= SUPPORT_EPSILON {

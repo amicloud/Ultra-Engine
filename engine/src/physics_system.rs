@@ -27,7 +27,7 @@ struct ContactConstraint {
     accumulated_lambda: f32,
     accumulated_tangent_lambda: f32,
 }
-
+const PGS_ITERATIONS: usize = 8;
 impl PhysicsSystem {
     pub fn update_bodies(
         mut query: Query<(
@@ -264,14 +264,13 @@ impl PhysicsSystem {
         mut query: Query<(Option<&mut VelocityComponent>, Option<&PhysicsComponent>)>,
         mut phys: ResMut<PhysicsResource>,
     ) {
-        let iterations = 8;
         let manifolds = Self::generate_manifolds_from_contacts(&phys.contacts);
         let mut constraints: Vec<Vec<ContactConstraint>> = manifolds
             .iter()
             .map(|m| Self::manifold_to_constraints(m))
             .collect();
 
-        for _ in 0..iterations {
+        for _ in 0..PGS_ITERATIONS {
             for constraint_set in &mut constraints {
                 for constraint in constraint_set.iter_mut() {
                     Self::solve_constraint(constraint, &mut query);

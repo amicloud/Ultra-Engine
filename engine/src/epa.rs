@@ -31,7 +31,8 @@ pub fn epa(
     b_transform: Mat4,
     simplex: &[Vec3],
 ) -> Option<EpaResult> {
-    let (mut vertices, mut faces) = build_initial_polytope(a, a_transform, b, b_transform, simplex)?;
+    let (mut vertices, mut faces) =
+        build_initial_polytope(a, a_transform, b, b_transform, simplex)?;
 
     let mut best_face: Option<Face> = None;
 
@@ -195,9 +196,15 @@ fn support_unique(
     existing: &[Vec3],
 ) -> Option<Vec3> {
     let mut support = support_minkowski(a, a_transform, b, b_transform, dir);
-    if existing.iter().any(|p| (*p - support).length_squared() <= EPSILON) {
+    if existing
+        .iter()
+        .any(|p| (*p - support).length_squared() <= EPSILON)
+    {
         support = support_minkowski(a, a_transform, b, b_transform, -dir);
-        if existing.iter().any(|p| (*p - support).length_squared() <= EPSILON) {
+        if existing
+            .iter()
+            .any(|p| (*p - support).length_squared() <= EPSILON)
+        {
             return None;
         }
     }

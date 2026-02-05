@@ -158,7 +158,6 @@ pub struct GltfPrimitiveMesh {
     pub material_index: Option<usize>,
 }
 
-
 impl Mesh {
     pub fn build_bvh(&mut self, max_leaf_size: usize) {
         if self.indices.len() < 3 || self.vertices.is_empty() {

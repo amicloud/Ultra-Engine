@@ -163,7 +163,11 @@ impl Shader {
                 }
             }
 
-            let shader = Shader { program, uniforms , attributes };
+            let shader = Shader {
+                program,
+                uniforms,
+                attributes,
+            };
 
             gl.delete_shader(vertex_shader);
             gl.delete_shader(fragment_shader);

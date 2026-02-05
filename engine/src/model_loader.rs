@@ -41,10 +41,7 @@ impl Engine {
     ) -> MaterialHandle {
         let mut params = HashMap::new();
         params.insert("u_roughness".to_string(), UniformValue::Float(roughness));
-        params.insert(
-            "u_base_reflectance".to_string(),
-            UniformValue::Float(0.04),
-        );
+        params.insert("u_base_reflectance".to_string(), UniformValue::Float(0.04));
         params.insert(
             "u_albedo".to_string(),
             UniformValue::Texture {

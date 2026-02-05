@@ -2,7 +2,10 @@ use bevy_ecs::prelude::{Changed, Entity, Query, Res, ResMut};
 use glam::{Mat4, Vec3};
 
 use crate::{
-    collider_component::{closest_point_on_triangle, BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle},
+    collider_component::{
+        closest_point_on_triangle, BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider,
+        Triangle,
+    },
     epa::epa,
     gjk::{gjk_intersect, GjkResult},
     mesh::AABB,
@@ -249,6 +252,7 @@ fn convex_convex_contact(
     let a_world = transform_a.to_mat4();
     let b_world = transform_b.to_mat4();
 
+    // Fast path for sphere-sphere collisions
     match collider_a.shape {
         ConvexShape::Sphere { radius: ra } => match collider_b.shape {
             ConvexShape::Sphere { radius: rb } => {
@@ -366,12 +370,7 @@ fn convex_mesh_contact(
         }
     }
 
-    reduce_contact_candidates(
-        mesh_entity,
-        convex_entity,
-        candidates,
-        convex_aabb_world,
-    )
+    reduce_contact_candidates(mesh_entity, convex_entity, candidates, convex_aabb_world)
 }
 
 fn convex_mesh_contact_at_transform(
@@ -423,7 +422,8 @@ fn convex_mesh_contact_at_transform(
 
         let is_sphere = matches!(convex_collider.shape, ConvexShape::Sphere { .. });
         let is_cuboid = matches!(convex_collider.shape, ConvexShape::Cuboid { .. });
-        let prefer_face_normal = is_sphere || is_cuboid || is_face_center(&tri_world, closest_world);
+        let prefer_face_normal =
+            is_sphere || is_cuboid || is_face_center(&tri_world, closest_world);
 
         let face_candidate = face_normal_world.and_then(|normal_world| {
             let mut normal = normal_world;
@@ -651,7 +651,8 @@ mod tests {
         let tri = make_triangle();
         let bvh = BVHNode::build(vec![tri], 4);
 
-        let convex_collider = ConvexCollider::sphere(1.0, crate::collider_component::CollisionLayer::Default);
+        let convex_collider =
+            ConvexCollider::sphere(1.0, crate::collider_component::CollisionLayer::Default);
         let convex_transform = TransformComponent {
             position: Vec3::new(0.2, 0.2, 0.5),
             rotation: Quat::IDENTITY,
@@ -683,7 +684,8 @@ mod tests {
         let tri = make_triangle();
         let bvh = BVHNode::build(vec![tri], 4);
 
-        let convex_collider = ConvexCollider::sphere(1.0, crate::collider_component::CollisionLayer::Default);
+        let convex_collider =
+            ConvexCollider::sphere(1.0, crate::collider_component::CollisionLayer::Default);
         let convex_transform = TransformComponent {
             position: Vec3::new(0.2, 0.2, -0.5),
             rotation: Quat::IDENTITY,
@@ -719,15 +721,40 @@ mod tests {
         };
 
         let candidates = vec![
-            ContactCandidate { point: Vec3::new(0.0, 0.0, 0.0), normal: Vec3::Z, penetration: 6.0 },
-            ContactCandidate { point: Vec3::new(10.0, 0.0, 0.0), normal: Vec3::Z, penetration: 5.0 },
-            ContactCandidate { point: Vec3::new(20.0, 0.0, 0.0), normal: Vec3::Z, penetration: 4.0 },
-            ContactCandidate { point: Vec3::new(30.0, 0.0, 0.0), normal: Vec3::Z, penetration: 3.0 },
-            ContactCandidate { point: Vec3::new(40.0, 0.0, 0.0), normal: Vec3::Z, penetration: 2.0 },
-            ContactCandidate { point: Vec3::new(50.0, 0.0, 0.0), normal: Vec3::Z, penetration: 1.0 },
+            ContactCandidate {
+                point: Vec3::new(0.0, 0.0, 0.0),
+                normal: Vec3::Z,
+                penetration: 6.0,
+            },
+            ContactCandidate {
+                point: Vec3::new(10.0, 0.0, 0.0),
+                normal: Vec3::Z,
+                penetration: 5.0,
+            },
+            ContactCandidate {
+                point: Vec3::new(20.0, 0.0, 0.0),
+                normal: Vec3::Z,
+                penetration: 4.0,
+            },
+            ContactCandidate {
+                point: Vec3::new(30.0, 0.0, 0.0),
+                normal: Vec3::Z,
+                penetration: 3.0,
+            },
+            ContactCandidate {
+                point: Vec3::new(40.0, 0.0, 0.0),
+                normal: Vec3::Z,
+                penetration: 2.0,
+            },
+            ContactCandidate {
+                point: Vec3::new(50.0, 0.0, 0.0),
+                normal: Vec3::Z,
+                penetration: 1.0,
+            },
         ];
 
-        let contacts = reduce_contact_candidates(mesh_entity, convex_entity, candidates, convex_aabb_world);
+        let contacts =
+            reduce_contact_candidates(mesh_entity, convex_entity, candidates, convex_aabb_world);
 
         assert_eq!(contacts.len(), 4);
         assert_relative_eq!(contacts[0].penetration, 6.0, epsilon = 1e-6);

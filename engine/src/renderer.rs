@@ -10,12 +10,12 @@ use crate::shader::InputRate::PerInstance;
 use crate::shader::InputRate::PerVertex;
 use crate::shader::UniformValue;
 use crate::shader::VertexAttribType;
-use std::collections::HashMap;
-use std::mem::offset_of;
-use std::rc::Rc;
 use glam::{Mat4, Vec3};
 use glow::Context as GlowContext;
 use glow::HasContext;
+use std::collections::HashMap;
+use std::mem::offset_of;
+use std::rc::Rc;
 
 pub struct Renderer {
     gl: Rc<GlowContext>,
@@ -32,7 +32,6 @@ struct VaoKey {
     mesh: MeshHandle,
     shader: ShaderHandle,
 }
-
 
 /// Precomputed camera data required by the renderer.
 pub struct CameraRenderData {
@@ -84,7 +83,12 @@ impl Renderer {
                 None
             };
 
-            for attrib in &render_data_manager.shader_manager.get_shader(*shader).unwrap().attributes {
+            for attrib in &render_data_manager
+                .shader_manager
+                .get_shader(*shader)
+                .unwrap()
+                .attributes
+            {
                 let location = attrib.location;
                 let divisor = match attrib.rate {
                     PerVertex => 0,
@@ -94,7 +98,10 @@ impl Renderer {
                 match attrib.rate {
                     PerInstance => {
                         if let Some(offset) = instance_offset_for(&attrib.name) {
-                            gl.bind_buffer(glow::ARRAY_BUFFER, Some(mesh_data.instance_vbo.unwrap()));
+                            gl.bind_buffer(
+                                glow::ARRAY_BUFFER,
+                                Some(mesh_data.instance_vbo.unwrap()),
+                            );
                             gl.enable_vertex_attrib_array(location);
                             gl.vertex_attrib_pointer_f32(
                                 location,

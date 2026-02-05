@@ -8,8 +8,8 @@ use crate::mesh::AABB;
 pub struct Contact {
     pub entity_a: Entity,
     pub entity_b: Entity,
-    pub normal: Vec3,      // Direction from A to B
-    pub penetration: f32,  // Depth of overlap
+    pub normal: Vec3,     // Direction from A to B
+    pub penetration: f32, // Depth of overlap
 }
 
 #[derive(Default, Resource)]
@@ -29,5 +29,4 @@ impl PhysicsResource {
                 || (contact.entity_a == entity_b && contact.entity_b == entity_a)
         })
     }
-
 }
