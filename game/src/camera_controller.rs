@@ -344,13 +344,29 @@ pub fn apply_player_movement_impulses(
         move_dir += world_basis.up();
     }
 
-    if move_dir.length_squared() == 0.0 {
-        return;
+    let move_dir = move_dir.normalize();
+    for (entity, player, mut velocity) in &mut player_query {
+        velocity.translational += (move_dir * player.speed) / 1.0;
+    }
+
+    let mut rotaton_dir = Vec3::ZERO;
+    if input_state.key_held(Keycode::Up) {
+        rotaton_dir += forward;
+    }
+    if input_state.key_held(Keycode::Down) {
+        rotaton_dir -= forward;
+    }
+    if input_state.key_held(Keycode::Right) {
+        rotaton_dir += right;
+    }
+    if input_state.key_held(Keycode::Left) {
+        rotaton_dir -= right;
     }
 
     let move_dir = move_dir.normalize();
     for (entity, player, mut velocity) in &mut player_query {
-        velocity.translational += (move_dir * player.speed)/1.0;
+        velocity.translational += (move_dir * player.speed) / 1.0;
+        velocity.angular += (rotaton_dir * player.speed) / 10000.0;
     }
 }
 
