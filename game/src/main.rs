@@ -93,30 +93,14 @@ fn main() {
             .chain(),
     );
 
-    let assets = [
-        // engine.load_gltf(OsStr::new("resources/models/cube/Cube.gltf")),
-        // engine.load_gltf(OsStr::new(
-        //     "resources/models/normal_tangent_test/NormalTangentMirrorTest.gltf",
-        // )),
-        // engine.load_gltf(OsStr::new("resources/models/suzanne/Suzanne.gltf")),
-        engine
-            .load_model("resources/models/avocado/Avocado.gltf")
-            .unwrap(),
-        // engine
-        //     .load_model("resources/models/building/building.obj")
-        //     .unwrap(),
-    ];
-
-    let player_render_body = engine
+    let sphere = engine
         .load_model("resources/models/sphere/sphere.obj")
         .unwrap();
 
     let player_scale = 1.0;
     let player_start = Vec3::new(0.0, 0.0, 25.0);
-    let player_collider = ConvexCollider::sphere_from_aabb(
-        engine.aabb_from_render_body(player_render_body).unwrap(),
-        CollisionLayer::Player,
-    );
+    let player_collider = ConvexCollider::sphere(1.0, CollisionLayer::Player);
+
     engine.world.spawn((
         TransformComponent {
             position: player_start,
@@ -128,7 +112,7 @@ fn main() {
             angular: Vec3::ZERO,
         },
         RenderBodyComponent {
-            render_body_id: player_render_body,
+            render_body_id: sphere,
         },
         player_collider,
         PhysicsComponent {
@@ -137,124 +121,68 @@ fn main() {
             friction: 0.5,
             drag_coefficient: 0.1,
             angular_drag_coefficient: 0.1,
-            restitution: 0.2,
+            restitution: 0.5,
         },
         // SleepComponent::default(),
         PlayerComponent { speed: 1.0 },
     ));
 
+    let t_range = 2.0;
+
+    for _ in 0..300 {
+        // Random position
+        let pos = Vec3::new(
+            random_range(10.0..30.0),
+            random_range(-10.0..10.0),
+            random_range(20.0..100.0),
+        );
+
+        // Random translational velocity
+        let translational = Vec3::new(
+            random_range((-t_range)..t_range),
+            random_range((-t_range)..t_range),
+            random_range((-t_range)..t_range),
+        );
+        // let translational = Vec3::new(0.0, 0.0, 0.0);
+
+        // Random angular velocity
+        let angular = Vec3::new(
+            random_range(-1.0..1.0),
+            random_range(-1.0..1.0),
+            random_range(-1.0..1.0),
+        );
+
+        let scale = 1.0;
+        // Spawn test objects
+        engine.world.spawn((
+            TransformComponent {
+                position: pos,
+                rotation: Quat::IDENTITY,
+                scale: Vec3::new(scale, scale, scale),
+            },
+            VelocityComponent {
+                translational,
+                angular,
+            },
+            RenderBodyComponent {
+                render_body_id: *&sphere,
+            },
+            player_collider,
+            PhysicsComponent {
+                mass: 1.0,
+                physics_type: PhysicsType::Dynamic,
+                friction: 0.5,
+                drag_coefficient: 0.1,
+                angular_drag_coefficient: 0.1,
+                restitution: 0.5,
+            },
+            SleepComponent::default(),
+        ));
+    }
+
     let ground = engine
         .load_model("resources/models/opalton/opalton3Dterrain.gltf")
         .unwrap();
-
-    let antique_camera = engine
-        .load_model("resources/models/antique_camera/AntiqueCamera.gltf")
-        .unwrap();
-
-    let t_range = 2.0;
-
-    for _ in 0..10 {
-        for render_body_handle in &assets {
-            // Random position
-            let pos = Vec3::new(
-                random_range(10.0..30.0),
-                random_range(-10.0..10.0),
-                random_range(20.0..45.0),
-            );
-
-            // Random translational velocity
-            let translational = Vec3::new(
-                random_range((-t_range)..t_range),
-                random_range((-t_range)..t_range),
-                random_range((-t_range)..t_range),
-            );
-            // let translational = Vec3::new(0.0, 0.0, 0.0);
-
-            // Random angular velocity
-            let angular = Vec3::new(
-                random_range(-1.0..1.0),
-                random_range(-1.0..1.0),
-                random_range(-1.0..1.0),
-            );
-
-            let scale = 1.0;
-            // Spawn test objects
-            engine.world.spawn((
-                TransformComponent {
-                    position: pos,
-                    rotation: Quat::IDENTITY,
-                    scale: Vec3::new(scale, scale, scale),
-                },
-                VelocityComponent {
-                    translational,
-                    angular,
-                },
-                RenderBodyComponent {
-                    render_body_id: *&player_render_body,
-                },
-                player_collider,
-                PhysicsComponent {
-                    mass: 1.0,
-                    physics_type: PhysicsType::Dynamic,
-                    friction: 0.5,
-                    drag_coefficient: 0.1,
-                    angular_drag_coefficient: 0.1,
-                    restitution: 0.3,
-                },
-                SleepComponent::default(),
-            ));
-        }
-    }
-
-    let antique_camera_scale = 10.0;
-    let mut antique_camera_transform = TransformComponent {
-        position: camera_transform.position,
-        rotation: Quat::IDENTITY,
-        scale: Vec3::new(
-            antique_camera_scale,
-            antique_camera_scale,
-            antique_camera_scale,
-        ),
-    };
-
-    let antique_camera_velocity = VelocityComponent {
-        translational: Vec3::new(0.0, 0.0, 0.0),
-        angular: Vec3::new(0.0, 1.0, 0.0),
-    };
-
-    antique_camera_transform.position.x += 50.0;
-    antique_camera_transform.position.y += 50.0;
-
-    let antique_collider = engine
-        .aabb_from_render_body(antique_camera)
-        .map(|aabb| ConvexCollider::cuboid_from_aabb(aabb, CollisionLayer::Default))
-        .expect("Render body AABB not found");
-    // let phys_cam = engine
-    //     .world
-    //     .spawn((
-    //         antique_camera_transform,
-    //         RenderBodyComponent {
-    //             render_body_id: antique_camera,
-    //         },
-    //         antique_camera_velocity / 3.0,
-    //         PhysicsComponent {
-    //             mass: 10.0,
-    //             physics_type: PhysicsType::Dynamic,
-    //             friction: 0.5,
-    //             drag_coefficient: 0.1,
-    //             angular_drag_coefficient: 0.1,
-    //             restitution: 0.5,
-    //         },
-    //         antique_collider,
-    //         SleepComponent::default(),
-    //     ))
-    //     .id();
-
-    // engine.add_impulse(Impulse {
-    //     entity: phys_cam,
-    //     linear: Vec3::new(5.0, 2.0, 100.0) * 10.0,
-    //     angular: Vec3::new(0.0, 0.0, 0.0),
-    // });
 
     let ground_scale = 0.1;
     let ground_collider = engine
@@ -262,7 +190,7 @@ fn main() {
         .expect("Render body not found");
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::new(0.0, 0.0, -200.0),
+            position: Vec3::new(0.0, 0.0, -250.0),
             rotation: Quat::IDENTITY,
             scale: Vec3::new(ground_scale, ground_scale, ground_scale),
         },

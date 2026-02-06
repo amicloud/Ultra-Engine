@@ -198,18 +198,26 @@ impl PhysicsSystem {
         let mut rv = v_b - v_a;
         let rvn = rv.dot(normal);
 
+        if rvn > 1e-3 {
+            return;
+        }
+
         let restitution_threshold = 0.5;
         let restitution = if rvn < -restitution_threshold {
-            restitution_a.min(restitution_b)
+            ((restitution_a.sqrt() + restitution_b.sqrt())/2.0).powi(2)
         } else {
             0.0
         };
 
-        let baumgarte = 0.08;
+        let baumgarte = 0.1;
         let slop = 0.005;
         let max_correction = 0.2;
         let penetration_correction = (constraint.penetration - slop).clamp(0.0, max_correction);
-        let bias = (baumgarte / fixed_dt()) * penetration_correction;
+        let bias = if restitution > 0.0 {
+            0.0
+        } else {
+            (baumgarte / fixed_dt()) * penetration_correction
+        };
 
         let impulse_mag = (-(1.0 + restitution) * rvn + bias) / inv_mass_sum;
         let new_lambda = (constraint.accumulated_lambda + impulse_mag).max(0.0);

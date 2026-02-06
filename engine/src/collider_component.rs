@@ -107,7 +107,6 @@ impl ConvexCollider {
     }
 
     pub fn cube(size: f32, layer: CollisionLayer) -> Self {
-        let half = size * 0.5;
         Self::cuboid(size, size, size, layer)
     }
 

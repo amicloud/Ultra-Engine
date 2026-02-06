@@ -209,12 +209,17 @@ fn aabb_intersects(a: &AABB, b: &AABB) -> bool {
 
 fn sphere_sphere_contact(
     entity_a: Entity,
-    center_a: Vec3,
-    radius_a: f32,
+    collider_a: &ConvexCollider,
+    transform_a: &TransformComponent,
     entity_b: Entity,
-    center_b: Vec3,
-    radius_b: f32,
+    collider_b: &ConvexCollider,
+    transform_b: &TransformComponent,
 ) -> Option<Contact> {
+    let radius_a = collider_a.as_sphere_radius()? * max_scale(transform_a);
+    let radius_b = collider_b.as_sphere_radius()? * max_scale(transform_b);
+
+    let center_a = transform_a.position;
+    let center_b = transform_b.position;
     let ab = center_b - center_a;
     let distance_sq = ab.length_squared();
     let radius_sum = radius_a + radius_b;
@@ -241,6 +246,141 @@ fn sphere_sphere_contact(
     })
 }
 
+fn cuboid_cuboid_contact(
+    entity_a: Entity,
+    collider_a: &ConvexCollider,
+    transform_a: &TransformComponent,
+    entity_b: Entity,
+    collider_b: &ConvexCollider,
+    transform_b: &TransformComponent,
+) -> Option<Contact> {
+    // SAT is generally more efficient for box-box collisions than GJK+EPA, so we can use it as a fast path here.
+    let (a_len, a_wid, a_hei) = collider_a.as_cuboid()?;
+    let (b_len, b_wid, b_hei) = collider_b.as_cuboid()?;
+
+    let a_center = transform_a.position;
+    let b_center = transform_b.position;
+
+    let a_axes = [
+        transform_a.rotation * Vec3::X,
+        transform_a.rotation * Vec3::Y,
+        transform_a.rotation * Vec3::Z,
+    ];
+    let b_axes = [
+        transform_b.rotation * Vec3::X,
+        transform_b.rotation * Vec3::Y,
+        transform_b.rotation * Vec3::Z,
+    ];
+
+    let a_extents = Vec3::new(
+        a_len * 0.5 * transform_a.scale.x.abs(),
+        a_wid * 0.5 * transform_a.scale.y.abs(),
+        a_hei * 0.5 * transform_a.scale.z.abs(),
+    );
+    let b_extents = Vec3::new(
+        b_len * 0.5 * transform_b.scale.x.abs(),
+        b_wid * 0.5 * transform_b.scale.y.abs(),
+        b_hei * 0.5 * transform_b.scale.z.abs(),
+    );
+
+    let t = b_center - a_center;
+
+    let mut r = [[0.0_f32; 3]; 3];
+    let mut abs_r = [[0.0_f32; 3]; 3];
+    let eps = 1e-6_f32;
+
+    for i in 0..3 {
+        for j in 0..3 {
+            r[i][j] = a_axes[i].dot(b_axes[j]);
+            abs_r[i][j] = r[i][j].abs() + eps;
+        }
+    }
+
+    let t_a = Vec3::new(t.dot(a_axes[0]), t.dot(a_axes[1]), t.dot(a_axes[2]));
+
+    let mut min_penetration = f32::INFINITY;
+    let mut best_axis = Vec3::ZERO;
+
+    let mut test_axis = |axis: Vec3, separation: f32| -> bool {
+        let penetration = -separation;
+        if penetration < min_penetration {
+            min_penetration = penetration;
+            best_axis = axis;
+        }
+        true
+    };
+
+    // Test axes L = A0, A1, A2
+    for i in 0..3 {
+        let ra = a_extents[i];
+        let rb = b_extents.x * abs_r[i][0] + b_extents.y * abs_r[i][1] + b_extents.z * abs_r[i][2];
+        let separation = t_a[i].abs() - (ra + rb);
+        if separation > 0.0 {
+            return None;
+        }
+        let mut axis = a_axes[i];
+        if t_a[i] < 0.0 {
+            axis = -axis;
+        }
+        test_axis(axis, separation);
+    }
+
+    // Test axes L = B0, B1, B2
+    for j in 0..3 {
+        let ra = a_extents.x * abs_r[0][j] + a_extents.y * abs_r[1][j] + a_extents.z * abs_r[2][j];
+        let rb = b_extents[j];
+        let t_b = t_a.x * r[0][j] + t_a.y * r[1][j] + t_a.z * r[2][j];
+        let separation = t_b.abs() - (ra + rb);
+        if separation > 0.0 {
+            return None;
+        }
+        let mut axis = b_axes[j];
+        if t_b < 0.0 {
+            axis = -axis;
+        }
+        test_axis(axis, separation);
+    }
+
+    // Test axis L = Ai x Bj
+    for i in 0..3 {
+        for j in 0..3 {
+            let axis = a_axes[i].cross(b_axes[j]);
+            let axis_len_sq = axis.length_squared();
+            if axis_len_sq < eps {
+                continue;
+            }
+
+            let ra = a_extents[(i + 1) % 3] * abs_r[(i + 2) % 3][j]
+                + a_extents[(i + 2) % 3] * abs_r[(i + 1) % 3][j];
+            let rb = b_extents[(j + 1) % 3] * abs_r[i][(j + 2) % 3]
+                + b_extents[(j + 2) % 3] * abs_r[i][(j + 1) % 3];
+            let t_term = t_a[(i + 2) % 3] * r[(i + 1) % 3][j]
+                - t_a[(i + 1) % 3] * r[(i + 2) % 3][j];
+            let separation = t_term.abs() - (ra + rb);
+            if separation > 0.0 {
+                return None;
+            }
+
+            let mut axis_world = axis / axis_len_sq.sqrt();
+            if axis_world.dot(t) < 0.0 {
+                axis_world = -axis_world;
+            }
+            test_axis(axis_world, separation);
+        }
+    }
+
+    if best_axis.length_squared() <= eps {
+        return None;
+    }
+
+    Some(Contact {
+        entity_a,
+        entity_b,
+        normal: best_axis.normalize(),
+        penetration: min_penetration,
+    })
+}
+
 fn convex_convex_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,
@@ -254,28 +394,26 @@ fn convex_convex_contact(
 
     // Fast path for sphere-sphere collisions
     match (collider_a.shape, collider_b.shape) {
-        (ConvexShape::Sphere { radius: ra }, ConvexShape::Sphere { radius: rb }) => {
+        (ConvexShape::Sphere { .. }, ConvexShape::Sphere { .. }) => {
             return sphere_sphere_contact(
                 entity_a,
-                a_world.transform_point3(Vec3::ZERO),
-                ra,
+                collider_a,
+                transform_a,
                 entity_b,
-                b_world.transform_point3(Vec3::ZERO),
-                rb,
+                collider_b,
+                transform_b,
             );
         }
-        (
-            ConvexShape::Cuboid {
-                length: length_a,
-                width: width_a,
-                height: height_a,
-            },
-            ConvexShape::Cuboid {
-                length: length_b,
-                width: width_b,
-                height: height_b,
-            },
-        ) => {}
+        (ConvexShape::Cuboid { .. }, ConvexShape::Cuboid { .. }) => {
+            return cuboid_cuboid_contact(
+                entity_a,
+                collider_a,
+                transform_a,
+                entity_b,
+                collider_b,
+                transform_b,
+            );
+        }
         _ => {}
     }
 
@@ -613,6 +751,14 @@ fn fixed_dt() -> f32 {
     1.0 / 60.0
 }
 
+fn max_scale(transform: &TransformComponent) -> f32 {
+    let mat = transform.to_mat4();
+    let x = mat.x_axis.truncate().length();
+    let y = mat.y_axis.truncate().length();
+    let z = mat.z_axis.truncate().length();
+    x.max(y).max(z)
+}
+
 fn render_body_local_aabb(
     render_body_id: crate::handles::RenderBodyHandle,
     render_resources: &RenderResourceManager,
@@ -643,9 +789,19 @@ fn union_aabb(a: AABB, b: AABB) -> AABB {
 
 #[cfg(test)]
 mod tests {
+    use crate::collider_component::CollisionLayer;
+
     use super::*;
     use approx::assert_relative_eq;
     use glam::{Mat4, Quat, Vec3};
+
+    fn make_transform(position: Vec3, rotation: Quat, scale: Vec3) -> TransformComponent {
+        TransformComponent {
+            position,
+            rotation,
+            scale,
+        }
+    }
 
     fn make_triangle() -> Triangle {
         Triangle {
@@ -661,7 +817,7 @@ mod tests {
         let bvh = BVHNode::build(vec![tri], 4);
 
         let convex_collider =
-            ConvexCollider::sphere(1.0, crate::collider_component::CollisionLayer::Default);
+            ConvexCollider::sphere(1.0, CollisionLayer::Default);
         let convex_transform = TransformComponent {
             position: Vec3::new(0.2, 0.2, 0.5),
             rotation: Quat::IDENTITY,
@@ -694,7 +850,7 @@ mod tests {
         let bvh = BVHNode::build(vec![tri], 4);
 
         let convex_collider =
-            ConvexCollider::sphere(1.0, crate::collider_component::CollisionLayer::Default);
+            ConvexCollider::sphere(1.0, CollisionLayer::Default);
         let convex_transform = TransformComponent {
             position: Vec3::new(0.2, 0.2, -0.5),
             rotation: Quat::IDENTITY,
@@ -770,5 +926,204 @@ mod tests {
         assert_relative_eq!(contacts[1].penetration, 5.0, epsilon = 1e-6);
         assert_relative_eq!(contacts[2].penetration, 4.0, epsilon = 1e-6);
         assert_relative_eq!(contacts[3].penetration, 3.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_scaling_turns_separation_into_overlap() {
+        let entity_a = Entity::from_bits(10);
+        let entity_b = Entity::from_bits(11);
+
+        let collider_a = ConvexCollider::cuboid(
+            2.0,
+            2.0,
+            2.0,
+            CollisionLayer::Default,
+        );
+        let collider_b = collider_a;
+
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let mut transform_b = make_transform(Vec3::new(2.1, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let initial = cuboid_cuboid_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        );
+        assert!(initial.is_none());
+
+        transform_b.scale = Vec3::new(1.2, 1.0, 1.0);
+        let scaled = cuboid_cuboid_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        )
+        .expect("Expected overlap after scaling");
+
+        assert!(scaled.penetration > 0.0);
+        assert_relative_eq!(scaled.normal.length(), 1.0, epsilon = 1e-4);
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_rotation_and_scaling_intersect() {
+        let entity_a = Entity::from_bits(20);
+        let entity_b = Entity::from_bits(21);
+
+        let collider_a = ConvexCollider::cuboid(
+            2.0,
+            2.0,
+            2.0,
+            CollisionLayer::Default,
+        );
+        let collider_b = collider_a;
+
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let mut transform_b = make_transform(Vec3::new(2.1, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let initial = cuboid_cuboid_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        );
+        assert!(initial.is_none());
+
+        transform_b.rotation = Quat::from_rotation_z(45.0_f32.to_radians());
+        transform_b.scale = Vec3::splat(1.4);
+        let rotated_scaled = cuboid_cuboid_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        )
+        .expect("Expected overlap after rotation and scaling");
+
+        assert!(rotated_scaled.penetration > 0.0);
+        assert_relative_eq!(rotated_scaled.normal.length(), 1.0, epsilon = 1e-4);
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_rotated_without_scaling_intersect() {
+        let entity_a = Entity::from_bits(22);
+        let entity_b = Entity::from_bits(23);
+
+        let collider_a = ConvexCollider::cuboid(
+            2.0,
+            2.0,
+            2.0,
+            CollisionLayer::Default,
+        );
+        let collider_b = collider_a;
+
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let mut transform_b = make_transform(Vec3::new(2.1, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let initial = cuboid_cuboid_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        );
+        assert!(initial.is_none());
+
+        transform_b.rotation = Quat::from_rotation_z(45.0_f32.to_radians());
+        let rotated = cuboid_cuboid_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        )
+        .expect("Expected overlap after rotation");
+
+        assert!(rotated.penetration > 0.0);
+        assert_relative_eq!(rotated.normal.length(), 1.0, epsilon = 1e-4);
+    }
+
+    #[test]
+    fn sphere_sphere_contact_scaling_turns_separation_into_overlap() {
+        let entity_a = Entity::from_bits(30);
+        let entity_b = Entity::from_bits(31);
+
+        let radius = 1.0;
+        let collider_a = ConvexCollider::sphere(radius, CollisionLayer::Default);
+        let collider_b = collider_a;
+
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let mut transform_b = make_transform(Vec3::new(2.1, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let initial = sphere_sphere_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        );
+        assert!(initial.is_none());
+
+        transform_b.scale = Vec3::splat(1.2);
+        let scaled = sphere_sphere_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        )
+        .expect("Expected overlap after scaling");
+
+        assert!(scaled.penetration > 0.0);
+        assert_relative_eq!(scaled.normal.length(), 1.0, epsilon = 1e-4);
+    }
+
+    #[test]
+    fn sphere_sphere_contact_rotation_and_scaling_intersect() {
+        let entity_a = Entity::from_bits(32);
+        let entity_b = Entity::from_bits(33);
+
+        let radius = 1.0;
+        let collider_a = ConvexCollider::sphere(radius, CollisionLayer::Default);
+        let collider_b = collider_a;
+
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let mut transform_b = make_transform(Vec3::new(2.1, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let initial = sphere_sphere_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        );
+        assert!(initial.is_none());
+
+        transform_b.rotation = Quat::from_rotation_y(30.0_f32.to_radians());
+        transform_b.scale = Vec3::splat(1.3);
+        let rotated_scaled = sphere_sphere_contact(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            entity_b,
+            &collider_b,
+            &transform_b,
+        )
+        .expect("Expected overlap after rotation and scaling");
+
+        assert!(rotated_scaled.penetration > 0.0);
+        assert_relative_eq!(rotated_scaled.normal.length(), 1.0, epsilon = 1e-4);
     }
 }
