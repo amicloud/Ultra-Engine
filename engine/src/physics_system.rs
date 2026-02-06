@@ -298,6 +298,7 @@ impl PhysicsSystem {
         transform_a.position -= correction * inv_mass_a;
         transform_b.position += correction * inv_mass_b;
     }
+
     /// Resolves contacts from the collision system with PGS solver.
     pub fn pgs_solver(
         mut query: Query<(Option<&mut VelocityComponent>, Option<&PhysicsComponent>)>,
