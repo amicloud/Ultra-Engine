@@ -239,11 +239,14 @@ fn sphere_sphere_contact(
         Vec3::X
     };
 
+    let contact_point = center_a + normal * radius_a;
+
     Some(Contact {
         entity_a,
         entity_b,
         normal,
         penetration,
+        contact_point,
     })
 }
 
@@ -366,11 +369,17 @@ fn cuboid_cuboid_contact(
         return None;
     }
 
+    let normal = best_axis.normalize();
+    let a_support = collider_a.support(transform_a.to_mat4(), normal);
+    let b_support = collider_b.support(transform_b.to_mat4(), -normal);
+    let contact_point = (a_support + b_support) * 0.5;
+
     Some(Contact {
         entity_a,
         entity_b,
-        normal: best_axis.normalize(),
+        normal,
         penetration: min_penetration,
+        contact_point,
     })
 }
 
@@ -426,11 +435,16 @@ fn convex_convex_contact(
         normal = -normal;
     }
 
+    let a_support = collider_a.support(a_world, normal);
+    let b_support = collider_b.support(b_world, -normal);
+    let contact_point = (a_support + b_support) * 0.5;
+
     Some(Contact {
         entity_a,
         entity_b,
         normal,
         penetration: epa_result.penetration_depth,
+        contact_point,
     })
 }
 
@@ -701,6 +715,7 @@ fn reduce_contact_candidates(
             entity_b: convex_entity,
             normal: candidate.normal.normalize(),
             penetration: candidate.penetration,
+            contact_point: candidate.point,
         })
         .collect()
 }

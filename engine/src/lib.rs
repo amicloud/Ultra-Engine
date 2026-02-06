@@ -103,7 +103,7 @@ impl Engine {
                 CollisionSystem::generate_contacts,
                 PhysicsSystem::pgs_solver,
                 PhysicsSystem::positional_correction_system,
-                PhysicsSystem::update_bodies,
+                PhysicsSystem::integrate_motion,
                 RenderSystem::extract_render_data,
             )
                 .chain(),

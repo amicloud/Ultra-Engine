@@ -26,10 +26,11 @@ struct ContactConstraint {
     penetration: f32,
     accumulated_tangent_lambda: f32,
     accumulated_normal_lambda: f32,
+    contact_point: Vec3, // world-space contact
 }
 const PGS_ITERATIONS: usize = 8;
 impl PhysicsSystem {
-    pub fn update_bodies(
+    pub fn integrate_motion(
         mut query: Query<(
             &mut TransformComponent,
             &mut VelocityComponent,
@@ -156,30 +157,37 @@ impl PhysicsSystem {
                 penetration: contact.penetration,
                 accumulated_tangent_lambda: 0.0,
                 accumulated_normal_lambda: 0.0,
+                contact_point: contact.contact_point,
             })
             .collect()
     }
 
     fn solve_constraint(
         constraint: &mut ContactConstraint,
-        query: &mut Query<(Option<&mut VelocityComponent>, Option<&PhysicsComponent>)>,
+        query: &mut Query<(
+            Option<&mut VelocityComponent>,
+            Option<&PhysicsComponent>,
+            &TransformComponent,
+        )>,
     ) {
         let Ok([mut a, mut b]) = query.get_many_mut([constraint.entity_a, constraint.entity_b])
         else {
             return;
         };
 
-        let (vel_a_opt, phys_a_opt) = (&mut a.0, a.1);
-        let (vel_b_opt, phys_b_opt) = (&mut b.0, b.1);
+        let (vel_a_opt, phys_a_opt, transform_a) = (&mut a.0, a.1, &a.2);
+        let (vel_b_opt, phys_b_opt, transform_b) = (&mut b.0, b.1, &b.2);
 
-        let (inv_mass_a, restitution_a, friction_a) = physics_props(phys_a_opt);
-        let (inv_mass_b, restitution_b, friction_b) = physics_props(phys_b_opt);
+        // --- Physics properties ---
+        let (inv_mass_a, restitution_a, friction_a, inv_inertia_a) = physics_props(phys_a_opt);
+        let (inv_mass_b, restitution_b, friction_b, inv_inertia_b) = physics_props(phys_b_opt);
 
         let inv_mass_sum = inv_mass_a + inv_mass_b;
         if inv_mass_sum <= f32::EPSILON {
             return;
         }
 
+        // --- Normal ---
         let normal = {
             let n2 = constraint.normal.length_squared();
             if n2 <= f32::EPSILON {
@@ -188,18 +196,25 @@ impl PhysicsSystem {
             constraint.normal / n2.sqrt()
         };
 
+        // --- Fetch velocities ---
         let mut v_a = vel_a_opt
             .as_ref()
             .map(|v| v.translational)
             .unwrap_or(Vec3::ZERO);
+        let mut omega_a = vel_a_opt.as_ref().map(|v| v.angular).unwrap_or(Vec3::ZERO);
         let mut v_b = vel_b_opt
             .as_ref()
             .map(|v| v.translational)
             .unwrap_or(Vec3::ZERO);
+        let mut omega_b = vel_b_opt.as_ref().map(|v| v.angular).unwrap_or(Vec3::ZERO);
 
-        let mut rv = v_b - v_a;
+        // --- Contact offsets ---
+        let ra = constraint.contact_point - transform_a.position;
+        let rb = constraint.contact_point - transform_b.position;
+
+        // --- Relative velocity at contact ---
+        let mut rv = (v_b + omega_b.cross(rb)) - (v_a + omega_a.cross(ra));
         let rvn = rv.dot(normal);
-
         if rvn > 0.0 {
             return;
         }
@@ -212,29 +227,38 @@ impl PhysicsSystem {
             0.0
         };
 
+        // --- Effective mass for normal impulse ---
+        let ra_cross_n = ra.cross(normal);
+        let rb_cross_n = rb.cross(normal);
+        let k = inv_mass_sum
+            + normal.dot((inv_inertia_a * ra_cross_n).cross(ra))
+            + normal.dot((inv_inertia_b * rb_cross_n).cross(rb));
+        if k <= f32::EPSILON {
+            return;
+        }
+
         // --- Normal impulse ---
-        let normal_impulse = (-(1.0 + restitution) * rvn) / inv_mass_sum;
-
+        let normal_impulse = -(1.0 + restitution) * rvn / k;
         let new_normal_lambda = (constraint.accumulated_normal_lambda + normal_impulse).max(0.0);
-
         let delta_normal = new_normal_lambda - constraint.accumulated_normal_lambda;
-
         constraint.accumulated_normal_lambda = new_normal_lambda;
-
         let impulse = normal * delta_normal;
 
         if let Some(vel_a) = vel_a_opt.as_mut() {
             vel_a.translational -= impulse * inv_mass_a;
+            vel_a.angular -= inv_inertia_a * ra.cross(impulse);
             v_a = vel_a.translational;
+            omega_a = vel_a.angular;
         }
         if let Some(vel_b) = vel_b_opt.as_mut() {
             vel_b.translational += impulse * inv_mass_b;
+            vel_b.angular += inv_inertia_b * rb.cross(impulse);
             v_b = vel_b.translational;
+            omega_b = vel_b.angular;
         }
 
         // --- Friction ---
-        rv = v_b - v_a;
-
+        rv = (v_b + omega_b.cross(rb)) - (v_a + omega_a.cross(ra));
         let mut tangent = rv - normal * rv.dot(normal);
         let tangent_len = tangent.length();
         if tangent_len <= f32::EPSILON {
@@ -247,23 +271,31 @@ impl PhysicsSystem {
             return;
         }
 
-        let jt = -rv.dot(tangent) / inv_mass_sum;
-        let max_friction = friction * constraint.accumulated_normal_lambda;
+        // Effective mass for friction
+        let ra_cross_t = ra.cross(tangent);
+        let rb_cross_t = rb.cross(tangent);
+        let k_t = inv_mass_sum
+            + tangent.dot((inv_inertia_a * ra_cross_t).cross(ra))
+            + tangent.dot((inv_inertia_b * rb_cross_t).cross(rb));
+        if k_t <= f32::EPSILON {
+            return;
+        }
 
+        let jt = -rv.dot(tangent) / k_t;
+        let max_friction = friction * constraint.accumulated_normal_lambda;
         let new_tangent_lambda =
             (constraint.accumulated_tangent_lambda + jt).clamp(-max_friction, max_friction);
-
         let delta_tangent = new_tangent_lambda - constraint.accumulated_tangent_lambda;
-
         constraint.accumulated_tangent_lambda = new_tangent_lambda;
-
         let friction_impulse = tangent * delta_tangent;
 
         if let Some(vel_a) = vel_a_opt.as_mut() {
             vel_a.translational -= friction_impulse * inv_mass_a;
+            vel_a.angular -= inv_inertia_a * ra.cross(friction_impulse);
         }
         if let Some(vel_b) = vel_b_opt.as_mut() {
             vel_b.translational += friction_impulse * inv_mass_b;
+            vel_b.angular += inv_inertia_b * rb.cross(friction_impulse);
         }
     }
 
@@ -279,8 +311,8 @@ impl PhysicsSystem {
         let (transform_a, phys_a) = (&mut a.0, a.1);
         let (transform_b, phys_b) = (&mut b.0, b.1);
 
-        let (inv_mass_a, _, _) = physics_props(phys_a);
-        let (inv_mass_b, _, _) = physics_props(phys_b);
+        let (inv_mass_a, _, _, _) = physics_props(phys_a);
+        let (inv_mass_b, _, _, _) = physics_props(phys_b);
 
         let inv_mass_sum = inv_mass_a + inv_mass_b;
         if inv_mass_sum <= f32::EPSILON {
@@ -301,7 +333,11 @@ impl PhysicsSystem {
 
     /// Resolves contacts from the collision system with PGS solver.
     pub fn pgs_solver(
-        mut query: Query<(Option<&mut VelocityComponent>, Option<&PhysicsComponent>)>,
+        mut query: Query<(
+            Option<&mut VelocityComponent>,
+            Option<&PhysicsComponent>,
+            &TransformComponent,
+        )>,
         phys: ResMut<PhysicsResource>,
     ) {
         let manifolds = Self::generate_manifolds_from_contacts(&phys.contacts);
@@ -336,18 +372,31 @@ impl PhysicsSystem {
     }
 }
 
-fn physics_props(physics: Option<&PhysicsComponent>) -> (f32, f32, f32) {
+fn physics_props(physics: Option<&PhysicsComponent>) -> (f32, f32, f32, glam::Mat3) {
+    use crate::physics_component::PhysicsType;
+
     let Some(physics) = physics else {
-        return (0.0, 0.0, 0.0);
+        return (0.0, 0.0, 0.0, glam::Mat3::ZERO);
     };
 
+    // --- Inverse mass ---
     let inv_mass = if matches!(physics.physics_type, PhysicsType::Dynamic) && physics.mass > 0.0 {
         1.0 / physics.mass
     } else {
         0.0
     };
 
-    (inv_mass, physics.restitution, physics.friction)
+    // --- Inverse inertia ---
+    // For now, assume physics.inertia is a Mat3 representing the object's world-space inertia tensor
+    // If you store it in local space, you must rotate it to world space using the current orientation
+    let inv_inertia = if matches!(physics.physics_type, PhysicsType::Dynamic) {
+        // Avoid dividing by zero
+        physics.local_inertia.inverse_or_zero()
+    } else {
+        glam::Mat3::ZERO
+    };
+
+    (inv_mass, physics.restitution, physics.friction, inv_inertia)
 }
 
 #[cfg(test)]
@@ -364,6 +413,7 @@ mod tests {
             drag_coefficient: 0.1,
             angular_drag_coefficient: 0.2,
             restitution: 0.0,
+            local_inertia: glam::Mat3::IDENTITY,
         }
     }
 
