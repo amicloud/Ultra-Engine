@@ -340,7 +340,7 @@ pub fn apply_player_movement_impulses(
     if input_state.key_held(Keycode::A) {
         move_dir -= right;
     }
-    if input_state.key_pressed(Keycode::Space) {
+    if input_state.key_held(Keycode::Space) {
         move_dir += world_basis.up();
     }
 

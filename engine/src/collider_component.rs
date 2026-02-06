@@ -83,8 +83,14 @@ pub trait Collider {
 
 #[derive(Clone, Copy, Debug)]
 pub enum ConvexShape {
-    Cuboid { length: f32, width: f32, height: f32 },
-    Sphere { radius: f32 },
+    Cuboid {
+        length: f32,
+        width: f32,
+        height: f32,
+    },
+    Sphere {
+        radius: f32,
+    },
 }
 
 #[derive(Clone, Copy, Component, Debug)]
@@ -96,7 +102,11 @@ pub struct ConvexCollider {
 impl ConvexCollider {
     pub fn cuboid(length: f32, width: f32, height: f32, layer: CollisionLayer) -> Self {
         Self {
-            shape: ConvexShape::Cuboid { length, width, height },
+            shape: ConvexShape::Cuboid {
+                length,
+                width,
+                height,
+            },
             layer,
         }
     }
@@ -125,7 +135,11 @@ impl ConvexCollider {
 
     pub fn as_cuboid(&self) -> Option<(f32, f32, f32)> {
         match self.shape {
-            ConvexShape::Cuboid { length, width, height } => Some((length, width, height)),
+            ConvexShape::Cuboid {
+                length,
+                width,
+                height,
+            } => Some((length, width, height)),
             _ => None,
         }
     }
@@ -145,7 +159,11 @@ impl ConvexCollider {
         };
 
         let local_point = match self.shape {
-            ConvexShape::Cuboid { length, width, height } => Vec3::new(
+            ConvexShape::Cuboid {
+                length,
+                width,
+                height,
+            } => Vec3::new(
                 if local_dir.x >= 0.0 {
                     length * 0.5
                 } else {
@@ -178,7 +196,11 @@ impl ConvexCollider {
 impl Collider for ConvexCollider {
     fn aabb(&self, transform: &Mat4) -> AABB {
         match self.shape {
-            ConvexShape::Cuboid { length, width, height } => {
+            ConvexShape::Cuboid {
+                length,
+                width,
+                height,
+            } => {
                 let half_extents = Vec3::new(length * 0.5, width * 0.5, height * 0.5);
                 let local_aabb = AABB {
                     min: -half_extents,
@@ -299,4 +321,76 @@ pub(crate) fn closest_point_on_triangle(p: Vec3, tri: &Triangle) -> Vec3 {
     let v = vb * denom;
     let w = vc * denom;
     tri.v0 + ab * v + ac * w
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_vec3_eq(actual: Vec3, expected: Vec3) {
+        let diff = actual - expected;
+        let eps = 1e-5;
+        assert!(
+            diff.x.abs() <= eps && diff.y.abs() <= eps && diff.z.abs() <= eps,
+            "expected {:?}, got {:?}",
+            expected,
+            actual
+        );
+    }
+
+    #[test]
+    fn support_cuboid_identity_selects_corner() {
+        let collider = ConvexCollider::cuboid(2.0, 4.0, 6.0, CollisionLayer::Default);
+        let transform = Mat4::IDENTITY;
+        let dir = Vec3::new(1.0, -1.0, 1.0);
+
+        let support = collider.support(transform, dir);
+
+        assert_vec3_eq(support, Vec3::new(1.0, -2.0, 3.0));
+    }
+
+    #[test]
+    fn support_cuboid_handles_translation() {
+        let collider = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let transform = Mat4::from_translation(Vec3::new(10.0, -5.0, 3.0));
+        let dir = Vec3::new(-1.0, 1.0, -1.0);
+
+        let support = collider.support(transform, dir);
+
+        assert_vec3_eq(support, Vec3::new(9.0, -4.0, 2.0));
+    }
+
+    #[test]
+    fn support_cuboid_handles_rotation() {
+        let collider = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let transform = Mat4::from_rotation_z(std::f32::consts::FRAC_PI_2);
+        let dir = Vec3::X;
+
+        let support = collider.support(transform, dir);
+
+        assert_vec3_eq(support, Vec3::new(1.0, -1.0, 1.0));
+    }
+
+    #[test]
+    fn support_sphere_identity_matches_direction() {
+        let collider = ConvexCollider::sphere(2.5, CollisionLayer::Default);
+        let transform = Mat4::IDENTITY;
+        let dir = Vec3::new(3.0, 4.0, 0.0);
+
+        let support = collider.support(transform, dir);
+
+        let expected = dir.normalize() * 2.5;
+        assert_vec3_eq(support, expected);
+    }
+
+    #[test]
+    fn support_sphere_handles_zero_direction() {
+        let collider = ConvexCollider::sphere(2.5, CollisionLayer::Default);
+        let transform = Mat4::from_translation(Vec3::new(1.0, 2.0, 3.0));
+        let dir = Vec3::ZERO;
+
+        let support = collider.support(transform, dir);
+
+        assert_vec3_eq(support, Vec3::new(1.0, 2.0, 3.0));
+    }
 }

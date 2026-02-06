@@ -24,8 +24,8 @@ struct ContactConstraint {
     entity_b: Entity,
     normal: Vec3,
     penetration: f32,
-    accumulated_lambda: f32,
     accumulated_tangent_lambda: f32,
+    accumulated_normal_lambda: f32,
 }
 const PGS_ITERATIONS: usize = 8;
 impl PhysicsSystem {
@@ -154,8 +154,8 @@ impl PhysicsSystem {
                 entity_b: contact.entity_b,
                 normal: manifold.normal,
                 penetration: contact.penetration,
-                accumulated_lambda: 0.0,
                 accumulated_tangent_lambda: 0.0,
+                accumulated_normal_lambda: 0.0,
             })
             .collect()
     }
@@ -180,10 +180,12 @@ impl PhysicsSystem {
             return;
         }
 
-        let normal = if constraint.normal.length_squared() > f32::EPSILON {
-            constraint.normal.normalize()
-        } else {
-            return;
+        let normal = {
+            let n2 = constraint.normal.length_squared();
+            if n2 <= f32::EPSILON {
+                return;
+            }
+            constraint.normal / n2.sqrt()
         };
 
         let mut v_a = vel_a_opt
@@ -198,47 +200,41 @@ impl PhysicsSystem {
         let mut rv = v_b - v_a;
         let rvn = rv.dot(normal);
 
-        if rvn > 1e-3 {
+        if rvn > 0.0 {
             return;
         }
 
-        let restitution_threshold = 0.5;
+        // --- Restitution ---
+        let restitution_threshold = 0.1;
         let restitution = if rvn < -restitution_threshold {
-            ((restitution_a.sqrt() + restitution_b.sqrt())/2.0).powi(2)
+            ((restitution_a.sqrt() + restitution_b.sqrt()) * 0.5).powi(2)
         } else {
             0.0
         };
 
-        let baumgarte = 0.1;
-        let slop = 0.005;
-        let max_correction = 0.2;
-        let penetration_correction = (constraint.penetration - slop).clamp(0.0, max_correction);
-        let bias = if restitution > 0.0 {
-            0.0
-        } else {
-            (baumgarte / fixed_dt()) * penetration_correction
-        };
+        // --- Normal impulse ---
+        let normal_impulse = (-(1.0 + restitution) * rvn) / inv_mass_sum;
 
-        let impulse_mag = (-(1.0 + restitution) * rvn + bias) / inv_mass_sum;
-        let new_lambda = (constraint.accumulated_lambda + impulse_mag).max(0.0);
-        let delta_lambda = new_lambda - constraint.accumulated_lambda;
-        constraint.accumulated_lambda = new_lambda;
+        let new_normal_lambda = (constraint.accumulated_normal_lambda + normal_impulse).max(0.0);
 
-        let impulse = normal * delta_lambda;
+        let delta_normal = new_normal_lambda - constraint.accumulated_normal_lambda;
+
+        constraint.accumulated_normal_lambda = new_normal_lambda;
+
+        let impulse = normal * delta_normal;
+
         if let Some(vel_a) = vel_a_opt.as_mut() {
             vel_a.translational -= impulse * inv_mass_a;
             v_a = vel_a.translational;
-        } else {
-            v_a -= impulse * inv_mass_a;
         }
         if let Some(vel_b) = vel_b_opt.as_mut() {
             vel_b.translational += impulse * inv_mass_b;
             v_b = vel_b.translational;
-        } else {
-            v_b += impulse * inv_mass_b;
         }
 
+        // --- Friction ---
         rv = v_b - v_a;
+
         let mut tangent = rv - normal * rv.dot(normal);
         let tangent_len = tangent.length();
         if tangent_len <= f32::EPSILON {
@@ -252,13 +248,17 @@ impl PhysicsSystem {
         }
 
         let jt = -rv.dot(tangent) / inv_mass_sum;
-        let max_friction = friction * constraint.accumulated_lambda;
+        let max_friction = friction * constraint.accumulated_normal_lambda;
+
         let new_tangent_lambda =
             (constraint.accumulated_tangent_lambda + jt).clamp(-max_friction, max_friction);
+
         let delta_tangent = new_tangent_lambda - constraint.accumulated_tangent_lambda;
+
         constraint.accumulated_tangent_lambda = new_tangent_lambda;
 
         let friction_impulse = tangent * delta_tangent;
+
         if let Some(vel_a) = vel_a_opt.as_mut() {
             vel_a.translational -= friction_impulse * inv_mass_a;
         }
@@ -267,10 +267,41 @@ impl PhysicsSystem {
         }
     }
 
+    fn positional_correction(
+        constraint: &ContactConstraint,
+        query: &mut Query<(&mut TransformComponent, Option<&PhysicsComponent>)>,
+    ) {
+        let Ok([mut a, mut b]) = query.get_many_mut([constraint.entity_a, constraint.entity_b])
+        else {
+            return;
+        };
+
+        let (transform_a, phys_a) = (&mut a.0, a.1);
+        let (transform_b, phys_b) = (&mut b.0, b.1);
+
+        let (inv_mass_a, _, _) = physics_props(phys_a);
+        let (inv_mass_b, _, _) = physics_props(phys_b);
+
+        let inv_mass_sum = inv_mass_a + inv_mass_b;
+        if inv_mass_sum <= f32::EPSILON {
+            return;
+        }
+
+        let normal = constraint.normal;
+        let slop = 0.005;
+        let percent = 0.8; // strong, but stable
+
+        let correction_mag = ((constraint.penetration - slop).max(0.0) * percent) / inv_mass_sum;
+
+        let correction = normal * correction_mag;
+
+        transform_a.position -= correction * inv_mass_a;
+        transform_b.position += correction * inv_mass_b;
+    }
     /// Resolves contacts from the collision system with PGS solver.
     pub fn pgs_solver(
         mut query: Query<(Option<&mut VelocityComponent>, Option<&PhysicsComponent>)>,
-        mut phys: ResMut<PhysicsResource>,
+        phys: ResMut<PhysicsResource>,
     ) {
         let manifolds = Self::generate_manifolds_from_contacts(&phys.contacts);
         let mut constraints: Vec<Vec<ContactConstraint>> = manifolds
@@ -285,8 +316,22 @@ impl PhysicsSystem {
                 }
             }
         }
+    }
+    pub fn positional_correction_system(
+        mut query: Query<(&mut TransformComponent, Option<&PhysicsComponent>)>,
+        phys: ResMut<PhysicsResource>,
+    ) {
+        let manifolds = Self::generate_manifolds_from_contacts(&phys.contacts);
+        let constraints: Vec<Vec<ContactConstraint>> = manifolds
+            .iter()
+            .map(|m| Self::manifold_to_constraints(m))
+            .collect();
 
-        phys.contacts.clear();
+        for constraint_set in &constraints {
+            for constraint in constraint_set.iter() {
+                Self::positional_correction(constraint, &mut query);
+            }
+        }
     }
 }
 
@@ -302,10 +347,6 @@ fn physics_props(physics: Option<&PhysicsComponent>) -> (f32, f32, f32) {
     };
 
     (inv_mass, physics.restitution, physics.friction)
-}
-
-fn fixed_dt() -> f32 {
-    1.0 / 60.0
 }
 
 #[cfg(test)]
