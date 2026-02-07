@@ -391,9 +391,6 @@ fn convex_convex_contact(
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
 ) -> Option<Contact> {
-    let a_world = transform_a.to_mat4();
-    let b_world = transform_b.to_mat4();
-
     // Fast path for sphere-sphere collisions
     match (collider_a.shape, collider_b.shape) {
         (ConvexShape::Sphere { .. }, ConvexShape::Sphere { .. }) => {
@@ -419,6 +416,31 @@ fn convex_convex_contact(
         _ => {}
     }
 
+    let contact = gjk_epa_contact_generator(collider_a, transform_a, collider_b, transform_b)?;
+    Some(Contact {
+        entity_a,
+        entity_b,
+        normal: contact.normal,
+        penetration: contact.penetration_depth,
+        contact_point: contact.contact_point,
+    })
+}
+
+struct GjkEpaResult {
+    normal: Vec3,
+    penetration_depth: f32,
+    contact_point: Vec3,
+}
+
+fn gjk_epa_contact_generator(
+    collider_a: &ConvexCollider,
+    transform_a: &TransformComponent,
+    collider_b: &ConvexCollider,
+    transform_b: &TransformComponent,
+) -> Option<GjkEpaResult> {
+    let a_world = transform_a.to_mat4();
+    let b_world = transform_b.to_mat4();
+
     let result = gjk_intersect(collider_a, a_world, collider_b, b_world);
     let simplex = match result {
         GjkResult::Intersection(hit) => hit.simplex,
@@ -438,12 +460,9 @@ fn convex_convex_contact(
     let a_support = collider_a.support(a_world, normal);
     let b_support = collider_b.support(b_world, -normal);
     let contact_point = (a_support + b_support) * 0.5;
-
-    Some(Contact {
-        entity_a,
-        entity_b,
+    Some(GjkEpaResult {
         normal,
-        penetration: epa_result.penetration_depth,
+        penetration_depth: epa_result.penetration_depth,
         contact_point,
     })
 }
@@ -953,7 +972,7 @@ mod tests {
         let entity_a = Entity::from_bits(10);
         let entity_b = Entity::from_bits(11);
 
-        let collider_a = ConvexCollider::cube(2.0,CollisionLayer::Default);
+        let collider_a = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let collider_b = collider_a;
 
         let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
