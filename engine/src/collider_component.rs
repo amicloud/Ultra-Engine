@@ -100,12 +100,12 @@ pub struct ConvexCollider {
 }
 
 impl ConvexCollider {
-    pub fn cuboid(length: f32, width: f32, height: f32, layer: CollisionLayer) -> Self {
+    pub fn cuboid(size: Vec3, layer: CollisionLayer) -> Self {
         Self {
             shape: ConvexShape::Cuboid {
-                length,
-                width,
-                height,
+                length: size.x,
+                width: size.y,
+                height: size.z,
             },
             layer,
         }
@@ -113,11 +113,11 @@ impl ConvexCollider {
 
     pub fn cuboid_from_aabb(aabb: AABB, layer: CollisionLayer) -> Self {
         let size = aabb.max - aabb.min;
-        Self::cuboid(size.x, size.y, size.z, layer)
+        Self::cuboid(size, layer)
     }
 
     pub fn cube(size: f32, layer: CollisionLayer) -> Self {
-        Self::cuboid(size, size, size, layer)
+        Self::cuboid(Vec3::splat(size), layer)
     }
 
     pub fn sphere(radius: f32, layer: CollisionLayer) -> Self {
@@ -340,7 +340,7 @@ mod tests {
 
     #[test]
     fn support_cuboid_identity_selects_corner() {
-        let collider = ConvexCollider::cuboid(2.0, 4.0, 6.0, CollisionLayer::Default);
+        let collider = ConvexCollider::cuboid(Vec3::new(2.0, 4.0, 6.0), CollisionLayer::Default);
         let transform = Mat4::IDENTITY;
         let dir = Vec3::new(1.0, -1.0, 1.0);
 
@@ -351,7 +351,7 @@ mod tests {
 
     #[test]
     fn support_cuboid_handles_translation() {
-        let collider = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let collider = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let transform = Mat4::from_translation(Vec3::new(10.0, -5.0, 3.0));
         let dir = Vec3::new(-1.0, 1.0, -1.0);
 
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn support_cuboid_handles_rotation() {
-        let collider = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let collider = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let transform = Mat4::from_rotation_z(std::f32::consts::FRAC_PI_2);
         let dir = Vec3::X;
 

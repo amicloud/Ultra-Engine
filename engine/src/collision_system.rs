@@ -953,7 +953,7 @@ mod tests {
         let entity_a = Entity::from_bits(10);
         let entity_b = Entity::from_bits(11);
 
-        let collider_a = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let collider_a = ConvexCollider::cube(2.0,CollisionLayer::Default);
         let collider_b = collider_a;
 
         let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
@@ -987,7 +987,7 @@ mod tests {
         let entity_a = Entity::from_bits(20);
         let entity_b = Entity::from_bits(21);
 
-        let collider_a = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let collider_a = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let collider_b = collider_a;
 
         let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
@@ -1031,7 +1031,7 @@ mod tests {
         let entity_a = Entity::from_bits(22);
         let entity_b = Entity::from_bits(23);
 
-        let collider_a = ConvexCollider::cuboid(2.0, 2.0, 2.0, CollisionLayer::Default);
+        let collider_a = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let collider_b = collider_a;
 
         let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
@@ -1147,8 +1147,8 @@ mod tests {
         let entity_a = Entity::from_bits(40);
         let entity_b = Entity::from_bits(41);
 
-        let collider_a = ConvexCollider::cuboid(1.0, 1.0, 1.0, CollisionLayer::Default);
-        let collider_b = ConvexCollider::cuboid(2.0, 1.0, 1.0, CollisionLayer::Default);
+        let collider_a = ConvexCollider::cuboid(Vec3::new(1.0, 1.0, 1.0), CollisionLayer::Default);
+        let collider_b = ConvexCollider::cuboid(Vec3::new(2.0, 1.0, 1.0), CollisionLayer::Default);
 
         let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
         let transform_b = make_transform(Vec3::new(1.0, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
@@ -1171,8 +1171,8 @@ mod tests {
         let entity_a = Entity::from_bits(42);
         let entity_b = Entity::from_bits(43);
 
-        let collider_a = ConvexCollider::cuboid(1.0, 1.0, 1.0, CollisionLayer::Default);
-        let collider_b = ConvexCollider::cuboid(0.5, 1.0, 1.0, CollisionLayer::Default);
+        let collider_a = ConvexCollider::cuboid(Vec3::new(1.0, 1.0, 1.0), CollisionLayer::Default);
+        let collider_b = ConvexCollider::cuboid(Vec3::new(0.5, 1.0, 1.0), CollisionLayer::Default);
 
         let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
         let transform_b = make_transform(Vec3::new(1.0, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);

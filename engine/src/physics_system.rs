@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::movement_system::MovementSystem;
-use crate::physics_component::PhysicsType;
 use crate::physics_resource::{Contact, PhysicsResource};
 use crate::velocity_component::VelocityComponent;
 use crate::WorldBasis;

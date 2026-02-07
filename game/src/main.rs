@@ -93,30 +93,38 @@ fn main() {
             .chain(),
     );
 
+    let cube = engine
+        .load_model("resources/models/cube/Cube.gltf")
+        .unwrap();
+
     let sphere = engine
         .load_model("resources/models/sphere/sphere.obj")
         .unwrap();
 
-    let player_scale = 1.0;
-    let player_start = Vec3::new(5.0, 0.0, 25.0);
-    let player_collider = ConvexCollider::sphere(player_scale, CollisionLayer::Player);
 
+    let player_scale: Vec3 = Vec3::new(1.0, 1.0, 1.0);
+    let player_start = Vec3::new(5.0, 0.0, 25.0);
+    let sphere_collider = ConvexCollider::sphere(player_scale.x, CollisionLayer::Player);
+    let cuboid_collider = ConvexCollider::cuboid(
+         player_scale,
+        CollisionLayer::Player,
+    );
     engine.world.spawn((
         TransformComponent {
             position: player_start,
             rotation: Quat::IDENTITY,
-            scale: Vec3::new(player_scale, player_scale, player_scale),
+            scale: player_scale,
         },
         VelocityComponent {
             translational: Vec3::ZERO,
             angular: Vec3::ZERO,
         },
         RenderBodyComponent {
-            render_body_id: sphere,
+            render_body_id: cube,
         },
-        player_collider,
+        cuboid_collider,
         PhysicsComponent {
-            mass: 500.0,
+            mass: 5.0,
             physics_type: PhysicsType::Dynamic,
             friction: 0.3,
             drag_coefficient: 0.1,
@@ -170,7 +178,7 @@ fn main() {
             },
             ConvexCollider::sphere(scale, CollisionLayer::Default),
             PhysicsComponent {
-                mass: 300.0,
+                mass: 3.0,
                 physics_type: PhysicsType::Dynamic,
                 friction: 0.2,
                 drag_coefficient: 0.1,
@@ -182,59 +190,59 @@ fn main() {
         ));
     }
 
-    // let ground = engine
-    //     .load_model("resources/models/opalton/opalton3Dterrain.gltf")
-    //     .unwrap();
+    let ground = engine
+        .load_model("resources/models/opalton/opalton3Dterrain.gltf")
+        .unwrap();
 
-    // let ground_scale = 0.1;
-    // let ground_collider = engine
-    //     .mesh_collider_from_render_body(ground, CollisionLayer::Default)
-    //     .expect("Render body not found");
-    // engine.world.spawn((
-    //     TransformComponent {
-    //         position: Vec3::new(0.0, 0.0, -250.0),
-    //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::new(ground_scale, ground_scale, ground_scale),
-    //     },
-    //     RenderBodyComponent {
-    //         render_body_id: ground,
-    //     },
-    //     ground_collider,
-    //     PhysicsComponent {
-    //         mass: f32::INFINITY,
-    //         physics_type: PhysicsType::Static,
-    //         friction: 0.2,
-    //         drag_coefficient: 0.1,
-    //         angular_drag_coefficient: 0.1,
-    //         restitution: 0.3,
-    //         local_inertia: glam::Mat3::IDENTITY,
-    //     },
-    // ));
-
-    let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
-    let money_ball_collider = engine
-        .mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
-        .expect("Render body AABB not found");
-
+    let ground_scale = 0.1;
+    let ground_collider = engine
+        .mesh_collider_from_render_body(ground, CollisionLayer::Default)
+        .expect("Render body not found");
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::new(20.0, 0.0, 0.0),
+            position: Vec3::new(0.0, 0.0, -250.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::splat(2.0),
+            scale: Vec3::new(ground_scale, ground_scale, ground_scale),
         },
         RenderBodyComponent {
-            render_body_id: monkey_ball_platform.unwrap(),
+            render_body_id: ground,
         },
-        money_ball_collider,
+        ground_collider,
         PhysicsComponent {
             mass: f32::INFINITY,
             physics_type: PhysicsType::Static,
-            friction: 0.5,
+            friction: 0.2,
             drag_coefficient: 0.1,
             angular_drag_coefficient: 0.1,
             restitution: 0.3,
             local_inertia: glam::Mat3::IDENTITY,
         },
     ));
+
+    // let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
+    // let money_ball_collider = engine
+    //     .mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
+    //     .expect("Render body AABB not found");
+
+    // engine.world.spawn((
+    //     TransformComponent {
+    //         position: Vec3::new(20.0, 0.0, 0.0),
+    //         rotation: Quat::IDENTITY,
+    //         scale: Vec3::splat(2.0),
+    //     },
+    //     RenderBodyComponent {
+    //         render_body_id: monkey_ball_platform.unwrap(),
+    //     },
+    //     money_ball_collider,
+    //     PhysicsComponent {
+    //         mass: f32::INFINITY,
+    //         physics_type: PhysicsType::Static,
+    //         friction: 0.5,
+    //         drag_coefficient: 0.1,
+    //         angular_drag_coefficient: 0.1,
+    //         restitution: 0.3,
+    //         local_inertia: glam::Mat3::IDENTITY,
+    //     },
+    // ));
     engine.run();
 }
