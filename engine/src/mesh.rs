@@ -10,7 +10,7 @@ use crate::collider_component::{BVHNode, Triangle};
 use crate::handles::MeshHandle;
 
 #[repr(C)]
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Vertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
@@ -82,7 +82,7 @@ impl Vertex {
     }
 }
 
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,
@@ -129,7 +129,7 @@ impl AABB {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Default, Clone)]
 pub struct Mesh {
     pub id: MeshHandle,
     pub vertices: Vec<Vertex>,

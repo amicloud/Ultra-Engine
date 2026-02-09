@@ -21,8 +21,6 @@ pub enum VertexAttribType {
     Vec2,
     Vec3,
     Vec4,
-    #[allow(dead_code)]
-    Mat4,
 }
 
 #[derive(Debug, Clone, Copy)]

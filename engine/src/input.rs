@@ -29,7 +29,7 @@ impl From<sdl2::mouse::MouseButton> for MouseButton {
     }
 }
 
-#[derive(Default, Resource)]
+#[derive(Resource, Default)]
 pub struct InputStateResource {
     pub(crate) current_keys: HashSet<Keycode>,
     pub(crate) previous_keys: HashSet<Keycode>,
