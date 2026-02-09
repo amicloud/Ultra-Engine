@@ -1,6 +1,5 @@
 mod bowl_controller;
 mod camera_controller;
-mod input_controller;
 mod settings;
 
 use bowl_controller::{update_bowl_float, BowlFloatComponent, BowlFloatTime};
