@@ -8,8 +8,8 @@ use crate::mesh::AABB;
 pub struct Contact {
     pub entity_a: Entity,
     pub entity_b: Entity,
-    pub normal: Vec3,     // Direction from A to B
-    pub penetration: f32, // Depth of overlap
+    pub normal: Vec3,        // Direction from A to B
+    pub penetration: f32,    // Depth of overlap
     pub contact_point: Vec3, // Point of contact in world space
 }
 
@@ -23,7 +23,6 @@ pub struct PhysicsResource {
     pub world_aabbs: HashMap<Entity, AABB>,
     pub contacts: Vec<Contact>,
     pub manifolds: HashMap<(Entity, Entity), ContactManifold>,
-    
 }
 
 impl PhysicsResource {

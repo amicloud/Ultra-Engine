@@ -3,11 +3,11 @@ mod camera_controller;
 mod input_controller;
 mod settings;
 
+use bowl_controller::{update_bowl_float, BowlFloatComponent, BowlFloatTime};
 use camera_controller::{
     apply_flying_camera_input, apply_flying_camera_movement, apply_player_movement_impulses,
     update_orbit_camera_target, FlyingCameraComponent, PlayerComponent,
 };
-use bowl_controller::{update_bowl_float, BowlFloatComponent, BowlFloatTime};
 // use input_controller::{update_input_state, InputState};
 use crate::camera_controller::{
     apply_orbit_camera_input, apply_switch_camera_input, initialize_flying_camera_rotation,
@@ -106,19 +106,11 @@ fn main() {
         .load_model("resources/models/sphere/sphere.obj")
         .unwrap();
 
-
     let player_scale: Vec3 = Vec3::splat(1.0);
     let player_start = Vec3::new(5.0, 0.0, 25.0);
     let sphere_collider = ConvexCollider::sphere(player_scale.x, CollisionLayer::Player);
-    let cuboid_collider = ConvexCollider::cuboid(
-         player_scale*2.0,
-        CollisionLayer::Player,
-    );
-    let egg_collider = ConvexCollider::egg(
-        3.0,
-        player_scale.x,
-        CollisionLayer::Player,
-    );
+    let cuboid_collider = ConvexCollider::cuboid(player_scale * 2.0, CollisionLayer::Player);
+    let egg_collider = ConvexCollider::egg(3.0, player_scale.x, CollisionLayer::Player);
     engine.world.spawn((
         TransformComponent {
             position: player_start,
@@ -284,6 +276,6 @@ fn main() {
     //         local_inertia: glam::Mat3::IDENTITY,
     //     },
     // ));
-    
+
     engine.run();
 }

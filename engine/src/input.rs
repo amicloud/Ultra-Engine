@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use bevy_ecs::resource::Resource;
 use sdl2::keyboard::Keycode;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub enum MouseButton {
     Left,
     Middle,

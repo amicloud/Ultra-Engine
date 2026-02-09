@@ -111,7 +111,7 @@ impl Engine {
         );
 
         let mut render_schedule = Schedule::default();
-        render_schedule.add_systems(RenderSystem::extract_render_data);
+        render_schedule.add_systems(RenderSystem::build_render_queue);
 
         let game_schedule = Schedule::default();
 

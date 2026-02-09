@@ -15,5 +15,5 @@ pub struct PhysicsComponent {
     pub drag_coefficient: f32,
     pub angular_drag_coefficient: f32,
     pub restitution: f32,
-    pub local_inertia: glam::Mat3
+    pub local_inertia: glam::Mat3,
 }

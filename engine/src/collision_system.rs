@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::{Changed, Entity, Query, Res, ResMut};
 use glam::{Mat4, Vec3};
 use rayon::prelude::*;
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 use crate::{
     collider_component::{
@@ -258,8 +258,7 @@ impl CollisionSystem {
                     if manifold.contacts.len() > existing.contacts.len() {
                         *existing = manifold.clone();
                     } else if manifold.contacts.len() == existing.contacts.len()
-                        && manifold_max_penetration(&manifold)
-                            > manifold_max_penetration(existing)
+                        && manifold_max_penetration(&manifold) > manifold_max_penetration(existing)
                     {
                         *existing = manifold.clone();
                     }
@@ -919,7 +918,7 @@ fn convex_mesh_contact_at_transform(
     candidates
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy)]
 struct ContactCandidate {
     point: Vec3,
     normal: Vec3,

@@ -8,7 +8,7 @@ use bevy_ecs::prelude::{Query, Res, ResMut};
 pub struct RenderSystem {}
 
 impl RenderSystem {
-    pub fn extract_render_data(
+    pub fn build_render_queue(
         query: Query<(&TransformComponent, &RenderBodyComponent)>,
         render_resources: Res<RenderResourceManager>,
         mut queue: ResMut<RenderQueue>,
