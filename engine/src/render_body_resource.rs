@@ -2,7 +2,7 @@ use bevy_ecs::prelude::*;
 
 use crate::{handles::RenderBodyHandle, render_body::RenderBody};
 
-#[derive(Default, Resource)]
+#[derive(Resource, Default)]
 pub struct RenderBodyResource {
     pub render_bodies: std::collections::HashMap<RenderBodyHandle, RenderBody>,
 }

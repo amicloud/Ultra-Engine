@@ -2,7 +2,7 @@ use bevy_ecs::component::Component;
 use glam::Vec3;
 use std::ops::{Div, Mul};
 
-#[derive(Default, Component, Clone, Copy)]
+#[derive(Component, Default, Clone, Copy)]
 pub struct VelocityComponent {
     pub translational: Vec3,
     pub angular: Vec3,

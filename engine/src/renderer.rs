@@ -27,7 +27,7 @@ pub struct RenderParams {
     pub height: u32,
 }
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(PartialEq, Hash, Eq)]
 struct VaoKey {
     mesh: MeshHandle,
     shader: ShaderHandle,

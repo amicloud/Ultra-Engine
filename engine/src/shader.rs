@@ -15,7 +15,7 @@ pub enum UniformValue {
     },
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum VertexAttribType {
     Float32,
     Vec2,
@@ -25,7 +25,7 @@ pub enum VertexAttribType {
     Mat4,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum InputRate {
     PerVertex,
     PerInstance,

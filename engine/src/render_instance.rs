@@ -1,7 +1,7 @@
 use crate::handles::*;
 use glam::Mat4;
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub struct RenderInstance {
     pub mesh_id: MeshHandle,
     pub transform: Mat4,
