@@ -350,7 +350,7 @@ pub fn apply_player_movement_impulses(
 
     let move_dir = move_dir.normalize();
     for (entity, player, mut velocity) in &mut player_query {
-        velocity.angular += (move_dir * player.speed);
+        velocity.angular += move_dir * player.speed;
     }
 }
 
