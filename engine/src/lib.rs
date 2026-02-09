@@ -73,7 +73,9 @@ pub use crate::velocity_component::VelocityComponent;
 pub use crate::world_basis::WorldBasis;
 pub struct Engine {
     pub world: World,
-    pub schedule: Schedule,
+    pub game_schedule: Schedule,
+    physics_schedule: Schedule,
+    render_schedule: Schedule,
     gl: Rc<glow::Context>,
     window: sdl2::video::Window,
     events_loop: sdl2::EventPump,
@@ -94,19 +96,24 @@ impl Engine {
         world.insert_resource(WorldBasis::canonical());
         world.insert_resource(PhysicsResource::default());
 
-        let mut schedule = Schedule::default();
-        // Engine-only systems. Game code adds its own systems to this schedule.
-        schedule.add_systems(
+        let mut physics_schedule = Schedule::default();
+
+        // Engine-only systems. Game code adds its own systems to the game schedule.
+        physics_schedule.add_systems(
             (
                 MovementSystem::update,
                 CollisionSystem::update_world_aabb_cache,
                 CollisionSystem::generate_contacts,
                 PhysicsSystem::physics_solver,
                 PhysicsSystem::integrate_motion,
-                RenderSystem::extract_render_data,
             )
                 .chain(),
         );
+
+        let mut render_schedule = Schedule::default();
+        render_schedule.add_systems(RenderSystem::extract_render_data);
+
+        let game_schedule = Schedule::default();
 
         let mut render_data_manager = world
             .get_resource_mut::<RenderResourceManager>()
@@ -118,7 +125,9 @@ impl Engine {
 
         Engine {
             world,
-            schedule,
+            game_schedule,
+            physics_schedule,
+            render_schedule,
             gl,
             window,
             events_loop,
@@ -146,6 +155,7 @@ impl Engine {
             let mut renderer = Renderer::new(gl.clone());
             let mut last_frame = Instant::now();
             let mut accumulator = Duration::ZERO;
+
             let target_simulation_dt = Duration::from_millis(16); // ~60 Hz
             let target_frame_time = Duration::from_millis(16); // ~60 FPS max
 
@@ -209,16 +219,31 @@ impl Engine {
                         height: (height * render_scale) as u32,
                     };
 
+                    const MAX_PHYSICS_STEPS: usize = 5;
+
                     let now = Instant::now();
                     let frame_time = now - last_frame;
                     last_frame = now;
 
+                    // Prevent absurd frame times (debugger pauses, window drag, etc.)
+                    let frame_time = frame_time.min(Duration::from_millis(250));
+
                     accumulator += frame_time;
 
-                    while accumulator >= target_simulation_dt {
-                        self.schedule.run(&mut self.world);
+                    let mut steps = 0;
+                    while accumulator >= target_simulation_dt && steps < MAX_PHYSICS_STEPS {
+                        self.physics_schedule.run(&mut self.world);
                         accumulator -= target_simulation_dt;
+                        steps += 1;
                     }
+
+                    // If we fell behind badly, drop the remaining time
+                    if steps == MAX_PHYSICS_STEPS {
+                        accumulator = Duration::ZERO;
+                    }
+
+                    self.game_schedule.run(&mut self.world);
+                    self.render_schedule.run(&mut self.world);
 
                     // 1. Extract instance data AFTER systems run
                     let instances: Vec<RenderInstance> = {

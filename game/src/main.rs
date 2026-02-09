@@ -82,7 +82,7 @@ fn main() {
         .unwrap()
         .set(orbit_camera);
 
-    engine.schedule.add_systems(
+    engine.game_schedule.add_systems(
         (
             initialize_flying_camera_rotation,
             apply_orbit_camera_input,
@@ -148,7 +148,7 @@ fn main() {
 
     let t_range = 2.0;
 
-    for _ in 0..500 {
+    for _ in 0..50 {
         // Random position
         let pos = Vec3::new(
             random_range(-20.0..20.0),
@@ -229,61 +229,61 @@ fn main() {
     //     },
     // ));
 
-    // let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
-    // let money_ball_collider = engine
-    //     .mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
-    //     .expect("Render body AABB not found");
-
-    // engine.world.spawn((
-    //     TransformComponent {
-    //         position: Vec3::new(0.0, 0.0, 0.0),
-    //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::splat(2.0),
-    //     },
-    //     RenderBodyComponent {
-    //         render_body_id: monkey_ball_platform.unwrap(),
-    //     },
-    //     money_ball_collider,
-    //     PhysicsComponent {
-    //         mass: f32::INFINITY,
-    //         physics_type: PhysicsType::Static,
-    //         friction: 0.5,
-    //         drag_coefficient: 0.1,
-    //         angular_drag_coefficient: 0.1,
-    //         restitution: 0.3,
-    //         local_inertia: glam::Mat3::IDENTITY,
-    //     },
-    // ));
-
-    let bowl = engine.load_model("resources/models/bowl/bowl.obj").unwrap();
-    let bowl_collider = engine
-        .mesh_collider_from_render_body(bowl, CollisionLayer::Default)
+    let monkey_ball_platform = engine.load_model("resources/models/platform/platform.obj");
+    let money_ball_collider = engine
+        .mesh_collider_from_render_body(monkey_ball_platform.unwrap(), CollisionLayer::Default)
         .expect("Render body AABB not found");
+
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::splat(0.0),
+            position: Vec3::new(0.0, 0.0, 0.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::splat(0.2),
+            scale: Vec3::splat(2.0),
         },
         RenderBodyComponent {
-            render_body_id: bowl,
+            render_body_id: monkey_ball_platform.unwrap(),
         },
-        bowl_collider,
-        BowlFloatComponent {
-            base_height: 0.0,
-            amplitude: 10.0,
-            speed: 2.0,
-        },
+        money_ball_collider,
         PhysicsComponent {
             mass: f32::INFINITY,
             physics_type: PhysicsType::Static,
             friction: 0.5,
             drag_coefficient: 0.1,
             angular_drag_coefficient: 0.1,
-            restitution: 0.6,
+            restitution: 0.3,
             local_inertia: glam::Mat3::IDENTITY,
         },
     ));
+
+    // let bowl = engine.load_model("resources/models/bowl/bowl.obj").unwrap();
+    // let bowl_collider = engine
+    //     .mesh_collider_from_render_body(bowl, CollisionLayer::Default)
+    //     .expect("Render body AABB not found");
+    // engine.world.spawn((
+    //     TransformComponent {
+    //         position: Vec3::splat(0.0),
+    //         rotation: Quat::IDENTITY,
+    //         scale: Vec3::splat(0.2),
+    //     },
+    //     RenderBodyComponent {
+    //         render_body_id: bowl,
+    //     },
+    //     bowl_collider,
+    //     BowlFloatComponent {
+    //         base_height: 0.0,
+    //         amplitude: 10.0,
+    //         speed: 2.0,
+    //     },
+    //     PhysicsComponent {
+    //         mass: f32::INFINITY,
+    //         physics_type: PhysicsType::Static,
+    //         friction: 0.5,
+    //         drag_coefficient: 0.1,
+    //         angular_drag_coefficient: 0.1,
+    //         restitution: 0.6,
+    //         local_inertia: glam::Mat3::IDENTITY,
+    //     },
+    // ));
     
     engine.run();
 }

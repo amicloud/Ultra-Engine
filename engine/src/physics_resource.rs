@@ -23,6 +23,7 @@ pub struct PhysicsResource {
     pub world_aabbs: HashMap<Entity, AABB>,
     pub contacts: Vec<Contact>,
     pub manifolds: HashMap<(Entity, Entity), ContactManifold>,
+    
 }
 
 impl PhysicsResource {
