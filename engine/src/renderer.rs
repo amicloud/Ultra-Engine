@@ -87,7 +87,8 @@ impl Renderer {
                 .shader_manager
                 .get_shader(*shader)
                 .unwrap()
-                .attributes {
+                .attributes
+            {
                 let location = attrib.location;
                 let divisor = match attrib.rate {
                     PerVertex => 0,

@@ -137,149 +137,147 @@ impl Engine {
 
     pub fn run(&mut self) {
         unsafe {
-            let gl = self.gl.clone();
-            let version = gl.get_parameter_string(glow::VERSION);
+            let version = self.gl.get_parameter_string(glow::VERSION);
+            let shading_language_version =
+                self.gl.get_parameter_string(glow::SHADING_LANGUAGE_VERSION);
+            let major_version = self.gl.get_parameter_i32(glow::MAJOR_VERSION);
+            let minor_version = self.gl.get_parameter_i32(glow::MINOR_VERSION);
             println!("OpenGL Version: {}", version);
-
-            let shading_language_version = gl.get_parameter_string(glow::SHADING_LANGUAGE_VERSION);
             println!("GLSL Version: {}", shading_language_version);
-
-            let major_version = gl.get_parameter_i32(glow::MAJOR_VERSION);
-            let minor_version = gl.get_parameter_i32(glow::MINOR_VERSION);
             println!(
                 "OpenGL Major Version: {}. OpenGL Minor Version: {}",
                 major_version, minor_version
             );
+        }
 
-            // Initialize renderer
-            let mut renderer = Renderer::new(gl.clone());
-            let mut last_frame = Instant::now();
-            let mut accumulator = Duration::ZERO;
+        // Initialize renderer
+        let mut renderer = Renderer::new(self.gl.clone());
+        let mut last_frame = Instant::now();
+        let mut accumulator = Duration::ZERO;
 
-            let target_simulation_dt = Duration::from_millis(16); // ~60 Hz
-            let target_frame_time = Duration::from_millis(16); // ~60 FPS max
+        let target_simulation_dt = Duration::from_millis(16); // ~60 Hz
+        let target_frame_time = Duration::from_millis(16); // ~60 FPS max
 
-            'render: loop {
-                let frame_start = Instant::now();
-                {
-                    let mut input_state = self
-                        .world
-                        .get_resource_mut::<InputStateResource>()
-                        .expect("InputStateResource resource not found");
+        'render: loop {
+            let frame_start = Instant::now();
+            {
+                let mut input_state = self
+                    .world
+                    .get_resource_mut::<InputStateResource>()
+                    .expect("InputStateResource resource not found");
 
-                    input_state.previous_keys = input_state.current_keys.clone();
-                    input_state.previous_mouse_buttons = input_state.current_mouse_buttons.clone();
-                    input_state.mouse_delta = (0.0, 0.0);
-                    input_state.scroll_delta = 0.0;
+                input_state.previous_keys = input_state.current_keys.clone();
+                input_state.previous_mouse_buttons = input_state.current_mouse_buttons.clone();
+                input_state.mouse_delta = (0.0, 0.0);
+                input_state.scroll_delta = 0.0;
 
-                    for event in self.events_loop.poll_iter() {
-                        match event {
-                            sdl2::event::Event::Quit { .. } => {
-                                break 'render;
-                            }
-                            sdl2::event::Event::MouseMotion { xrel, yrel, .. } => {
-                                input_state.mouse_delta = (xrel as f32, yrel as f32);
-                            }
-                            sdl2::event::Event::MouseWheel { y, direction, .. } => {
-                                let mut delta = y as f32;
-                                if direction == sdl2::mouse::MouseWheelDirection::Flipped {
-                                    delta = -delta;
-                                }
-                                input_state.scroll_delta = delta;
-                            }
-                            sdl2::event::Event::MouseButtonDown { mouse_btn, .. } => {
-                                let button = MouseButton::from(mouse_btn);
-                                input_state.current_mouse_buttons.insert(button);
-                            }
-                            sdl2::event::Event::MouseButtonUp { mouse_btn, .. } => {
-                                let button = MouseButton::from(mouse_btn);
-                                input_state.current_mouse_buttons.remove(&button);
-                            }
-                            sdl2::event::Event::KeyDown {
-                                keycode: Some(keycode),
-                                ..
-                            } => {
-                                input_state.current_keys.insert(keycode);
-                            }
-                            sdl2::event::Event::KeyUp {
-                                keycode: Some(keycode),
-                                ..
-                            } => {
-                                input_state.current_keys.remove(&keycode);
-                            }
-                            _ => {}
+                for event in self.events_loop.poll_iter() {
+                    match event {
+                        sdl2::event::Event::Quit { .. } => {
+                            break 'render;
                         }
+                        sdl2::event::Event::MouseMotion { xrel, yrel, .. } => {
+                            input_state.mouse_delta = (xrel as f32, yrel as f32);
+                        }
+                        sdl2::event::Event::MouseWheel { y, direction, .. } => {
+                            let mut delta = y as f32;
+                            if direction == sdl2::mouse::MouseWheelDirection::Flipped {
+                                delta = -delta;
+                            }
+                            input_state.scroll_delta = delta;
+                        }
+                        sdl2::event::Event::MouseButtonDown { mouse_btn, .. } => {
+                            let button = MouseButton::from(mouse_btn);
+                            input_state.current_mouse_buttons.insert(button);
+                        }
+                        sdl2::event::Event::MouseButtonUp { mouse_btn, .. } => {
+                            let button = MouseButton::from(mouse_btn);
+                            input_state.current_mouse_buttons.remove(&button);
+                        }
+                        sdl2::event::Event::KeyDown {
+                            keycode: Some(keycode),
+                            ..
+                        } => {
+                            input_state.current_keys.insert(keycode);
+                        }
+                        sdl2::event::Event::KeyUp {
+                            keycode: Some(keycode),
+                            ..
+                        } => {
+                            input_state.current_keys.remove(&keycode);
+                        }
+                        _ => {}
                     }
+                }
 
-                    let width = self.window.size().0 as f32;
-                    let height = self.window.size().1 as f32;
-                    let render_scale = 1.0;
-                    let render_params = RenderParams {
-                        width: (width * render_scale) as u32,
-                        height: (height * render_scale) as u32,
-                    };
+                let width = self.window.size().0 as f32;
+                let height = self.window.size().1 as f32;
+                let render_scale = 1.0;
+                let render_params = RenderParams {
+                    width: (width * render_scale) as u32,
+                    height: (height * render_scale) as u32,
+                };
 
-                    const MAX_PHYSICS_STEPS: usize = 5;
+                const MAX_PHYSICS_STEPS: usize = 5;
 
-                    let now = Instant::now();
-                    let frame_time = now - last_frame;
-                    last_frame = now;
+                let now = Instant::now();
+                let frame_time = now - last_frame;
+                last_frame = now;
 
-                    // Prevent absurd frame times (debugger pauses, window drag, etc.)
-                    let frame_time = frame_time.min(Duration::from_millis(250));
+                // Prevent absurd frame times (debugger pauses, window drag, etc.)
+                let frame_time = frame_time.min(Duration::from_millis(250));
 
-                    accumulator += frame_time;
+                accumulator += frame_time;
 
-                    let mut steps = 0;
-                    while accumulator >= target_simulation_dt && steps < MAX_PHYSICS_STEPS {
-                        self.physics_schedule.run(&mut self.world);
-                        accumulator -= target_simulation_dt;
-                        steps += 1;
-                    }
+                let mut steps = 0;
+                while accumulator >= target_simulation_dt && steps < MAX_PHYSICS_STEPS {
+                    self.physics_schedule.run(&mut self.world);
+                    accumulator -= target_simulation_dt;
+                    steps += 1;
+                }
 
-                    // If we fell behind badly, drop the remaining time
-                    if steps == MAX_PHYSICS_STEPS {
-                        accumulator = Duration::ZERO;
-                    }
+                // If we fell behind badly, drop the remaining time
+                if steps == MAX_PHYSICS_STEPS {
+                    accumulator = Duration::ZERO;
+                }
 
-                    self.game_schedule.run(&mut self.world);
-                    self.render_schedule.run(&mut self.world);
+                self.game_schedule.run(&mut self.world);
+                self.render_schedule.run(&mut self.world);
 
-                    // 1. Extract instance data AFTER systems run
-                    let instances: Vec<RenderInstance> = {
-                        let render_queue = self
-                            .world
-                            .get_resource::<RenderQueue>()
-                            .expect("RenderQueue resource not found");
-                        render_queue.instances.clone()
-                    };
-
-                    // 2. Compute camera matrices from ECS state (camera is fully game-driven).
-                    let camera_data = Self::build_camera_render_data(
-                        &mut self.world,
-                        render_params.width,
-                        render_params.height,
-                    );
-
-                    // 3. Get the render data manager
-                    let mut render_data_manager = self
+                // 1. Extract instance data AFTER systems run
+                let instances: Vec<RenderInstance> = {
+                    let render_queue = self
                         .world
-                        .get_resource_mut::<RenderResourceManager>()
-                        .expect("RenderDataManager resource not found");
+                        .get_resource::<RenderQueue>()
+                        .expect("RenderQueue resource not found");
+                    render_queue.instances.clone()
+                };
 
-                    // 4. Render
-                    renderer.render(
-                        render_params,
-                        &mut *render_data_manager,
-                        instances,
-                        camera_data,
-                    );
-                }
-                self.window.gl_swap_window();
-                let frame_time = frame_start.elapsed();
-                if frame_time < target_frame_time {
-                    sleep(target_frame_time - frame_time);
-                }
+                // 2. Compute camera matrices from ECS state (camera is fully game-driven).
+                let camera_data = Self::build_camera_render_data(
+                    &mut self.world,
+                    render_params.width,
+                    render_params.height,
+                );
+
+                // 3. Get the render data manager
+                let mut render_data_manager = self
+                    .world
+                    .get_resource_mut::<RenderResourceManager>()
+                    .expect("RenderDataManager resource not found");
+
+                // 4. Render
+                renderer.render(
+                    render_params,
+                    &mut *render_data_manager,
+                    instances,
+                    camera_data,
+                );
+            }
+            self.window.gl_swap_window();
+            let frame_time = frame_start.elapsed();
+            if frame_time < target_frame_time {
+                sleep(target_frame_time - frame_time);
             }
         }
     }

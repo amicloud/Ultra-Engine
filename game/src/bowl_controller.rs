@@ -15,10 +15,7 @@ pub struct BowlFloatTime {
 
 pub fn update_bowl_float(
     mut time: ResMut<BowlFloatTime>,
-    mut query: Query<(
-        &BowlFloatComponent,
-        &mut VelocityComponent,
-    )>,
+    mut query: Query<(&BowlFloatComponent, &mut VelocityComponent)>,
 ) {
     const FIXED_DT: f32 = 1.0 / 60.0;
     time.seconds += FIXED_DT;
