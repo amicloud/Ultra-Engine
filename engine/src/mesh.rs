@@ -236,12 +236,12 @@ impl Mesh {
             return;
         }
 
+        let instance_buf = self.instance_vbo.unwrap();
+        
+        let byte_len = (instance_matrices.len() * 16 * 4) as i32;
+        
         unsafe {
-            let instance_buf = self.instance_vbo.unwrap();
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(instance_buf));
-
-            let byte_len = (instance_matrices.len() * 16 * 4) as i32;
-
             gl.buffer_data_size(glow::ARRAY_BUFFER, byte_len, glow::DYNAMIC_DRAW);
 
             let ptr = gl.map_buffer_range(

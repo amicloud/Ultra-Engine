@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use bevy_ecs::prelude::*;
 
 use crate::{handles::MeshHandle, mesh::Mesh, renderer::Renderer};
 
-#[derive(Default, Resource)]
+#[derive(Resource, Default)]
 pub struct MeshResource {
-    pub meshes: std::collections::HashMap<MeshHandle, Mesh>,
+    pub meshes: HashMap<MeshHandle, Mesh>,
 }
 
 impl MeshResource {

@@ -41,3 +41,5 @@ temp/
 
 # 3d models
 resources/models
+perf.data
+perf.data.old

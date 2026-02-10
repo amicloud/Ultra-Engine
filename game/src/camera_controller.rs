@@ -300,11 +300,7 @@ pub fn apply_player_movement_impulses(
     active_camera: Res<ActiveCamera>,
     world_basis: Res<WorldBasis>,
     camera_query: Query<&TransformComponent, With<CameraComponent>>,
-    mut player_query: Query<
-        (Entity, &PlayerComponent, &mut VelocityComponent),
-        Without<CameraComponent>,
-    >,
-    mut physics: ResMut<PhysicsResource>,
+    mut player_query: Query<(&PlayerComponent, &mut VelocityComponent), Without<CameraComponent>>,
 ) {
     let (camera_forward, camera_right) = if let Some(camera_entity) = active_camera.0 {
         if let Ok(camera_transform) = camera_query.get(camera_entity) {
@@ -349,7 +345,7 @@ pub fn apply_player_movement_impulses(
     }
 
     let move_dir = move_dir.normalize();
-    for (entity, player, mut velocity) in &mut player_query {
+    for (player, mut velocity) in &mut player_query {
         velocity.angular += move_dir * player.speed;
     }
 }
