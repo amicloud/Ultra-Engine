@@ -186,6 +186,7 @@ impl DynamicAabbTree {
         // 3. Walk upward fixing AABBs/heights
         self.fix_upwards(new_parent);
     }
+
     fn fix_upwards(&mut self, mut index: NodeId) {
         loop {
             let left = self.nodes[index].left.unwrap();
@@ -202,6 +203,7 @@ impl DynamicAabbTree {
             }
         }
     }
+    
     fn allocate_node(&mut self) -> NodeId {
         if let Some(id) = self.free_list.pop() {
             id

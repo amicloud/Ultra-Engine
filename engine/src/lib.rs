@@ -48,7 +48,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
-use crate::collision_system::CollisionSystem;
+pub use crate::collision_system::CollisionSystem;
 use crate::input::InputStateResource;
 use crate::mesh::AABB;
 use crate::mesh_resource::MeshResource;
@@ -58,7 +58,7 @@ use crate::physics_resource::PhysicsResource;
 use crate::physics_system::PhysicsSystem;
 use crate::render_instance::RenderInstance;
 use crate::render_queue::RenderQueue;
-use crate::render_resource_manager::RenderResourceManager;
+pub use crate::render_resource_manager::RenderResourceManager;
 use crate::render_system::RenderSystem;
 use crate::renderer::{CameraRenderData, RenderParams};
 
