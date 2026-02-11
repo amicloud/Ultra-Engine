@@ -149,8 +149,9 @@ impl DynamicAabbTree {
                 }
             };
 
-            // Descend
-            if cost_left < cost_right {
+            if cost < cost_left && cost < cost_right {
+                break; // create new parent here instead of descending
+            } else if cost_left < cost_right { // Descend
                 index = left;
             } else {
                 index = right;
@@ -203,7 +204,7 @@ impl DynamicAabbTree {
             }
         }
     }
-    
+
     fn allocate_node(&mut self) -> NodeId {
         if let Some(id) = self.free_list.pop() {
             id
