@@ -21,6 +21,7 @@ use engine::{
 };
 use glam::{Quat, Vec3};
 use rand::random_range;
+use crate::game_controller::{do_gameplay, ProjectileSpawner};
 fn main() {
     println!("Welcome to the Game!");
     let mut engine = Engine::new();
@@ -91,7 +92,8 @@ fn main() {
             apply_flying_camera_movement,
             apply_player_movement_impulses,
             apply_switch_camera_input,
-            update_bowl_float,
+            do_gameplay,
+            // update_bowl_float,
         )
             .chain(),
     );
@@ -105,6 +107,14 @@ fn main() {
     let sphere = engine
         .load_model("resources/models/sphere/sphere.obj")
         .unwrap();
+
+    engine.world.insert_resource(ProjectileSpawner {
+        sphere_handle: sphere,
+        cooldown: 0.2,
+        cooldown_timer: 0.0,
+        speed: 200.0,
+        scale: 1.0,
+    });
 
     let player_scale: Vec3 = Vec3::splat(1.0);
     let player_start = Vec3::new(5.0, 0.0, 25.0);
@@ -168,7 +178,7 @@ fn main() {
 
     let t_range = 2.0;
 
-    (0..1000).for_each(|_| {
+    (0..200).for_each(|_| {
         // Random position
         let pos = Vec3::new(
             random_range(-20.0..20.0),
@@ -285,7 +295,7 @@ fn main() {
         TransformComponent {
             position: Vec3::splat(0.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::splat(0.4),
+            scale: Vec3::splat(0.22),
         },
         VelocityComponent {
             translational: Vec3::ZERO,
