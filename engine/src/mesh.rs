@@ -112,7 +112,7 @@ impl AABB {
         let mut max = vertices[0];
 
         // Iterate over all vertices to find min and max values
-        for vertex in vertices.iter() {
+        vertices.iter().for_each(|vertex| {
             min.position[0] = min.position[0].min(vertex.position[0]);
             min.position[1] = min.position[1].min(vertex.position[1]);
             min.position[2] = min.position[2].min(vertex.position[2]);
@@ -120,12 +120,39 @@ impl AABB {
             max.position[0] = max.position[0].max(vertex.position[0]);
             max.position[1] = max.position[1].max(vertex.position[1]);
             max.position[2] = max.position[2].max(vertex.position[2]);
-        }
+        });
 
         AABB {
             min: min.position.into(),
             max: max.position.into(),
         }
+    }
+
+    pub fn union(&self, other: &AABB) -> AABB {
+        AABB {
+            min: self.min.min(other.min),
+            max: self.max.max(other.max),
+        }
+    }
+
+    pub fn area(&self) -> f32 {
+        let d = self.max - self.min;
+        2.0 * (d.x * d.y + d.x * d.z + d.y * d.z)
+    }
+
+    pub fn intersects(&self, other: &AABB) -> bool {
+        !(self.max.x < other.min.x ||
+          self.min.x > other.max.x ||
+          self.max.y < other.min.y ||
+          self.min.y > other.max.y ||
+          self.max.z < other.min.z ||
+          self.min.z > other.max.z)
+    }
+
+    pub fn contains(&self, other: &AABB) -> bool {
+        self.min.x <= other.min.x && self.max.x >= other.max.x &&
+        self.min.y <= other.min.y && self.max.y >= other.max.y &&
+        self.min.z <= other.min.z && self.max.z >= other.max.z
     }
 }
 

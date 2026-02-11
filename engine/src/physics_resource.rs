@@ -2,7 +2,7 @@ use bevy_ecs::prelude::*;
 use glam::Vec3;
 use std::collections::HashMap;
 
-use crate::mesh::AABB;
+use crate::{dynamic_aabb_tree::{DynamicAabbTree, NodeId}, mesh::AABB};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Contact {
@@ -23,6 +23,8 @@ pub struct PhysicsResource {
     pub world_aabbs: HashMap<Entity, AABB>,
     pub contacts: Vec<Contact>,
     pub manifolds: HashMap<(Entity, Entity), ContactManifold>,
+    pub broadphase: DynamicAabbTree,
+    pub entity_node: HashMap<Entity, NodeId>,
 }
 
 impl PhysicsResource {

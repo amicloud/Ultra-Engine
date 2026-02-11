@@ -37,6 +37,7 @@ mod texture_resource_manager;
 mod transform_component;
 mod velocity_component;
 pub mod world_basis;
+mod dynamic_aabb_tree;
 use bevy_ecs::prelude::*;
 use glam::Mat4;
 use glam::Vec3;
@@ -103,6 +104,7 @@ impl Engine {
             (
                 MovementSystem::update,
                 CollisionSystem::update_world_aabb_cache,
+                CollisionSystem::update_world_dynamic_tree,
                 CollisionSystem::generate_contacts,
                 PhysicsSystem::physics_solver,
                 PhysicsSystem::integrate_motion,

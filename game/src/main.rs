@@ -1,6 +1,7 @@
 mod bowl_controller;
 mod camera_controller;
 mod settings;
+mod game_controller;
 
 use bowl_controller::{update_bowl_float, BowlFloatComponent, BowlFloatTime};
 use camera_controller::{
@@ -167,7 +168,7 @@ fn main() {
 
     let t_range = 2.0;
 
-    (0..200).for_each(|_| {
+    (0..1000).for_each(|_| {
         // Random position
         let pos = Vec3::new(
             random_range(-20.0..20.0),
@@ -284,7 +285,7 @@ fn main() {
         TransformComponent {
             position: Vec3::splat(0.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::splat(0.2),
+            scale: Vec3::splat(0.4),
         },
         VelocityComponent {
             translational: Vec3::ZERO,

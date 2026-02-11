@@ -1,4 +1,7 @@
-use bevy_ecs::prelude::{Changed, Entity, Query, Res, ResMut};
+use bevy_ecs::{
+    lifecycle::RemovedComponents,
+    prelude::{Changed, Entity, Query, Res, ResMut},
+};
 use glam::{Mat4, Vec3};
 use rayon::prelude::*;
 use std::collections::HashMap;
@@ -22,6 +25,67 @@ use crate::{
 pub struct CollisionSystem {}
 
 impl CollisionSystem {
+    pub fn update_world_dynamic_tree(
+        query: Query<
+            (
+                Entity,
+                &TransformComponent,
+                Option<&ConvexCollider>,
+                Option<&MeshCollider>,
+            ),
+            Changed<TransformComponent>,
+        >,
+        render_resources: Res<RenderResourceManager>,
+        mut phys: ResMut<PhysicsResource>,
+    ) {
+        for (entity, transform, convex_collider, mesh_collider) in &query {
+            // --- 1. Compute world AABB ---
+            let world_aabb = if let Some(mesh_collider) = mesh_collider {
+                if let Some(local_aabb) =
+                    render_body_local_aabb(mesh_collider.render_body_id, &render_resources)
+                {
+                    transform_aabb(local_aabb, transform)
+                } else {
+                    continue;
+                }
+            } else if let Some(convex_collider) = convex_collider {
+                convex_collider.aabb(&transform.to_mat4())
+            } else {
+                continue;
+            };
+
+            // --- 2. Store world AABB ---
+            phys.world_aabbs.insert(entity, world_aabb);
+
+            // --- 3. Sync dynamic tree ---
+            match phys.entity_node.get(&entity).copied() {
+                Some(node_id) => {
+                    // Existing object → update
+                    phys.broadphase.update(node_id, world_aabb);
+                }
+                None => {
+                    // New object → allocate leaf node
+                    let node_id = phys.broadphase.allocate_leaf(entity, world_aabb);
+                    phys.entity_node.insert(entity, node_id);
+                }
+            }
+        }
+    }
+
+    pub fn cleanup_removed_entities(
+        mut phys: ResMut<PhysicsResource>,
+        removed: RemovedComponents<TransformComponent>,
+    ) {
+        todo!("Handle removed entities in collision system");
+        // for entity in removed.iter() {
+        //     if let Some(node_id) = phys.entity_node.remove(&entity) {
+        //         phys.broadphase.remove(node_id);
+        //     }
+
+        //     phys.world_aabbs.remove(&entity);
+        // }
+    }
+
     pub fn update_world_aabb_cache(
         query: Query<
             (
@@ -53,6 +117,17 @@ impl CollisionSystem {
         }
     }
 
+    fn deduplicate_pairs(pairs: &mut Vec<(Entity, Entity)>) {
+        for (a, b) in pairs.iter_mut() {
+            if *a > *b {
+                std::mem::swap(a, b);
+            }
+        }
+
+        pairs.sort_unstable();
+        pairs.dedup();
+    }
+
     pub fn generate_contacts(
         moving_query: Query<
             (
@@ -78,63 +153,36 @@ impl CollisionSystem {
 
         let mut contacts: Vec<Contact> = Vec::new();
         let mut new_manifolds: HashMap<(Entity, Entity), ContactManifold> = HashMap::new();
+        let mut candidate_pairs: Vec<(Entity, Entity)> = Vec::new();
 
-        #[derive(Clone, Copy)]
-        struct SweptEntry {
-            entity: Entity,
-            aabb: AABB,
+        for (entity, _transform, velocity, _convex, _mesh) in &moving_query {
+            let base_aabb = match phys.world_aabbs.get(&entity) {
+                Some(aabb) => *aabb,
+                None => continue,
+            };
+
+            // --- Build swept AABB ---
+            let swept = if let Some(velocity) = velocity {
+                let delta = velocity.translational * delta_time();
+                if delta.length_squared() > 0.0 {
+                    swept_aabb(&base_aabb, delta)
+                } else {
+                    base_aabb
+                }
+            } else {
+                base_aabb
+            };
+
+            // --- Query dynamic tree ---
+            phys.broadphase.query(swept, |other_entity| {
+                if other_entity != entity {
+                    candidate_pairs.push((entity, other_entity));
+                }
+            });
         }
 
-        let moving_entries: Vec<SweptEntry> = moving_query
-            .iter()
-            .filter_map(|(entity, _transform, velocity, _convex, _mesh)| {
-                let aabb = *phys.world_aabbs.get(&entity)?;
-                let mut swept = aabb;
-                if let Some(velocity) = velocity {
-                    let delta = velocity.translational * delta_time();
-                    if delta.length_squared() > 0.0 {
-                        swept = swept_aabb(&aabb, delta);
-                    }
-                }
-                Some(SweptEntry {
-                    entity,
-                    aabb: swept,
-                })
-            })
-            .collect();
-
-        let all_entries: Vec<SweptEntry> = all_query
-            .iter()
-            .filter_map(|(entity, _transform, velocity, _convex, _mesh)| {
-                let aabb = *phys.world_aabbs.get(&entity)?;
-                let mut swept = aabb;
-                if let Some(velocity) = velocity {
-                    let delta = velocity.translational * delta_time();
-                    if delta.length_squared() > 0.0 {
-                        swept = swept_aabb(&aabb, delta);
-                    }
-                }
-                Some(SweptEntry {
-                    entity,
-                    aabb: swept,
-                })
-            })
-            .collect();
-
-        let candidate_pairs: Vec<(Entity, Entity)> = moving_entries
-            .par_iter()
-            .flat_map_iter(|moving| {
-                all_entries.iter().filter_map(move |other| {
-                    if moving.entity == other.entity {
-                        None
-                    } else if aabb_intersects(&moving.aabb, &other.aabb) {
-                        Some((moving.entity, other.entity))
-                    } else {
-                        None
-                    }
-                })
-            })
-            .collect();
+        // deduplicate pairs (important!)
+        Self::deduplicate_pairs(&mut candidate_pairs);
 
         #[derive(Clone, Copy)]
         struct EntityData {
