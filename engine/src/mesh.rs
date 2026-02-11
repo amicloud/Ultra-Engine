@@ -82,7 +82,7 @@ impl Vertex {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,

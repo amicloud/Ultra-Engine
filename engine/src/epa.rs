@@ -9,13 +9,13 @@ const EPA_MAX_ITERATIONS: usize = 64;
 const EPA_TOLERANCE: f32 = 1e-4;
 const EPSILON: f32 = 1e-6;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EpaResult {
     pub normal: Vec3,
     pub penetration_depth: f32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 struct Face {
     indices: [usize; 3],
     normal: Vec3,
