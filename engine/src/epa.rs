@@ -285,7 +285,7 @@ fn support_minkowski(
 mod tests {
     use super::*;
     use crate::collider_component::{CollisionLayer, ConvexCollider};
-    use crate::gjk::{gjk_intersect, GjkResult};
+    use crate::gjk::{GjkResult, gjk_intersect};
     use crate::mesh::AABB;
     use crate::transform_component::TransformComponent;
     use glam::{Quat, Vec3};

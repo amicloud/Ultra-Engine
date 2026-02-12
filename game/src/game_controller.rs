@@ -1,10 +1,10 @@
 use bevy_ecs::prelude::*;
 use engine::input::InputStateResource;
+use engine::physics_component::{PhysicsComponent, PhysicsType};
 use engine::{
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, RenderBodyComponent,
     RenderBodyHandle, TransformComponent, VelocityComponent,
 };
-use engine::physics_component::{PhysicsComponent, PhysicsType};
 use glam::Vec3;
 
 #[derive(Resource)]
@@ -43,7 +43,7 @@ pub fn do_gameplay(
     };
 
     let forward = camera_transform.rotation * Vec3::NEG_Z;
-    let spawn_position = camera_transform.position + (forward*3.0) * (spawner.scale * 1.5);
+    let spawn_position = camera_transform.position + (forward * 3.0) * (spawner.scale * 1.5);
 
     commands.spawn((
         TransformComponent {

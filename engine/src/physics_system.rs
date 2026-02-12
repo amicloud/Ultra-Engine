@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use crate::WorldBasis;
 use crate::movement_system::MovementSystem;
 use crate::physics_resource::{Contact, PhysicsResource};
 use crate::velocity_component::VelocityComponent;
-use crate::WorldBasis;
 use crate::{
     physics_component::PhysicsComponent, sleep_component::SleepComponent,
     transform_component::TransformComponent,

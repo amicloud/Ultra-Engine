@@ -7,18 +7,18 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 
 use crate::{
+    TransformComponent,
     collider_component::{
-        closest_point_on_triangle, BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider,
-        Triangle,
+        BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
+        closest_point_on_triangle,
     },
     epa::epa,
-    gjk::{gjk_intersect, GjkResult},
+    gjk::{GjkResult, gjk_intersect},
     mesh::AABB,
     physics_resource::{Contact, ContactManifold, PhysicsResource},
     physics_system::delta_time,
     render_resource_manager::RenderResourceManager,
     velocity_component::VelocityComponent,
-    TransformComponent,
 };
 
 #[derive(Default)]

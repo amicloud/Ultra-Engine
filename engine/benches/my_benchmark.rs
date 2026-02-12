@@ -1,12 +1,12 @@
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::{IntoScheduleConfigs, Schedule};
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
+use engine::physics_resource::PhysicsResource;
 use engine::{
     CollisionLayer, CollisionSystem, ConvexCollider, RenderResourceManager, TransformComponent,
 };
-use engine::physics_resource::PhysicsResource;
 use glam::{Quat, Vec3};
 
 fn spawn_convex_grid(world: &mut World, count: usize, spacing: f32, radius: f32) {
@@ -20,11 +20,8 @@ fn spawn_convex_grid(world: &mut World, count: usize, spacing: f32, radius: f32)
                     return;
                 }
 
-                let position = Vec3::new(
-                    x as f32 * spacing,
-                    y as f32 * spacing,
-                    z as f32 * spacing,
-                );
+                let position =
+                    Vec3::new(x as f32 * spacing, y as f32 * spacing, z as f32 * spacing);
 
                 world.spawn((
                     TransformComponent {
@@ -143,5 +140,10 @@ fn bench_generate_contacts_touching(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_broadphase_update, bench_generate_contacts, bench_generate_contacts_touching);
+criterion_group!(
+    benches,
+    bench_broadphase_update,
+    bench_generate_contacts,
+    bench_generate_contacts_touching
+);
 criterion_main!(benches);

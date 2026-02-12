@@ -1,28 +1,28 @@
 mod bowl_controller;
 mod camera_controller;
-mod settings;
 mod game_controller;
+mod settings;
 
 #[allow(unused_imports)]
-use bowl_controller::{update_bowl_float, BowlFloatComponent, BowlFloatTime};
+use bowl_controller::{BowlFloatComponent, BowlFloatTime, update_bowl_float};
 use camera_controller::{
-    apply_flying_camera_input, apply_flying_camera_movement, apply_player_movement_impulses,
-    update_orbit_camera_target, FlyingCameraComponent, PlayerComponent,
+    FlyingCameraComponent, PlayerComponent, apply_flying_camera_input,
+    apply_flying_camera_movement, apply_player_movement_impulses, update_orbit_camera_target,
 };
 // use input_controller::{update_input_state, InputState};
 use crate::camera_controller::{
-    apply_orbit_camera_input, apply_switch_camera_input, initialize_flying_camera_rotation,
-    OrbitCameraComponent,
+    OrbitCameraComponent, apply_orbit_camera_input, apply_switch_camera_input,
+    initialize_flying_camera_rotation,
 };
+use crate::game_controller::{ProjectileSpawner, do_gameplay};
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
-    physics_component::{PhysicsComponent, PhysicsType},
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
     SleepComponent, TransformComponent, VelocityComponent,
+    physics_component::{PhysicsComponent, PhysicsType},
 };
 use glam::{Quat, Vec3};
 use rand::random_range;
-use crate::game_controller::{do_gameplay, ProjectileSpawner};
 fn main() {
     println!("Welcome to the Game!");
     let mut engine = Engine::new();

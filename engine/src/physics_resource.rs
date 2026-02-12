@@ -2,7 +2,10 @@ use bevy_ecs::prelude::*;
 use glam::Vec3;
 use std::collections::HashMap;
 
-use crate::{dynamic_aabb_tree::{DynamicAabbTree, NodeId}, mesh::AABB};
+use crate::{
+    dynamic_aabb_tree::{DynamicAabbTree, NodeId},
+    mesh::AABB,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Contact {

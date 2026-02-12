@@ -118,7 +118,6 @@ impl Renderer {
         self.frame_data.instances_by_material.clear();
         self.frame_data.instances_by_mesh.clear();
 
-
         // Set common uniforms
         let default_light_color = Vec3::new(1.0, 1.0, 1.0);
 
@@ -126,7 +125,6 @@ impl Renderer {
         self.frame_data.frame_uniforms.camera_position = camera.position;
         self.frame_data.frame_uniforms.light_direction = Vec3::new(0.0, 0.0, 1.0);
         self.frame_data.frame_uniforms.light_color = default_light_color;
-
 
         // ------------------------------------------------------------
         // PASS 1: Frustum culling
@@ -233,7 +231,6 @@ impl Renderer {
             }
 
             // Group by mesh
-
             self.frame_data.instances_by_mesh.clear();
             for inst in inst_group {
                 self.frame_data
@@ -274,6 +271,7 @@ impl Renderer {
                 }
                 draw_calls += 1;
             }
+
             // Now that we are done with the material, unbind any textures it used
             for unit in 0..textures_bound {
                 unsafe {

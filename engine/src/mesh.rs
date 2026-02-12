@@ -141,18 +141,21 @@ impl AABB {
     }
 
     pub fn intersects(&self, other: &AABB) -> bool {
-        !(self.max.x < other.min.x ||
-          self.min.x > other.max.x ||
-          self.max.y < other.min.y ||
-          self.min.y > other.max.y ||
-          self.max.z < other.min.z ||
-          self.min.z > other.max.z)
+        !(self.max.x < other.min.x
+            || self.min.x > other.max.x
+            || self.max.y < other.min.y
+            || self.min.y > other.max.y
+            || self.max.z < other.min.z
+            || self.min.z > other.max.z)
     }
 
     pub fn contains(&self, other: &AABB) -> bool {
-        self.min.x <= other.min.x && self.max.x >= other.max.x &&
-        self.min.y <= other.min.y && self.max.y >= other.max.y &&
-        self.min.z <= other.min.z && self.max.z >= other.max.z
+        self.min.x <= other.min.x
+            && self.max.x >= other.max.x
+            && self.min.y <= other.min.y
+            && self.max.y >= other.max.y
+            && self.min.z <= other.min.z
+            && self.max.z >= other.max.z
     }
 }
 
