@@ -4,6 +4,7 @@ use crate::handles::MeshHandle;
 use crate::handles::ShaderHandle;
 use crate::mesh::Mesh;
 use crate::mesh::Vertex;
+use crate::mesh_resource::MeshResource;
 use crate::render_instance::RenderInstance;
 use crate::render_resource_manager::RenderResourceManager;
 use crate::shader::InputRate::PerInstance;
@@ -39,6 +40,7 @@ struct FrameData {
     instances_by_material: HashMap<MaterialHandle, Vec<RenderInstance>>,
     instances_by_mesh: HashMap<MeshHandle, Vec<[f32; 16]>>,
     frame_uniforms: FrameUniforms,
+    material_batches: Vec<MaterialBatch>,
 }
 
 #[derive(Default)]
@@ -65,6 +67,14 @@ pub struct CameraRenderData {
     pub view_proj: Mat4,
     pub position: Vec3,
 }
+
+pub struct MaterialBatch {
+    pub material_id: MaterialHandle,
+    pub instances: Vec<RenderInstance>,
+}
+
+type MaterialBatchMap = HashMap<MaterialHandle, Vec<RenderInstance>>;
+
 impl Renderer {
     fn max_scale(mat: Mat4) -> f32 {
         let x = mat.x_axis.truncate().length();
@@ -138,45 +148,30 @@ impl Renderer {
         // ------------------------------------------------------------
         // PASS 1: Frustum culling
         // ------------------------------------------------------------
-        let frustum = Frustum::from_view_proj(&view_proj);
-
-        for inst in instances {
-            // println!("Checking culling for instance: {:?}", inst);
-            let mesh = render_data_manager
-                .mesh_manager
-                .get_mesh(inst.mesh_id)
-                .expect("Mesh not found");
-
-            let scale = Self::max_scale(inst.transform);
-            let world_center = inst
-                .transform
-                .transform_point3(Vec3::from(mesh.sphere_center));
-            let world_radius = mesh.sphere_radius * scale;
-
-            if frustum.intersects_sphere(world_center, world_radius) {
-                self.frame_data.visible_instances.push(inst);
-            }
-        }
+        Self::frustum_culling(
+            &mut self.frame_data.visible_instances,
+            instances,
+            render_data_manager,
+            &view_proj,
+        );
 
         // ------------------------------------------------------------
         // PASS 2: Group by material
         // ------------------------------------------------------------
-        for inst in self.frame_data.visible_instances.drain(..) {
-            self.frame_data
-                .instances_by_material
-                .entry(inst.material_id)
-                .or_default()
-                .push(inst);
-        }
+        Self::material_batcher(
+            &mut self.frame_data.visible_instances,
+            &mut self.frame_data.material_batches,
+            &mut self.frame_data.instances_by_material,
+        );
 
         // ------------------------------------------------------------
         // PASS 3: Render
         // ------------------------------------------------------------
-        let instances_by_material = std::mem::take(&mut self.frame_data.instances_by_material);
-        for (material_id, inst_group) in instances_by_material {
+
+        for batch in &self.frame_data.material_batches {
             let material = render_data_manager
                 .material_manager
-                .get_material(material_id)
+                .get_material(batch.material_id)
                 .expect("Material not found");
             let shader = render_data_manager
                 .shader_manager
@@ -233,7 +228,7 @@ impl Renderer {
 
             // Group by mesh
             let mut instances_by_mesh: HashMap<MeshHandle, Vec<[f32; 16]>> = HashMap::new();
-            for inst in inst_group {
+            for inst in &batch.instances {
                 instances_by_mesh
                     .entry(inst.mesh_id)
                     .or_default()
@@ -242,19 +237,21 @@ impl Renderer {
 
             // Draw each mesh
             for (mesh_id, matrices) in &instances_by_mesh {
-                let vao = self.get_or_create_vao(
+                let vao = Self::get_or_create_vao(
+                    &mut self.vao_cache,
                     &gl,
                     &mesh_id,
                     &material.desc.shader,
                     render_data_manager,
+                    &mut self.mesh_render_data,
                 );
-                self.update_instance_buffer(*mesh_id, &matrices);
+                Self::update_instance_buffer(&gl, *mesh_id, &mut self.mesh_render_data, &matrices);
 
                 let index_count: i32 = {
                     render_data_manager
                         .mesh_manager
                         .get_mesh(*mesh_id)
-                        .expect("Couldn't find a mesh")
+                        .expect(&format!("Couldn't find mesh: {:?}", mesh_id))
                         .indices
                         .len() as i32
                 };
@@ -303,6 +300,54 @@ impl Renderer {
         }
     }
 
+    pub fn material_batcher(
+        instances: &mut Vec<RenderInstance>, // <- take a mutable reference
+        batches: &mut Vec<MaterialBatch>,
+        temp_map: &mut MaterialBatchMap,
+    ) {
+        temp_map.clear();
+        batches.clear();
+
+        // Drain the instances vector into temp_map
+        for inst in instances.drain(..) {
+            temp_map.entry(inst.material_id).or_default().push(inst);
+        }
+
+        for (material_id, instances) in temp_map.drain() {
+            batches.push(MaterialBatch {
+                material_id,
+                instances,
+            });
+        }
+    }
+
+    pub fn frustum_culling(
+        visible_instances: &mut Vec<RenderInstance>,
+        instances: Vec<RenderInstance>,
+        render_data_manager: &RenderResourceManager,
+        view_proj: &Mat4,
+    ) {
+        let frustum = Frustum::from_view_proj(&view_proj);
+
+        for inst in instances {
+            // println!("Checking culling for instance: {:?}", inst);
+            let mesh = render_data_manager
+                .mesh_manager
+                .get_mesh(inst.mesh_id)
+                .expect("Mesh not found");
+
+            let scale = Self::max_scale(inst.transform);
+            let world_center = inst
+                .transform
+                .transform_point3(Vec3::from(mesh.sphere_center));
+            let world_radius = mesh.sphere_radius * scale;
+
+            if frustum.intersects_sphere(world_center, world_radius) {
+                visible_instances.push(inst);
+            }
+        }
+    }
+
     pub fn new(gl: Rc<GlowContext>) -> Self {
         unsafe {
             gl.enable(glow::DEPTH_TEST);
@@ -319,8 +364,11 @@ impl Renderer {
         }
     }
 
-    pub fn upload_to_gpu(&mut self, mesh: &Mesh) {
-        let gl = &self.gl;
+    pub fn upload_to_gpu(
+        gl: &glow::Context,
+        mesh: &Mesh,
+        mesh_render_data: &mut HashMap<MeshHandle, MeshRenderData>,
+    ) {
         unsafe {
             // Unbind any active VAO so that EBO binding below does not
             // corrupt a previously-created VAO's element-buffer state.
@@ -359,18 +407,17 @@ impl Renderer {
                 instance_vbo: Some(instance_vbo),
                 instance_count: 0,
             };
-            self.mesh_render_data.insert(mesh.id, mesh_data);
+            mesh_render_data.insert(mesh.id, mesh_data);
         }
     }
 
     pub fn update_instance_buffer(
-        &mut self,
+        gl: &glow::Context,
         mesh_handle: MeshHandle,
+        mesh_render_data: &mut HashMap<MeshHandle, MeshRenderData>,
         instance_matrices: &[[f32; 16]],
     ) {
-        let gl = &self.gl;
-        let mesh_data = self
-            .mesh_render_data
+        let mesh_data = mesh_render_data
             .get_mut(&mesh_handle)
             .expect("Mesh not found");
         if instance_matrices.is_empty() {
@@ -394,30 +441,31 @@ impl Renderer {
     }
 
     fn get_or_create_vao(
-        &mut self,
+        vao_cache: &mut HashMap<VaoKey, glow::VertexArray>,
         gl: &glow::Context,
         mesh: &MeshHandle,
         shader: &ShaderHandle,
         render_data_manager: &RenderResourceManager,
+        mesh_render_data: &mut HashMap<MeshHandle, MeshRenderData>,
     ) -> glow::VertexArray {
         let key = VaoKey {
             mesh: *mesh,
             shader: *shader,
         };
 
-        if let Some(vao) = self.vao_cache.get(&key) {
+        if let Some(vao) = vao_cache.get(&key) {
             return *vao;
         }
 
-        if !self.mesh_render_data.contains_key(mesh) {
+        if !mesh_render_data.contains_key(mesh) {
             let mesh_data = render_data_manager
                 .mesh_manager
                 .get_mesh(*mesh)
                 .expect("Mesh not found");
-            self.upload_to_gpu(mesh_data);
+            Self::upload_to_gpu(gl, mesh_data, mesh_render_data);
         }
 
-        let mesh_data = self.mesh_render_data.get(mesh).unwrap();
+        let mesh_data = mesh_render_data.get(mesh).unwrap();
         let vertex_stride = crate::mesh::Vertex::stride();
 
         unsafe {
@@ -505,7 +553,7 @@ impl Renderer {
             }
 
             gl.bind_vertex_array(None);
-            self.vao_cache.insert(key, vao);
+            vao_cache.insert(key, vao);
             vao
         }
     }
