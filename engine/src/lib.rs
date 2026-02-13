@@ -56,6 +56,7 @@ use crate::mesh_resource::MeshResource;
 use crate::movement_system::MovementSystem;
 use crate::physics_component::PhysicsComponent;
 use crate::physics_resource::CollisionFrameData;
+use crate::physics_resource::PhysicsFrameData;
 use crate::physics_resource::PhysicsResource;
 use crate::physics_system::PhysicsSystem;
 use crate::render_instance::RenderInstance;
@@ -99,6 +100,7 @@ impl Engine {
         world.insert_resource(WorldBasis::canonical());
         world.insert_resource(PhysicsResource::default());
         world.insert_resource(CollisionFrameData::default());
+        world.insert_resource(PhysicsFrameData::default());
 
         let mut physics_schedule = Schedule::default();
 

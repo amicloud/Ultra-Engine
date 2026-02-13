@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use crate::{
     dynamic_aabb_tree::{DynamicAabbTree, NodeId},
     mesh::AABB,
+    physics_system::ContactConstraint,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -30,11 +31,17 @@ pub struct PhysicsResource {
 }
 
 #[derive(Resource, Default)]
+pub struct PhysicsFrameData {
+    pub constraints: Vec<ContactConstraint>,
+}
+
+#[derive(Resource, Default)]
 pub struct CollisionFrameData {
     pub delta_time: f32,
     pub candidate_pairs: Vec<(Entity, Entity)>,
     pub contacts: Vec<Contact>,
     pub manifolds: HashMap<(Entity, Entity), ContactManifold>,
+    pub narrowphase_results: Vec<((Entity, Entity), ContactManifold)>,
 }
 
 impl CollisionFrameData {
@@ -43,5 +50,11 @@ impl CollisionFrameData {
         self.candidate_pairs.clear();
         self.contacts.clear();
         self.manifolds.clear();
+    }
+}
+
+impl PhysicsFrameData {
+    pub fn clear(&mut self) {
+        self.constraints.clear();
     }
 }

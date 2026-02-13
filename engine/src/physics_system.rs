@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use crate::WorldBasis;
 use crate::movement_system::MovementSystem;
-use crate::physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource};
+use crate::physics_resource::{
+    CollisionFrameData, Contact, ContactManifold, PhysicsFrameData, PhysicsResource,
+};
 use crate::velocity_component::VelocityComponent;
 use crate::{
     physics_component::PhysicsComponent, sleep_component::SleepComponent,
@@ -19,7 +21,7 @@ pub fn delta_time() -> f32 {
 
 const PAR_THRESHOLD: usize = 100;
 
-struct ContactConstraint {
+pub struct ContactConstraint {
     entity_a: Entity,
     entity_b: Entity,
     normal: Vec3,
@@ -345,37 +347,25 @@ impl PhysicsSystem {
             Option<&PhysicsComponent>,
         )>,
         collision_frame_data: Res<CollisionFrameData>,
+        mut physics_frame_data: ResMut<PhysicsFrameData>,
     ) {
-        let manifolds = collision_frame_data
-            .manifolds
-            .values()
-            .cloned()
-            .collect::<Vec<_>>();
-        let mut constraints: Vec<Vec<ContactConstraint>> = if manifolds.len() >= PAR_THRESHOLD {
-            manifolds
-                .par_iter()
-                .map(Self::manifold_to_constraints)
-                .collect()
-        } else {
-            manifolds
-                .iter()
-                .map(Self::manifold_to_constraints)
-                .collect()
-        };
+        for manifold in collision_frame_data.manifolds.values() {
+            physics_frame_data
+                .constraints
+                .extend(Self::manifold_to_constraints(manifold));
+        }
 
         for _ in 0..PGS_ITERATIONS {
-            for constraint_set in &mut constraints {
-                for constraint in constraint_set.iter_mut() {
-                    Self::solve_constraint(constraint, &mut query);
-                }
+            for constraint in &mut physics_frame_data.constraints {
+                Self::solve_constraint(constraint, &mut query);
             }
         }
 
-        for constraint_set in &constraints {
-            for constraint in constraint_set.iter() {
-                Self::positional_correction(constraint, &mut query);
-            }
+        for constraint in &physics_frame_data.constraints {
+            Self::positional_correction(constraint, &mut query);
         }
+
+        physics_frame_data.clear();
     }
 }
 

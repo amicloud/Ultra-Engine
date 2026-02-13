@@ -150,6 +150,7 @@ impl CollisionSystem {
         physics_world: Res<PhysicsResource>,
         mut frame: ResMut<CollisionFrameData>,
     ) {
+        let old_manifolds = std::mem::take(&mut frame.manifolds);
         frame.clear();
 
         for (entity, _transform, velocity, _convex, _mesh) in &moving_query {
@@ -209,7 +210,7 @@ impl CollisionSystem {
                         pair.1,
                     );
                     let merged = merge_contact_manifold(
-                        frame.manifolds.get(&pair),
+                        old_manifolds.get(&pair),
                         &new_contacts,
                         merge_distance,
                         0.95,
@@ -239,7 +240,7 @@ impl CollisionSystem {
                         *entity_b,
                     );
                     let merged = merge_contact_manifold(
-                        frame.manifolds.get(&pair),
+                        old_manifolds.get(&pair),
                         &mesh_contacts,
                         merge_distance,
                         0.9,
@@ -265,11 +266,11 @@ impl CollisionSystem {
                     );
                     let merge_distance = manifold_merge_distance_pair_map(
                         &physics_world.world_aabbs,
-                        *entity_b,
+                        *entity_a,
                         *entity_b,
                     );
                     let merged = merge_contact_manifold(
-                        frame.manifolds.get(&pair),
+                        old_manifolds.get(&pair),
                         &mesh_contacts,
                         merge_distance,
                         0.9,
