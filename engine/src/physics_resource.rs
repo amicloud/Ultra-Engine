@@ -41,7 +41,6 @@ pub struct CollisionFrameData {
     pub candidate_pairs: Vec<(Entity, Entity)>,
     pub contacts: Vec<Contact>,
     pub manifolds: HashMap<(Entity, Entity), ContactManifold>,
-    pub narrowphase_results: Vec<((Entity, Entity), ContactManifold)>,
 }
 
 impl CollisionFrameData {

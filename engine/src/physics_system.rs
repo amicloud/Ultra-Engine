@@ -1,10 +1,6 @@
-use std::collections::HashMap;
-
 use crate::WorldBasis;
 use crate::movement_system::MovementSystem;
-use crate::physics_resource::{
-    CollisionFrameData, Contact, ContactManifold, PhysicsFrameData, PhysicsResource,
-};
+use crate::physics_resource::{CollisionFrameData, ContactManifold, PhysicsFrameData};
 use crate::velocity_component::VelocityComponent;
 use crate::{
     physics_component::PhysicsComponent, sleep_component::SleepComponent,
@@ -12,14 +8,11 @@ use crate::{
 };
 use bevy_ecs::prelude::*;
 use glam::Vec3;
-use rayon::prelude::*;
 pub struct PhysicsSystem {}
 
 pub fn delta_time() -> f32 {
     1.0 / 60.0
 }
-
-const PAR_THRESHOLD: usize = 100;
 
 pub struct ContactConstraint {
     entity_a: Entity,
@@ -101,53 +94,6 @@ impl PhysicsSystem {
 
         velocity.translational += (drag_force / physics.mass) * delta_time;
         velocity.angular += (angular_drag_force / physics.mass) * delta_time;
-    }
-
-    fn generate_manifolds_from_contacts(contacts: &Vec<Contact>) -> Vec<ContactManifold> {
-        let mut manifolds: HashMap<(Entity, Entity), ContactManifold> = HashMap::new();
-
-        for contact in contacts {
-            let key = (contact.entity_a, contact.entity_b);
-
-            if let Some(manifold) = manifolds.get_mut(&key) {
-                manifold.contacts.push(*contact);
-                manifold.normal += contact.normal;
-                continue;
-            }
-
-            let reversed_key = (contact.entity_b, contact.entity_a);
-            if let Some(manifold) = manifolds.get_mut(&reversed_key) {
-                let mut flipped = *contact;
-                flipped.entity_a = contact.entity_b;
-                flipped.entity_b = contact.entity_a;
-                flipped.normal = -contact.normal;
-                manifold.contacts.push(flipped);
-                manifold.normal += flipped.normal;
-                continue;
-            }
-
-            manifolds.insert(
-                key,
-                ContactManifold {
-                    normal: contact.normal,
-                    contacts: vec![*contact],
-                },
-            );
-        }
-
-        manifolds
-            .into_values()
-            .map(|mut manifold| {
-                if manifold.normal.length_squared() > f32::EPSILON {
-                    manifold.normal = manifold.normal.normalize();
-                } else if let Some(first) = manifold.contacts.first() {
-                    manifold.normal = first.normal;
-                } else {
-                    manifold.normal = Vec3::ZERO;
-                }
-                manifold
-            })
-            .collect()
     }
 
     fn manifold_to_constraints(manifold: &ContactManifold) -> Vec<ContactConstraint> {
