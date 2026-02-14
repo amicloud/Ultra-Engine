@@ -260,9 +260,9 @@ impl PhysicsSystem {
         )>,
     ) {
         // Parameters
-        let slop = 0.01; // small penetration allowed before correction
-        let percent = 0.8; // fraction of penetration to correct
-        let max_correction = 0.1; // maximum correction per timestep per body
+        let slop = 0.02; // small penetration allowed before correction
+        let percent = 0.35; // softer correction to reduce resting jitter
+        let max_correction = 0.05; // maximum correction per timestep per body
 
         // Track accumulated corrections per entity
         let mut corrections: HashMap<Entity, Vec3> = HashMap::new();
@@ -273,8 +273,8 @@ impl PhysicsSystem {
                 continue;
             };
 
-            let (transform_a, _, phys_a) = (&mut a.0, a.1, a.2);
-            let (transform_b, _, phys_b) = (&mut b.0, b.1, b.2);
+            let (_, _, phys_a) = (&mut a.0, a.1, a.2);
+            let (_, _, phys_b) = (&mut b.0, b.1, b.2);
 
             let (inv_mass_a, _, _, _) = physics_props(phys_a);
             let (inv_mass_b, _, _, _) = physics_props(phys_b);
@@ -314,6 +314,82 @@ impl PhysicsSystem {
         }
     }
 
+    /// Applies extra damping for bodies that are in resting contact on support surfaces
+    /// to reduce micro-jitter and slow spin accumulation.
+    fn stabilize_resting_contacts(
+        collision_frame_data: &CollisionFrameData,
+        query: &mut Query<(
+            &mut TransformComponent,
+            Option<&mut VelocityComponent>,
+            Option<&PhysicsComponent>,
+        )>,
+    ) {
+        use crate::physics_component::PhysicsType;
+
+        let gravity = WorldBasis::gravity_vector();
+        let up = if gravity.length_squared() > f32::EPSILON {
+            -gravity.normalize()
+        } else {
+            Vec3::Z
+        };
+
+        for manifold in collision_frame_data.manifolds.values() {
+            if manifold.contacts.is_empty() {
+                continue;
+            }
+
+            let normal = if manifold.normal.length_squared() > f32::EPSILON {
+                manifold.normal.normalize()
+            } else {
+                continue;
+            };
+
+            // Only apply this for support-like contacts (roughly aligned with up/down).
+            if normal.dot(up).abs() < 0.6 {
+                continue;
+            }
+
+            for contact in &manifold.contacts {
+                for entity in [contact.entity_a, contact.entity_b] {
+                    let Ok((_, vel_opt, phys_opt)) = query.get_mut(entity) else {
+                        continue;
+                    };
+
+                    let Some(physics) = phys_opt else {
+                        continue;
+                    };
+                    if !matches!(physics.physics_type, PhysicsType::Dynamic) {
+                        continue;
+                    }
+
+                    let Some(mut vel) = vel_opt else {
+                        continue;
+                    };
+
+                    let linear_speed = vel.translational.length();
+                    let angular_speed = vel.angular.length();
+
+                    // Only stabilize nearly-resting bodies so active motion is unaffected.
+                    if linear_speed < 0.6 && angular_speed < 1.2 {
+                        vel.angular *= 0.75;
+
+                        let vertical_speed = vel.translational.dot(up);
+                        if vertical_speed.abs() < 0.25 {
+                            vel.translational -= up * vertical_speed;
+                        }
+
+                        if vel.angular.length() < 0.05 {
+                            vel.angular = Vec3::ZERO;
+                        }
+                        if vel.translational.length() < 0.03 {
+                            vel.translational = Vec3::ZERO;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Resolves contacts from the collision system with PGS solver.
     pub fn physics_solver(
         mut query: Query<(
@@ -337,6 +413,7 @@ impl PhysicsSystem {
         }
 
         Self::positional_correction(&physics_frame_data.constraints, &mut query);
+        Self::stabilize_resting_contacts(&collision_frame_data, &mut query);
         physics_frame_data.clear();
     }
 }
