@@ -8,13 +8,13 @@ use crate::collider_component::ConvexCollider;
 const DEFAULT_MAX_ITERATIONS: usize = 32;
 const EPSILON: f32 = 1e-6;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GjkHit {
     /// Simplex points for optional EPA expansion (may be line/triangle/tetrahedron).
     pub simplex: Vec<Vec3>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GjkResult {
     NoIntersection,
     Intersection(GjkHit),
