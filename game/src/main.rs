@@ -130,8 +130,19 @@ fn main() {
 
     let player_scale: Vec3 = Vec3::splat(1.0);
     let player_start = Vec3::new(0.0, 0.0, 0.0);
-    let _sphere_collider = ConvexCollider::sphere(player_scale.x, CollisionLayer::Player);
-    let cuboid_collider = ConvexCollider::cuboid(player_scale * 2.0, CollisionLayer::Player);
+    let player_local_aabb = engine
+        .aabb_from_render_body(cube)
+        .expect("Player render body AABB not found");
+    let player_local_size = player_local_aabb.max - player_local_aabb.min;
+    let _sphere_collider = ConvexCollider::sphere(
+        player_local_size.max_element() * 0.5,
+        CollisionLayer::Player,
+    );
+    // NOTE: `ConvexCollider::cube` / `cuboid_from_aabb` in engine currently apply
+    // legacy doubling semantics. Use explicit `cuboid(size)` here to keep the
+    // local collider aligned with the render model and let transform scale drive
+    // world size.
+    let cuboid_collider = ConvexCollider::cuboid(player_local_size, CollisionLayer::Player);
     let _egg_collider = ConvexCollider::egg(3.0, player_scale.x, CollisionLayer::Player);
     engine.world.spawn((
         TransformComponent {
@@ -146,7 +157,7 @@ fn main() {
         RenderBodyComponent {
             render_body_id: cube,
         },
-        cuboid_collider,
+        _egg_collider,
         PhysicsComponent {
             mass: 5.0,
             physics_type: PhysicsType::Dynamic,
@@ -163,7 +174,7 @@ fn main() {
     (0..100).for_each(|i| {
         engine.world.spawn((
             TransformComponent {
-                position: Vec3::new(0.0, 0.0, i as f32 * 4.01),
+                position: Vec3::new(0.0, 0.0, i as f32 * 10.01),
                 rotation: Quat::IDENTITY,
                 scale: player_scale,
             },
@@ -174,7 +185,7 @@ fn main() {
             RenderBodyComponent {
                 render_body_id: cube,
             },
-            ConvexCollider::cube(2.0, CollisionLayer::Default),
+            cuboid_collider,
             PhysicsComponent {
                 mass: 5.0,
                 physics_type: PhysicsType::Dynamic,
@@ -192,7 +203,7 @@ fn main() {
         TransformComponent {
             position: Vec3::new(10.0, 0.0, -25.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::splat(2.0),
+            scale: Vec3::splat(1.0),
         },
         VelocityComponent {
             translational: Vec3::ZERO,
@@ -201,7 +212,8 @@ fn main() {
         RenderBodyComponent {
             render_body_id: cube,
         },
-        ConvexCollider::cuboid(Vec3::new(4.0, 4.0, 4.0), CollisionLayer::Default),
+        cuboid_collider,
+        // ConvexCollider::cuboid(Vec3::new(4.0, 4.0, 4.0), CollisionLayer::Default),
         PhysicsComponent {
             mass: 50.0,
             physics_type: PhysicsType::Dynamic,
@@ -268,24 +280,22 @@ fn main() {
     //     ));
     // });
 
-    let ground = engine
-        .load_model("resources/models/opalton/opalton3Dterrain.gltf")
+    let test_ground = engine
+        .load_model("resources/models/test_ground/test_ground.obj")
         .unwrap();
-
-    let ground_scale = 1.0;
-    let ground_collider = engine
-        .mesh_collider_from_render_body(ground, CollisionLayer::Default)
-        .expect("Render body not found");
+    let test_ground_collider = engine
+        .mesh_collider_from_render_body(test_ground, CollisionLayer::Default)
+        .expect("Render body AABB not found");
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::new(0.0, 0.0, -300.0),
+            position: Vec3::new(0.0, 0.0, -20.0),
             rotation: Quat::IDENTITY,
-            scale: Vec3::new(ground_scale, ground_scale, ground_scale),
+            scale: Vec3::splat(10.0),
         },
         RenderBodyComponent {
-            render_body_id: ground,
+            render_body_id: test_ground,
         },
-        ground_collider,
+        test_ground_collider,
         PhysicsComponent {
             mass: f32::INFINITY,
             physics_type: PhysicsType::Static,
@@ -296,6 +306,35 @@ fn main() {
             local_inertia: glam::Mat3::IDENTITY,
         },
     ));
+
+    // let ground = engine
+    //     .load_model("resources/models/opalton/opalton3Dterrain.gltf")
+    //     .unwrap();
+
+    // let ground_scale = 1.0;
+    // let ground_collider = engine
+    //     .mesh_collider_from_render_body(ground, CollisionLayer::Default)
+    //     .expect("Render body not found");
+    // engine.world.spawn((
+    //     TransformComponent {
+    //         position: Vec3::new(0.0, 0.0, -300.0),
+    //         rotation: Quat::IDENTITY,
+    //         scale: Vec3::new(ground_scale, ground_scale, ground_scale),
+    //     },
+    //     RenderBodyComponent {
+    //         render_body_id: ground,
+    //     },
+    //     ground_collider,
+    //     PhysicsComponent {
+    //         mass: f32::INFINITY,
+    //         physics_type: PhysicsType::Static,
+    //         friction: 0.2,
+    //         drag_coefficient: 0.1,
+    //         angular_drag_coefficient: 0.1,
+    //         restitution: 0.3,
+    //         local_inertia: glam::Mat3::IDENTITY,
+    //     },
+    // ));
 
     // let monkey_ball_platform = engine
     //     .load_model("resources/models/platform/platform.obj")

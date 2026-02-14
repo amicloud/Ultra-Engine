@@ -896,12 +896,15 @@ fn convex_mesh_contact(
             let delta = velocity.translational * delta_time();
             let distance = delta.length();
             if distance > 0.0 {
-                let step = (convex_aabb_world.max - convex_aabb_world.min)
+                // Use a conservative, capped step size for CCD sampling.
+                // Large colliders previously used very large steps, which reduced
+                // sample count and allowed tunneling through thin terrain.
+                let min_extent = (convex_aabb_world.max - convex_aabb_world.min)
                     .abs()
                     .min_element()
-                    .max(0.01)
-                    * 0.5;
-                let steps = ((distance / step).ceil() as i32).clamp(1, 20);
+                    .max(0.01);
+                let step = (min_extent * 0.25).clamp(0.05, 0.25);
+                let steps = ((distance / step).ceil() as i32).clamp(1, 64);
 
                 for i in 1..=steps {
                     let t = i as f32 / steps as f32;
