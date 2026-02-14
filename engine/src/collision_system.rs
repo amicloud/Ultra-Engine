@@ -3,7 +3,7 @@ use bevy_ecs::{
     prelude::{Changed, Entity, Query, Res, ResMut},
 };
 use glam::{Mat4, Vec3};
-// use rayon::prelude::*;
+use rayon::prelude::*;
 use std::collections::HashMap;
 
 use crate::{
@@ -54,17 +54,16 @@ impl CollisionSystem {
                 continue;
             };
 
-            // --- 2. Store world AABB ---
             phys.world_aabbs.insert(entity, world_aabb);
 
-            // --- 3. Sync dynamic tree ---
+            // Sync dynamic tree
             match phys.entity_node.get(&entity).copied() {
                 Some(node_id) => {
-                    // Existing object → update
+                    // Existing object -> update
                     phys.broadphase.update(node_id, world_aabb);
                 }
                 None => {
-                    // New object → allocate leaf node
+                    // New object -> allocate leaf node
                     let node_id = phys.broadphase.allocate_leaf(entity, world_aabb);
                     phys.entity_node.insert(entity, node_id);
                 }
@@ -184,7 +183,7 @@ impl CollisionSystem {
 
         let narrowphase_results: Vec<((Entity, Entity), ContactManifold)> = frame
             .candidate_pairs
-            .iter()
+            .par_iter()
             .filter_map(|(entity_a, entity_b)| {
                 let (.., transform_a, velocity_a, convex_a, mesh_a) =
                     all_query.get(*entity_a).ok()?;
@@ -200,9 +199,11 @@ impl CollisionSystem {
                         *entity_a,
                         &convex_a,
                         &transform_a,
+                        velocity_a,
                         *entity_b,
                         &convex_b,
                         &transform_b,
+                        velocity_b,
                         previous_manifold,
                     ) {
                         new_contacts.push(orient_contact_to_pair(contact, pair));
@@ -751,9 +752,11 @@ fn convex_convex_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,
     transform_a: &TransformComponent,
+    velocity_a: Option<&VelocityComponent>,
     entity_b: Entity,
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
+    velocity_b: Option<&VelocityComponent>,
     previous_manifold: Option<&ContactManifold>,
 ) -> Option<Contact> {
     // Fast path for sphere-sphere collisions
@@ -769,7 +772,7 @@ fn convex_convex_contact(
             );
         }
         (ConvexShape::Cuboid { .. }, ConvexShape::Cuboid { .. }) => {
-            return cuboid_cuboid_contact(
+            let contact = cuboid_cuboid_contact(
                 entity_a,
                 collider_a,
                 transform_a,
@@ -777,6 +780,27 @@ fn convex_convex_contact(
                 collider_b,
                 transform_b,
             );
+
+            if contact.is_some() {
+                return contact;
+            }
+
+            // If no discrete overlap, try swept CCD for fast-moving cuboids.
+            if let Some(swept) = swept_convex_convex_contact(
+                entity_a,
+                collider_a,
+                transform_a,
+                velocity_a,
+                entity_b,
+                collider_b,
+                transform_b,
+                velocity_b,
+                previous_manifold,
+            ) {
+                return Some(swept);
+            }
+
+            return None;
         }
         _ => {}
     }
@@ -788,6 +812,120 @@ fn convex_convex_contact(
         transform_b,
         previous_manifold,
     )?;
+    Some(Contact {
+        entity_a,
+        entity_b,
+        normal: contact.normal,
+        penetration: contact.penetration_depth,
+        contact_point: contact.contact_point,
+    })
+}
+
+fn swept_convex_convex_contact(
+    entity_a: Entity,
+    collider_a: &ConvexCollider,
+    transform_a: &TransformComponent,
+    velocity_a: Option<&VelocityComponent>,
+    entity_b: Entity,
+    collider_b: &ConvexCollider,
+    transform_b: &TransformComponent,
+    velocity_b: Option<&VelocityComponent>,
+    previous_manifold: Option<&ContactManifold>,
+) -> Option<Contact> {
+    let delta_a = velocity_a
+        .map(|v| v.translational * delta_time())
+        .unwrap_or(Vec3::ZERO);
+    let delta_b = velocity_b
+        .map(|v| v.translational * delta_time())
+        .unwrap_or(Vec3::ZERO);
+
+    let rel = delta_b - delta_a;
+    if rel.length_squared() <= 1e-8 {
+        return None;
+    }
+
+    let a_start = transform_a.to_mat4();
+    let b_start = transform_b.to_mat4();
+
+    // If already intersecting, let discrete solver handle it.
+    if matches!(
+        gjk_intersect(collider_a, a_start, collider_b, b_start),
+        GjkResult::Intersection(_)
+    ) {
+        return None;
+    }
+
+    let a_end_t = TransformComponent {
+        position: transform_a.position + delta_a,
+        rotation: transform_a.rotation,
+        scale: transform_a.scale,
+    };
+    let b_end_t = TransformComponent {
+        position: transform_b.position + delta_b,
+        rotation: transform_b.rotation,
+        scale: transform_b.scale,
+    };
+    let a_end = a_end_t.to_mat4();
+    let b_end = b_end_t.to_mat4();
+
+    // If no overlap at frame end, no swept hit this frame.
+    if !matches!(
+        gjk_intersect(collider_a, a_end, collider_b, b_end),
+        GjkResult::Intersection(_)
+    ) {
+        return None;
+    }
+
+    // Binary search earliest overlap time in [0,1].
+    let mut lo = 0.0_f32;
+    let mut hi = 1.0_f32;
+    for _ in 0..14 {
+        let mid = 0.5 * (lo + hi);
+        let a_mid_t = TransformComponent {
+            position: transform_a.position + delta_a * mid,
+            rotation: transform_a.rotation,
+            scale: transform_a.scale,
+        };
+        let b_mid_t = TransformComponent {
+            position: transform_b.position + delta_b * mid,
+            rotation: transform_b.rotation,
+            scale: transform_b.scale,
+        };
+
+        let a_mid = a_mid_t.to_mat4();
+        let b_mid = b_mid_t.to_mat4();
+
+        if matches!(
+            gjk_intersect(collider_a, a_mid, collider_b, b_mid),
+            GjkResult::Intersection(_)
+        ) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+
+    // Evaluate contact slightly inside overlap for stable EPA.
+    let t_hit = (hi + 1e-3).min(1.0);
+    let a_hit_t = TransformComponent {
+        position: transform_a.position + delta_a * t_hit,
+        rotation: transform_a.rotation,
+        scale: transform_a.scale,
+    };
+    let b_hit_t = TransformComponent {
+        position: transform_b.position + delta_b * t_hit,
+        rotation: transform_b.rotation,
+        scale: transform_b.scale,
+    };
+
+    let contact = gjk_epa_contact_generator(
+        collider_a,
+        &a_hit_t,
+        collider_b,
+        &b_hit_t,
+        previous_manifold,
+    )?;
+
     Some(Contact {
         entity_a,
         entity_b,
@@ -865,6 +1003,16 @@ fn convex_mesh_contact(
     };
 
     let convex_world = convex_transform.to_mat4();
+    let sweep_delta = convex_velocity
+        .map(|v| v.translational * delta_time())
+        .unwrap_or(Vec3::ZERO);
+    let has_sweep = sweep_delta.length_squared() > 0.0;
+    let swept_transform = TransformComponent {
+        position: convex_transform.position + sweep_delta,
+        rotation: convex_transform.rotation,
+        scale: convex_transform.scale,
+    };
+    let swept_world = swept_transform.to_mat4();
     let mesh_entity_world = mesh_transform.to_mat4();
 
     let convex_aabb_world = convex_collider.aabb(&convex_world);
@@ -892,43 +1040,104 @@ fn convex_mesh_contact(
             previous_manifold,
         ));
 
-        if let Some(velocity) = convex_velocity {
-            let delta = velocity.translational * delta_time();
-            let distance = delta.length();
-            if distance > 0.0 {
-                // Use a conservative, capped step size for CCD sampling.
-                // Large colliders previously used very large steps, which reduced
-                // sample count and allowed tunneling through thin terrain.
-                let min_extent = (convex_aabb_world.max - convex_aabb_world.min)
-                    .abs()
-                    .min_element()
-                    .max(0.01);
-                let step = (min_extent * 0.25).clamp(0.05, 0.25);
-                let steps = ((distance / step).ceil() as i32).clamp(1, 64);
-
-                for i in 1..=steps {
-                    let t = i as f32 / steps as f32;
-                    let swept_position = convex_transform.position + delta * t;
-                    let swept_transform = TransformComponent {
-                        position: swept_position,
-                        rotation: convex_transform.rotation,
-                        scale: convex_transform.scale,
-                    };
-                    let swept_world = swept_transform.to_mat4();
-                    candidates.extend(convex_mesh_contact_at_transform(
-                        convex_collider,
-                        swept_world,
-                        &mesh_world,
-                        &mesh_world_inv,
-                        bvh,
-                        previous_manifold,
-                    ));
-                }
-            }
+        if has_sweep {
+            candidates.extend(convex_mesh_swept_contact_at_transform(
+                convex_collider,
+                convex_world,
+                swept_world,
+                &mesh_world,
+                &mesh_world_inv,
+                bvh,
+            ));
         }
     }
 
     reduce_contact_candidates(mesh_entity, convex_entity, candidates, convex_aabb_world)
+}
+
+/// Continuous convex-vs-mesh candidate generation using swept support-plane TOI.
+/// This is more reliable for fast-moving bodies than pure substep sampling.
+fn convex_mesh_swept_contact_at_transform(
+    convex_collider: &ConvexCollider,
+    start_world: Mat4,
+    end_world: Mat4,
+    mesh_world: &Mat4,
+    mesh_world_inv: &Mat4,
+    bvh: &BVHNode,
+) -> Vec<ContactCandidate> {
+    let collider_start_mesh = *mesh_world_inv * start_world;
+    let collider_end_mesh = *mesh_world_inv * end_world;
+    let start_aabb_mesh = convex_collider.aabb(&collider_start_mesh);
+    let end_aabb_mesh = convex_collider.aabb(&collider_end_mesh);
+    let swept_aabb_mesh = union_aabb(start_aabb_mesh, end_aabb_mesh);
+
+    let mut triangles = Vec::new();
+    collect_triangles_in_aabb(bvh, &swept_aabb_mesh, &mut triangles);
+    if triangles.is_empty() {
+        return Vec::new();
+    }
+
+    let mut candidates = Vec::new();
+    for tri in triangles {
+        let tri_world = Triangle {
+            v0: mesh_world.transform_point3(tri.v0),
+            v1: mesh_world.transform_point3(tri.v1),
+            v2: mesh_world.transform_point3(tri.v2),
+        };
+
+        let n_unnorm = (tri_world.v1 - tri_world.v0).cross(tri_world.v2 - tri_world.v0);
+        if n_unnorm.length_squared() <= f32::EPSILON {
+            continue;
+        }
+        let mut normal = n_unnorm.normalize();
+
+        // Keep normal pointing from mesh towards the moving convex center at start.
+        let tri_center = (tri_world.v0 + tri_world.v1 + tri_world.v2) / 3.0;
+        let convex_center_start = start_world.transform_point3(Vec3::ZERO);
+        if normal.dot(convex_center_start - tri_center) < 0.0 {
+            normal = -normal;
+        }
+
+        // Extreme point on convex towards triangle plane at start/end.
+        let support_start = convex_collider.support(start_world, -normal);
+        let support_end = convex_collider.support(end_world, -normal);
+
+        let d0 = (support_start - tri_world.v0).dot(normal);
+        let d1 = (support_end - tri_world.v0).dot(normal);
+
+        // We only care about crossing from positive distance to non-positive distance.
+        if !(d0 > 0.0 && d1 <= 0.0) {
+            continue;
+        }
+
+        let denom = d0 - d1;
+        if denom.abs() <= f32::EPSILON {
+            continue;
+        }
+
+        let toi = (d0 / denom).clamp(0.0, 1.0);
+        let support_t = support_start.lerp(support_end, toi);
+
+        // Contact point on plane, then clamp to triangle.
+        let signed = (support_t - tri_world.v0).dot(normal);
+        let projected = support_t - normal * signed;
+        let closest = closest_point_on_triangle(projected, &tri_world);
+
+        // Reject far-off projections (outside triangle neighborhood).
+        let lateral_error = (closest - projected).length_squared();
+        if lateral_error > 0.25 {
+            continue;
+        }
+
+        let penetration = (-d1).max(0.001);
+        candidates.push(ContactCandidate {
+            point: closest,
+            normal,
+            penetration,
+        });
+    }
+
+    candidates
 }
 
 fn convex_mesh_contact_at_transform(
