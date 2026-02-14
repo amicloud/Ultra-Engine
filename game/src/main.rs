@@ -157,7 +157,7 @@ fn main() {
         RenderBodyComponent {
             render_body_id: cube,
         },
-        _egg_collider,
+        cuboid_collider,
         PhysicsComponent {
             mass: 5.0,
             physics_type: PhysicsType::Dynamic,
@@ -195,7 +195,7 @@ fn main() {
                 restitution: 0.5,
                 local_inertia: glam::Mat3::IDENTITY,
             },
-            // SleepComponent::default(),
+            SleepComponent::default(),
         ));
     });
 

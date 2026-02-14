@@ -260,9 +260,9 @@ impl PhysicsSystem {
         )>,
     ) {
         // Parameters
-        let slop = 0.02; // small penetration allowed before correction
-        let percent = 0.35; // softer correction to reduce resting jitter
-        let max_correction = 0.05; // maximum correction per timestep per body
+        let slop = 0.025; // small penetration allowed before correction
+        let percent = 0.25; // softer correction to reduce resting jitter
+        let max_correction = 0.04; // maximum correction per timestep per body
 
         // Track accumulated corrections per entity
         let mut corrections: HashMap<Entity, Vec3> = HashMap::new();
@@ -333,9 +333,9 @@ impl PhysicsSystem {
             Vec3::Z
         };
 
-        let support_dot_threshold = 0.55;
-        let linear_rest_threshold = 0.9;
-        let angular_rest_threshold = 1.6;
+        let support_dot_threshold = 0.5;
+        let linear_rest_threshold = 1.0;
+        let angular_rest_threshold = 2.0;
 
         for manifold in collision_frame_data.manifolds.values() {
             if manifold.contacts.is_empty() {
@@ -377,24 +377,25 @@ impl PhysicsSystem {
                     if linear_speed < linear_rest_threshold
                         && angular_speed < angular_rest_threshold
                     {
-                        // Stronger rolling/spin damping while supported.
-                        vel.angular *= 0.5;
+                        // Strong rolling/spin damping while supported.
+                        vel.angular *= 0.85;
 
                         let vertical_speed = vel.translational.dot(up);
-                        if vertical_speed.abs() < 0.35 {
+                        if vertical_speed.abs() < 0.5 {
                             vel.translational -= up * vertical_speed;
                         }
 
                         // Dampen tiny horizontal drift that keeps contacts chattering.
                         let horizontal = vel.translational - up * vel.translational.dot(up);
-                        if horizontal.length() < 0.6 {
-                            vel.translational -= horizontal * 0.35;
+                        if horizontal.length() < 0.8 {
+                            vel.translational -= horizontal * 0.5;
                         }
 
-                        if vel.angular.length() < 0.15 {
+                        // Hard lock very small residual motion so bodies fully settle.
+                        if vel.angular.length() < 0.01 {
                             vel.angular = Vec3::ZERO;
                         }
-                        if vel.translational.length() < 0.08 {
+                        if vel.translational.length() < 0.01 {
                             vel.translational = Vec3::ZERO;
                         }
                     }
