@@ -20,7 +20,7 @@ fn run_epa(
         GjkResult::NoIntersection => panic!("Expected intersection."),
     };
 
-    epa(a, a_transform, b, b_transform, &simplex).expect("EPA failed")
+    epa(a, a_transform, b, b_transform, &simplex, None).expect("EPA failed")
 }
 fn transform_at(position: Vec3, rotation: Quat) -> Mat4 {
     TransformComponent {

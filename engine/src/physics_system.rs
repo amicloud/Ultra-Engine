@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::WorldBasis;
 use crate::movement_system::MovementSystem;
 use crate::physics_resource::{CollisionFrameData, ContactManifold, PhysicsFrameData};
@@ -250,39 +252,66 @@ impl PhysicsSystem {
     }
 
     fn positional_correction(
-        constraint: &ContactConstraint,
+        contacts: &[ContactConstraint],
         query: &mut Query<(
             &mut TransformComponent,
             Option<&mut VelocityComponent>,
             Option<&PhysicsComponent>,
         )>,
     ) {
-        let Ok([mut a, mut b]) = query.get_many_mut([constraint.entity_a, constraint.entity_b])
-        else {
-            return;
-        };
+        // Parameters
+        let slop = 0.01; // small penetration allowed before correction
+        let percent = 0.8; // fraction of penetration to correct
+        let max_correction = 0.1; // maximum correction per timestep per body
 
-        let (transform_a, _, phys_a) = (&mut a.0, a.1, a.2);
-        let (transform_b, _, phys_b) = (&mut b.0, b.1, b.2);
+        // Track accumulated corrections per entity
+        let mut corrections: HashMap<Entity, Vec3> = HashMap::new();
 
-        let (inv_mass_a, _, _, _) = physics_props(phys_a);
-        let (inv_mass_b, _, _, _) = physics_props(phys_b);
+        for constraint in contacts {
+            let Ok([mut a, mut b]) = query.get_many_mut([constraint.entity_a, constraint.entity_b])
+            else {
+                continue;
+            };
 
-        let inv_mass_sum = inv_mass_a + inv_mass_b;
-        if inv_mass_sum <= f32::EPSILON {
-            return;
+            let (transform_a, _, phys_a) = (&mut a.0, a.1, a.2);
+            let (transform_b, _, phys_b) = (&mut b.0, b.1, b.2);
+
+            let (inv_mass_a, _, _, _) = physics_props(phys_a);
+            let (inv_mass_b, _, _, _) = physics_props(phys_b);
+            let inv_mass_sum = inv_mass_a + inv_mass_b;
+            if inv_mass_sum <= f32::EPSILON {
+                continue;
+            }
+
+            let normal = constraint.normal;
+            let penetration = (constraint.penetration - slop).max(0.0);
+            if penetration <= 0.0 {
+                continue;
+            }
+
+            let correction_mag = (penetration * percent) / inv_mass_sum;
+            let correction = normal * correction_mag;
+
+            // Accumulate corrections
+            corrections
+                .entry(constraint.entity_a)
+                .and_modify(|v| *v += -correction * inv_mass_a)
+                .or_insert(-correction * inv_mass_a);
+
+            corrections
+                .entry(constraint.entity_b)
+                .and_modify(|v| *v += correction * inv_mass_b)
+                .or_insert(correction * inv_mass_b);
         }
 
-        let normal = constraint.normal;
-        let slop = 0.005;
-        let percent = 0.8; // strong, but stable
-
-        let correction_mag = ((constraint.penetration - slop).max(0.0) * percent) / inv_mass_sum;
-
-        let correction = normal * correction_mag;
-
-        transform_a.position -= correction * inv_mass_a;
-        transform_b.position += correction * inv_mass_b;
+        // Apply clamped corrections
+        for (entity, delta) in corrections {
+            let Ok(mut entry) = query.get_mut(entity) else {
+                continue;
+            };
+            let clamped = delta.clamp_length_max(max_correction);
+            entry.0.position += clamped;
+        }
     }
 
     /// Resolves contacts from the collision system with PGS solver.
@@ -307,10 +336,7 @@ impl PhysicsSystem {
             }
         }
 
-        for constraint in &physics_frame_data.constraints {
-            Self::positional_correction(constraint, &mut query);
-        }
-
+        Self::positional_correction(&physics_frame_data.constraints, &mut query);
         physics_frame_data.clear();
     }
 }

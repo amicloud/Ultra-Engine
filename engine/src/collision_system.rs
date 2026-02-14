@@ -3,7 +3,7 @@ use bevy_ecs::{
     prelude::{Changed, Entity, Query, Res, ResMut},
 };
 use glam::{Mat4, Vec3};
-use rayon::prelude::*;
+// use rayon::prelude::*;
 use std::collections::HashMap;
 
 use crate::{
@@ -191,8 +191,10 @@ impl CollisionSystem {
                 let (.., transform_b, velocity_b, convex_b, mesh_b) =
                     all_query.get(*entity_b).ok()?;
 
+                let pair = ordered_pair(*entity_a, *entity_b);
+                let previous_manifold = old_manifolds.get(&pair);
+
                 if let (Some(convex_a), Some(convex_b)) = (convex_a, convex_b) {
-                    let pair = ordered_pair(*entity_a, *entity_b);
                     let mut new_contacts = Vec::new();
                     if let Some(contact) = convex_convex_contact(
                         *entity_a,
@@ -201,6 +203,7 @@ impl CollisionSystem {
                         *entity_b,
                         &convex_b,
                         &transform_b,
+                        previous_manifold,
                     ) {
                         new_contacts.push(orient_contact_to_pair(contact, pair));
                     }
@@ -210,7 +213,7 @@ impl CollisionSystem {
                         pair.1,
                     );
                     let merged = merge_contact_manifold(
-                        old_manifolds.get(&pair),
+                        previous_manifold,
                         &new_contacts,
                         merge_distance,
                         0.95,
@@ -223,7 +226,6 @@ impl CollisionSystem {
                 }
 
                 if let (Some(convex_a), Some(mesh_b)) = (convex_a, mesh_b) {
-                    let pair = (*entity_b, *entity_a); // (mesh, convex)
                     let mesh_contacts = convex_mesh_contact(
                         *entity_a,
                         &convex_a,
@@ -233,6 +235,7 @@ impl CollisionSystem {
                         &mesh_b,
                         &transform_b,
                         &render_resources,
+                        previous_manifold,
                     );
                     let merge_distance = manifold_merge_distance_pair_map(
                         &physics_world.world_aabbs,
@@ -240,7 +243,7 @@ impl CollisionSystem {
                         *entity_b,
                     );
                     let merged = merge_contact_manifold(
-                        old_manifolds.get(&pair),
+                        previous_manifold,
                         &mesh_contacts,
                         merge_distance,
                         0.9,
@@ -253,7 +256,6 @@ impl CollisionSystem {
                 }
 
                 if let (Some(mesh_a), Some(convex_b)) = (mesh_a, convex_b) {
-                    let pair = (*entity_a, *entity_b);
                     let mesh_contacts = convex_mesh_contact(
                         *entity_b,
                         &convex_b,
@@ -263,6 +265,7 @@ impl CollisionSystem {
                         &mesh_a,
                         &transform_a,
                         &render_resources,
+                        previous_manifold,
                     );
                     let merge_distance = manifold_merge_distance_pair_map(
                         &physics_world.world_aabbs,
@@ -270,7 +273,7 @@ impl CollisionSystem {
                         *entity_b,
                     );
                     let merged = merge_contact_manifold(
-                        old_manifolds.get(&pair),
+                        previous_manifold,
                         &mesh_contacts,
                         merge_distance,
                         0.9,
@@ -556,13 +559,14 @@ fn cuboid_cuboid_contact(
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
 ) -> Option<Contact> {
-    // SAT is generally more efficient for box-box collisions than GJK+EPA, so we can use it as a fast path here.
+    // Extract half-sizes of cuboids
     let (a_len, a_wid, a_hei) = collider_a.as_cuboid()?;
     let (b_len, b_wid, b_hei) = collider_b.as_cuboid()?;
 
     let a_center = transform_a.position;
     let b_center = transform_b.position;
 
+    // Local axes in world space
     let a_axes = [
         transform_a.rotation * Vec3::X,
         transform_a.rotation * Vec3::Y,
@@ -579,10 +583,10 @@ fn cuboid_cuboid_contact(
 
     let t = b_center - a_center;
 
+    // Rotation matrix from A to B
     let mut r = [[0.0_f32; 3]; 3];
     let mut abs_r = [[0.0_f32; 3]; 3];
     let eps = 1e-6_f32;
-
     for i in 0..3 {
         for j in 0..3 {
             r[i][j] = a_axes[i].dot(b_axes[j]);
@@ -590,58 +594,58 @@ fn cuboid_cuboid_contact(
         }
     }
 
+    // Translation in A's frame
     let t_a = Vec3::new(t.dot(a_axes[0]), t.dot(a_axes[1]), t.dot(a_axes[2]));
 
     let mut min_penetration = f32::INFINITY;
     let mut best_axis = Vec3::ZERO;
 
-    let mut test_axis = |axis: Vec3, separation: f32| -> bool {
-        let penetration = -separation;
+    // SAT helper
+    let mut check_axis = |axis: Vec3, penetration: f32| {
         if penetration < min_penetration {
             min_penetration = penetration;
             best_axis = axis;
         }
-        true
+        penetration > 0.0
     };
 
-    // Test axes L = A0, A1, A2
+    // Test axes: A0, A1, A2
     for i in 0..3 {
         let ra = a_extents[i];
         let rb = b_extents.x * abs_r[i][0] + b_extents.y * abs_r[i][1] + b_extents.z * abs_r[i][2];
-        let separation = t_a[i].abs() - (ra + rb);
-        if separation > 0.0 {
+        let sep = t_a[i].abs() - (ra + rb);
+        if sep > 0.0 {
             return None;
         }
         let mut axis = a_axes[i];
         if t_a[i] < 0.0 {
             axis = -axis;
         }
-        test_axis(axis, separation);
+        check_axis(axis, -sep);
     }
 
-    // Test axes L = B0, B1, B2
+    // Test axes: B0, B1, B2
     for j in 0..3 {
         let ra = a_extents.x * abs_r[0][j] + a_extents.y * abs_r[1][j] + a_extents.z * abs_r[2][j];
         let rb = b_extents[j];
         let t_b = t_a.x * r[0][j] + t_a.y * r[1][j] + t_a.z * r[2][j];
-        let separation = t_b.abs() - (ra + rb);
-        if separation > 0.0 {
+        let sep = t_b.abs() - (ra + rb);
+        if sep > 0.0 {
             return None;
         }
         let mut axis = b_axes[j];
         if t_b < 0.0 {
             axis = -axis;
         }
-        test_axis(axis, separation);
+        check_axis(axis, -sep);
     }
 
-    // Test axis L = Ai x Bj
+    // Test cross axes: Ai x Bj
     for i in 0..3 {
         for j in 0..3 {
             let axis = a_axes[i].cross(b_axes[j]);
-            let axis_len_sq = axis.length_squared();
-            if axis_len_sq < eps {
-                continue;
+            if axis.length_squared() < eps {
+                continue; // skip degenerate
             }
 
             let ra = a_extents[(i + 1) % 3] * abs_r[(i + 2) % 3][j]
@@ -650,16 +654,16 @@ fn cuboid_cuboid_contact(
                 + b_extents[(j + 2) % 3] * abs_r[i][(j + 1) % 3];
             let t_term =
                 t_a[(i + 2) % 3] * r[(i + 1) % 3][j] - t_a[(i + 1) % 3] * r[(i + 2) % 3][j];
-            let separation = t_term.abs() - (ra + rb);
-            if separation > 0.0 {
+            let sep = t_term.abs() - (ra + rb);
+            if sep > 0.0 {
                 return None;
             }
 
-            let mut axis_world = axis / axis_len_sq.sqrt();
+            let mut axis_world = axis.normalize();
             if axis_world.dot(t) < 0.0 {
                 axis_world = -axis_world;
             }
-            test_axis(axis_world, separation);
+            check_axis(axis_world, -sep);
         }
     }
 
@@ -667,6 +671,7 @@ fn cuboid_cuboid_contact(
         return None;
     }
 
+    // Compute contact point as midpoint along normal
     let normal = best_axis.normalize();
     let a_support = collider_a.support(transform_a.to_mat4(), normal);
     let b_support = collider_b.support(transform_b.to_mat4(), -normal);
@@ -688,6 +693,7 @@ fn convex_convex_contact(
     entity_b: Entity,
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
+    previous_manifold: Option<&ContactManifold>,
 ) -> Option<Contact> {
     // Fast path for sphere-sphere collisions
     match (collider_a.shape, collider_b.shape) {
@@ -714,7 +720,13 @@ fn convex_convex_contact(
         _ => {}
     }
 
-    let contact = gjk_epa_contact_generator(collider_a, transform_a, collider_b, transform_b)?;
+    let contact = gjk_epa_contact_generator(
+        collider_a,
+        transform_a,
+        collider_b,
+        transform_b,
+        previous_manifold,
+    )?;
     Some(Contact {
         entity_a,
         entity_b,
@@ -735,6 +747,7 @@ fn gjk_epa_contact_generator(
     transform_a: &TransformComponent,
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
+    previous_manifold: Option<&ContactManifold>,
 ) -> Option<GjkEpaResult> {
     let a_world = transform_a.to_mat4();
     let b_world = transform_b.to_mat4();
@@ -745,7 +758,14 @@ fn gjk_epa_contact_generator(
         GjkResult::NoIntersection => return None,
     };
 
-    let epa_result = epa(collider_a, a_world, collider_b, b_world, &simplex)?;
+    let epa_result = epa(
+        collider_a,
+        a_world,
+        collider_b,
+        b_world,
+        &simplex,
+        previous_manifold,
+    )?;
 
     let mut normal = epa_result.normal;
     let a_center = a_world.transform_point3(Vec3::ZERO);
@@ -774,6 +794,7 @@ fn convex_mesh_contact(
     mesh_collider: &MeshCollider,
     mesh_transform: &TransformComponent,
     render_resources: &RenderResourceManager,
+    previous_manifold: Option<&ContactManifold>,
 ) -> Vec<Contact> {
     let Some(render_body) = render_resources
         .render_body_manager
@@ -807,6 +828,7 @@ fn convex_mesh_contact(
             &mesh_world,
             &mesh_world_inv,
             bvh,
+            previous_manifold,
         ));
 
         if let Some(velocity) = convex_velocity {
@@ -835,6 +857,7 @@ fn convex_mesh_contact(
                         &mesh_world,
                         &mesh_world_inv,
                         bvh,
+                        previous_manifold,
                     ));
                 }
             }
@@ -850,6 +873,7 @@ fn convex_mesh_contact_at_transform(
     mesh_world: &Mat4,
     mesh_world_inv: &Mat4,
     bvh: &BVHNode,
+    previous_manifold: Option<&ContactManifold>,
 ) -> Vec<ContactCandidate> {
     let collider_in_mesh_space = *mesh_world_inv * convex_world;
     let _convex_center_mesh = collider_in_mesh_space.transform_point3(Vec3::ZERO);
@@ -871,8 +895,6 @@ fn convex_mesh_contact_at_transform(
             v2: mesh_world.transform_point3(tri.v2),
         };
 
-        let closest_world = closest_point_on_triangle(convex_center_world, &tri_world);
-
         let face_normal_world = {
             let n = (tri_world.v1 - tri_world.v0).cross(tri_world.v2 - tri_world.v0);
             if n.length_squared() > f32::EPSILON {
@@ -882,82 +904,91 @@ fn convex_mesh_contact_at_transform(
             }
         };
 
-        // The easy sphere case
-        if let ConvexShape::Sphere { radius } = convex_collider.shape {
-            let delta = convex_center_world - closest_world;
-            let dist2 = delta.length_squared();
+        match convex_collider.shape {
+            ConvexShape::Sphere { radius } => {
+                let closest_world = closest_point_on_triangle(convex_center_world, &tri_world);
+                let delta = convex_center_world - closest_world;
+                let dist2 = delta.length_squared();
 
-            if dist2 <= radius * radius {
-                let dist = dist2.sqrt();
-                let normal = if dist > f32::EPSILON {
-                    delta / dist
-                } else {
-                    // fallback: triangle normal or arbitrary up
-                    face_normal_world.unwrap_or(Vec3::Z)
+                if dist2 <= radius * radius {
+                    let dist = dist2.sqrt();
+                    let normal = if dist > f32::EPSILON {
+                        delta / dist
+                    } else {
+                        // fallback: triangle normal or arbitrary up
+                        face_normal_world.unwrap_or(Vec3::Z)
+                    };
+
+                    let penetration = radius - dist;
+
+                    candidates.push(ContactCandidate {
+                        point: closest_world,
+                        normal,
+                        penetration,
+                    });
+                }
+            }
+            _ => {
+                // Use GJK/EPA for other convex colliders for now
+                let triangle_collider =
+                    ConvexCollider::triangle(tri.v0, tri.v1, tri.v2, convex_collider.layer);
+
+                let result = gjk_intersect(
+                    &triangle_collider,
+                    *mesh_world,
+                    convex_collider,
+                    convex_world,
+                );
+
+                let simplex = match result {
+                    GjkResult::Intersection(hit) => hit.simplex,
+                    GjkResult::NoIntersection => continue,
                 };
 
-                let penetration = radius - dist;
+                let Some(epa_result) = epa(
+                    &triangle_collider,
+                    *mesh_world,
+                    convex_collider,
+                    convex_world,
+                    &simplex,
+                    previous_manifold,
+                ) else {
+                    continue;
+                };
 
+                let mut normal = epa_result.normal;
+                let tri_normal = face_normal_world.unwrap();
+                if tri_normal.dot(normal) > 0.95 {
+                    normal = tri_normal;
+                }
+                let tri_center_local = (tri.v0 + tri.v1 + tri.v2) / 3.0;
+                let tri_center_world = mesh_world.transform_point3(tri_center_local);
+                let convex_center_world = convex_world.transform_point3(Vec3::ZERO);
+                let ab = convex_center_world - tri_center_world;
+                if ab.length_squared() > f32::EPSILON && normal.dot(ab) < 0.0 {
+                    normal = -normal;
+                }
+
+                let support = convex_collider.support(convex_world, -normal);
+                // project support point onto triangle plane
+                let plane_point = tri_world.v0;
+                let plane_normal = normal;
+                let d = (support - plane_point).dot(plane_normal);
+                // let contact_point = support - plane_normal * d;
+                let projected = support - plane_normal * d;
+                let contact_point = closest_point_on_triangle(projected, &tri_world);
                 candidates.push(ContactCandidate {
-                    point: closest_world,
+                    point: contact_point,
                     normal,
-                    penetration,
+                    penetration: epa_result.penetration_depth,
                 });
+                // println!("GJK results: simplex={:?}", simplex);
+                // println!(
+                //     "EPA contact candidate: point={:?}, normal={:?}, penetration={}",
+                //     contact_point, normal, epa_result.penetration_depth
+                // );
             }
-            continue;
         }
-
-        // Use GJK/EPA to get the contact all other convex colliders for now
-        let triangle_collider =
-            ConvexCollider::triangle(tri.v0, tri.v1, tri.v2, convex_collider.layer);
-
-        let result = gjk_intersect(
-            &triangle_collider,
-            *mesh_world,
-            convex_collider,
-            convex_world,
-        );
-
-        let simplex = match result {
-            GjkResult::Intersection(hit) => hit.simplex,
-            GjkResult::NoIntersection => continue,
-        };
-
-        let Some(epa_result) = epa(
-            &triangle_collider,
-            *mesh_world,
-            convex_collider,
-            convex_world,
-            &simplex,
-        ) else {
-            continue;
-        };
-
-        let mut normal = epa_result.normal;
-        let tri_normal = face_normal_world.unwrap();
-        if tri_normal.dot(normal) > 0.95 {
-            normal = tri_normal;
-        }
-        let tri_center_local = (tri.v0 + tri.v1 + tri.v2) / 3.0;
-        let tri_center_world = mesh_world.transform_point3(tri_center_local);
-        let convex_center_world = convex_world.transform_point3(Vec3::ZERO);
-        let ab = convex_center_world - tri_center_world;
-        if ab.length_squared() > f32::EPSILON && normal.dot(ab) < 0.0 {
-            normal = -normal;
-        }
-
-        let support = convex_collider.support(convex_world, -normal);
-        // project support point onto triangle plane
-        let plane_point = tri_world.v0;
-        let plane_normal = normal;
-        let d = (support - plane_point).dot(plane_normal);
-        let contact_point = support - plane_normal * d;
-
-        candidates.push(ContactCandidate {
-            point: contact_point,
-            normal,
-            penetration: epa_result.penetration_depth,
-        });
     }
     candidates
 }
@@ -1148,6 +1179,7 @@ mod tests {
             &mesh_world,
             &mesh_world_inv,
             &bvh,
+            None,
         );
 
         assert_eq!(contacts.len(), 1);
@@ -1180,6 +1212,7 @@ mod tests {
             &mesh_world,
             &mesh_world_inv,
             &bvh,
+            None,
         );
 
         assert_eq!(contacts.len(), 1);

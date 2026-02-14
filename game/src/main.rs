@@ -3,6 +3,8 @@ mod camera_controller;
 mod game_controller;
 mod settings;
 
+use std::f32::INFINITY;
+
 #[allow(unused_imports)]
 use bowl_controller::{BowlFloatComponent, BowlFloatTime, update_bowl_float};
 use camera_controller::{
@@ -93,7 +95,7 @@ fn main() {
         .unwrap()
         .set(orbit_camera);
 
-    engine.game_schedule.add_systems(
+    engine.game_simulation_schedule.add_systems(
         (
             initialize_flying_camera_rotation,
             apply_orbit_camera_input,
@@ -115,7 +117,7 @@ fn main() {
         .unwrap();
 
     let sphere = engine
-        .load_model("resources/models/sphere/sphere.obj")
+        .load_model("resources/models/sphere_low/sphere.obj")
         .unwrap();
 
     // engine.world.insert_resource(ProjectileSpawner {
@@ -127,7 +129,7 @@ fn main() {
     // });
 
     let player_scale: Vec3 = Vec3::splat(1.0);
-    let player_start = Vec3::new(5.0, 0.0, 25.0);
+    let player_start = Vec3::new(0.0, 0.0, 0.0);
     let _sphere_collider = ConvexCollider::sphere(player_scale.x, CollisionLayer::Player);
     let cuboid_collider = ConvexCollider::cuboid(player_scale * 2.0, CollisionLayer::Player);
     let _egg_collider = ConvexCollider::egg(3.0, player_scale.x, CollisionLayer::Player);
@@ -158,99 +160,125 @@ fn main() {
         PlayerComponent { speed: 1.0 },
     ));
 
-    (0..200).for_each(|i| {
-        engine.world.spawn((
-            TransformComponent {
-                position: Vec3::new(0.0, 0.0, i as f32 * 4.01),
-                rotation: Quat::IDENTITY,
-                scale: player_scale,
-            },
-            VelocityComponent {
-                translational: Vec3::ZERO,
-                angular: Vec3::ZERO,
-            },
-            RenderBodyComponent {
-                render_body_id: cube,
-            },
-            ConvexCollider::cube(2.0, CollisionLayer::Default),
-            PhysicsComponent {
-                mass: 5.0,
-                physics_type: PhysicsType::Dynamic,
-                friction: 0.9,
-                drag_coefficient: 0.1,
-                angular_drag_coefficient: 0.1,
-                restitution: 0.5,
-                local_inertia: glam::Mat3::IDENTITY,
-            },
-            SleepComponent::default(),
-        ));
-    });
+    // (0..1).for_each(|i| {
+    //     engine.world.spawn((
+    //         TransformComponent {
+    //             position: Vec3::new(0.0, 0.0, i as f32 * 4.01),
+    //             rotation: Quat::IDENTITY,
+    //             scale: player_scale,
+    //         },
+    //         VelocityComponent {
+    //             translational: Vec3::ZERO,
+    //             angular: Vec3::ZERO,
+    //         },
+    //         RenderBodyComponent {
+    //             render_body_id: cube,
+    //         },
+    //         ConvexCollider::cube(2.0, CollisionLayer::Default),
+    //         PhysicsComponent {
+    //             mass: 5.0,
+    //             physics_type: PhysicsType::Dynamic,
+    //             friction: 0.9,
+    //             drag_coefficient: 0.1,
+    //             angular_drag_coefficient: 0.1,
+    //             restitution: 0.5,
+    //             local_inertia: glam::Mat3::IDENTITY,
+    //         },
+    //         // SleepComponent::default(),
+    //     ));
+    // });
 
-    let t_range = 2.0;
+    engine.world.spawn((
+        TransformComponent {
+            position: Vec3::new(10.0, 0.0, -25.0),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::splat(2.0),
+        },
+        VelocityComponent {
+            translational: Vec3::ZERO,
+            angular: Vec3::new(3.0, 2.0, 1.0),
+        },
+        RenderBodyComponent {
+            render_body_id: cube,
+        },
+        ConvexCollider::cuboid(Vec3::new(4.0, 4.0, 4.0), CollisionLayer::Default),
+        PhysicsComponent {
+            mass: 50.0,
+            physics_type: PhysicsType::Dynamic,
+            friction: 0.9,
+            drag_coefficient: 0.1,
+            angular_drag_coefficient: 0.1,
+            restitution: 0.5,
+            local_inertia: glam::Mat3::IDENTITY,
+        },
+        // SleepComponent::default(),
+    ));
 
-    (0..1000).for_each(|_| {
-        // Random position
-        let pos = Vec3::new(
-            random_range(-20.0..20.0),
-            random_range(-20.0..20.0),
-            random_range(20.0..200.0),
-        );
+    // let t_range = 2.0;
 
-        // Random translational velocity
-        let translational = Vec3::new(
-            random_range((-t_range)..t_range),
-            random_range((-t_range)..t_range),
-            random_range((-t_range)..t_range),
-        );
-        // let translational = Vec3::new(0.0, 0.0, 0.0);
+    // (0..100).for_each(|_| {
+    //     // Random position
+    //     let pos = Vec3::new(
+    //         random_range(-20.0..20.0),
+    //         random_range(-20.0..20.0),
+    //         random_range(20.0..200.0),
+    //     );
 
-        // Random angular velocity
-        let angular = Vec3::new(
-            random_range(-1.0..1.0),
-            random_range(-1.0..1.0),
-            random_range(-1.0..1.0),
-        );
+    //     // Random translational velocity
+    //     let translational = Vec3::new(
+    //         random_range((-t_range)..t_range),
+    //         random_range((-t_range)..t_range),
+    //         random_range((-t_range)..t_range),
+    //     );
+    //     // let translational = Vec3::new(0.0, 0.0, 0.0);
 
-        let scale = 1.0;
-        // Spawn test objects
-        engine.world.spawn((
-            TransformComponent {
-                position: pos,
-                rotation: Quat::IDENTITY,
-                scale: Vec3::new(scale, scale, scale),
-            },
-            VelocityComponent {
-                translational,
-                angular,
-            },
-            RenderBodyComponent {
-                render_body_id: *&sphere,
-            },
-            ConvexCollider::sphere(scale, CollisionLayer::Default),
-            PhysicsComponent {
-                mass: 3.0,
-                physics_type: PhysicsType::Dynamic,
-                friction: 0.2,
-                drag_coefficient: 0.1,
-                angular_drag_coefficient: 0.1,
-                restitution: 0.5,
-                local_inertia: glam::Mat3::IDENTITY,
-            },
-            SleepComponent::default(),
-        ));
-    });
+    //     // Random angular velocity
+    //     let angular = Vec3::new(
+    //         random_range(-1.0..1.0),
+    //         random_range(-1.0..1.0),
+    //         random_range(-1.0..1.0),
+    //     );
+
+    //     let scale = 1.0;
+    //     // Spawn test objects
+    //     engine.world.spawn((
+    //         TransformComponent {
+    //             position: pos,
+    //             rotation: Quat::IDENTITY,
+    //             scale: Vec3::new(scale, scale, scale),
+    //         },
+    //         VelocityComponent {
+    //             translational,
+    //             angular,
+    //         },
+    //         RenderBodyComponent {
+    //             render_body_id: *&sphere,
+    //         },
+    //         ConvexCollider::sphere(scale, CollisionLayer::Default),
+    //         PhysicsComponent {
+    //             mass: 3.0,
+    //             physics_type: PhysicsType::Dynamic,
+    //             friction: 0.2,
+    //             drag_coefficient: 0.1,
+    //             angular_drag_coefficient: 0.1,
+    //             restitution: 0.5,
+    //             local_inertia: glam::Mat3::IDENTITY,
+    //         },
+    //         // SleepComponent::default(),
+    //     ));
+    // });
 
     let ground = engine
         .load_model("resources/models/opalton/opalton3Dterrain.gltf")
         .unwrap();
 
-    let ground_scale = 0.1;
+    let ground_scale = 1.0;
     let ground_collider = engine
         .mesh_collider_from_render_body(ground, CollisionLayer::Default)
         .expect("Render body not found");
     engine.world.spawn((
         TransformComponent {
-            position: Vec3::new(0.0, 0.0, -100.0),
+            position: Vec3::new(0.0, 0.0, -300.0),
             rotation: Quat::IDENTITY,
             scale: Vec3::new(ground_scale, ground_scale, ground_scale),
         },

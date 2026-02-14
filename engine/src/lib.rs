@@ -76,7 +76,8 @@ pub use crate::velocity_component::VelocityComponent;
 pub use crate::world_basis::WorldBasis;
 pub struct Engine {
     pub world: World,
-    pub game_schedule: Schedule,
+    pub game_frame_schedule: Schedule,
+    pub game_simulation_schedule: Schedule,
     physics_schedule: Schedule,
     render_schedule: Schedule,
     gl: Rc<glow::Context>,
@@ -119,7 +120,8 @@ impl Engine {
         let mut render_schedule = Schedule::default();
         render_schedule.add_systems(RenderSystem::build_render_queue);
 
-        let game_schedule = Schedule::default();
+        let game_frame_schedule = Schedule::default();
+        let game_simulation_schedule = Schedule::default();
 
         let mut render_data_manager = world
             .get_resource_mut::<RenderResourceManager>()
@@ -131,7 +133,8 @@ impl Engine {
 
         Engine {
             world,
-            game_schedule,
+            game_frame_schedule,
+            game_simulation_schedule,
             physics_schedule,
             render_schedule,
             gl,
@@ -224,7 +227,7 @@ impl Engine {
                     height: (height * render_scale) as u32,
                 };
 
-                const MAX_PHYSICS_STEPS: usize = 5;
+                const MAX_PHYSICS_STEPS: usize = 4;
 
                 let now = Instant::now();
                 let frame_time = now - last_frame;
@@ -236,28 +239,34 @@ impl Engine {
                 accumulator += frame_time;
 
                 let mut steps = 0;
+                // while accumulator >= target_simulation_dt && steps < MAX_PHYSICS_STEPS {
+                //     self.physics_schedule.run(&mut self.world);
+                //     accumulator -= target_simulation_dt;
+                //     steps += 1;
+                // }
+
+                // accumulator = Duration::ZERO;
+
                 while accumulator >= target_simulation_dt && steps < MAX_PHYSICS_STEPS {
                     self.physics_schedule.run(&mut self.world);
+                    self.game_simulation_schedule.run(&mut self.world);
                     accumulator -= target_simulation_dt;
                     steps += 1;
                 }
 
-                // If we fell behind badly, drop the remaining time
                 if steps == MAX_PHYSICS_STEPS {
-                    accumulator = Duration::ZERO;
+                    accumulator = accumulator.min(target_simulation_dt);
                 }
 
-                self.game_schedule.run(&mut self.world);
+                self.game_frame_schedule.run(&mut self.world);
                 self.render_schedule.run(&mut self.world);
 
-                // 1. Compute camera matrices from ECS state (camera is fully game-driven).
                 let camera_data = Self::build_camera_render_data(
                     &mut self.world,
                     render_params.width,
                     render_params.height,
                 );
 
-                // 3. Get the render queue and render data manager
                 {
                     let render_queue = self
                         .world

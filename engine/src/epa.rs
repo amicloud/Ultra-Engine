@@ -3,7 +3,7 @@
 
 use glam::{Mat4, Vec3};
 
-use crate::collider_component::ConvexCollider;
+use crate::{collider_component::ConvexCollider, physics_resource::ContactManifold};
 
 const EPA_MAX_ITERATIONS: usize = 64;
 const EPA_TOLERANCE: f32 = 1e-4;
@@ -27,6 +27,7 @@ pub fn epa(
     b: &ConvexCollider,
     b_transform: Mat4,
     simplex: &[Vec3],
+    previous_manifold: Option<&ContactManifold>,
 ) -> Option<EpaResult> {
     let (mut vertices, mut faces) =
         build_initial_polytope(a, a_transform, b, b_transform, simplex)?;
@@ -38,8 +39,7 @@ pub fn epa(
     let mut new_faces: Vec<Face> = Vec::with_capacity(128);
 
     // Keep track of previous closest face normal to reduce oscillation
-    // This should probably be getting used!
-    let prev_normal = Vec3::ZERO;
+    let prev_normal = previous_manifold.map_or(Vec3::ZERO, |m| m.normal);
 
     for _ in 0..EPA_MAX_ITERATIONS {
         horizon_edges.clear();
@@ -82,7 +82,7 @@ pub fn epa(
             vertices.push(support);
 
             // ---- Visibility pass ----
-            for face in faces.iter() {
+            for face in &faces {
                 if is_face_visible(&vertices, face, support) {
                     add_edge(&mut horizon_edges, face.indices[0], face.indices[1]);
                     add_edge(&mut horizon_edges, face.indices[1], face.indices[2]);
@@ -111,11 +111,11 @@ pub fn epa(
             }
         }
         std::mem::swap(&mut faces, &mut new_faces);
-
-        // Record previous normal for stability
-        // prev_normal = closest_face.normal;
     }
-
+    println!(
+        "EPA failed to converge after {} iterations",
+        EPA_MAX_ITERATIONS
+    );
     // Fallback: return closest face we have
     let closest_index = find_closest_face(&faces)?;
     let face = &faces[closest_index];
@@ -123,10 +123,11 @@ pub fn epa(
         orient_result(face.normal, face.distance, a_transform, b_transform);
 
     Some(EpaResult {
-        normal,
+        normal: normal, // Flip normal to point from A to B
         penetration_depth,
     })
 }
+
 fn orient_result(
     mut normal: Vec3,
     penetration_depth: f32,
@@ -207,7 +208,7 @@ fn fallback_direction(a: Vec3, b: Vec3) -> Vec3 {
 
     let perp = ab.cross(axis);
     if perp.length_squared() <= EPSILON {
-        Vec3::X
+        Vec3::Z
     } else {
         perp.normalize()
     }
@@ -358,7 +359,7 @@ mod tests {
             GjkResult::NoIntersection => panic!("Expected intersection."),
         };
 
-        epa(a, a_transform, b, b_transform, &simplex).expect("EPA failed")
+        epa(a, a_transform, b, b_transform, &simplex, None).expect("EPA failed")
     }
 
     fn assert_normal_points_from_a_to_b(normal: Vec3, a_transform: Mat4, b_transform: Mat4) {
