@@ -102,33 +102,38 @@ fn handle_line(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
     let ab = b - a;
     let ab_len_sq = ab.length_squared();
     if ab_len_sq <= EPSILON {
-        simplex.clear();
-        simplex.push(a);
+        // Degenerate line (both points coincide). Keep both points so EPA
+        // always receives at least a 2-point simplex.
         *dir = -a;
-        return dir.length_squared() <= EPSILON;
+        // Let the main loop's zero-direction check handle containment.
+        return false;
     }
 
     let t = (-a).dot(ab) / ab_len_sq;
     if t <= 0.0 {
+        // Origin is closest to A. Keep A only but never declare containment
+        // from a 1-point simplex—return false so the main loop adds another
+        // support point.
         simplex.clear();
         simplex.push(a);
         *dir = -a;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
     if t >= 1.0 {
         simplex.clear();
         simplex.push(b);
         *dir = -b;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
+    // Origin projects onto the interior of the line segment.
     let closest = a + ab * t;
     *dir = -closest;
-    *dir = if dir.length_squared() <= EPSILON {
-        Vec3::ZERO
-    } else {
-        *dir
-    };
+    if dir.length_squared() <= EPSILON {
+        // Origin is on the line segment. Don't declare containment yet;
+        // keep the 2-point simplex and let the main loop detect it.
+        *dir = Vec3::ZERO;
+    }
     false
 }
 
@@ -144,10 +149,12 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
     let d1 = ab.dot(ao);
     let d2 = ac.dot(ao);
     if d1 <= 0.0 && d2 <= 0.0 {
+        // Origin is closest to vertex A. Reduce to point but never declare
+        // containment from a sub-dimensional simplex.
         simplex.clear();
         simplex.push(a);
         *dir = -a;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
     let bo = -b;
@@ -157,7 +164,7 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
         simplex.clear();
         simplex.push(b);
         *dir = -b;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
     let vc = d1 * d4 - d3 * d2;
@@ -168,7 +175,7 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
         simplex.push(b);
         simplex.push(a);
         *dir = -closest;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
     let co = -c;
@@ -178,7 +185,7 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
         simplex.clear();
         simplex.push(c);
         *dir = -c;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
     let vb = d5 * d2 - d1 * d6;
@@ -189,7 +196,7 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
         simplex.push(c);
         simplex.push(a);
         *dir = -closest;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
     let va = d3 * d6 - d5 * d4;
@@ -200,19 +207,21 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
         simplex.push(c);
         simplex.push(b);
         *dir = -closest;
-        return dir.length_squared() <= EPSILON;
+        return false;
     }
 
+    // Origin is inside the triangle (in barycentric sense). The search
+    // direction is the triangle normal toward the origin.
     let denom = 1.0 / (va + vb + vc);
     let v = vb * denom;
     let w = vc * denom;
     let closest = a + ab * v + ac * w;
     *dir = -closest;
-    *dir = if dir.length_squared() <= EPSILON {
-        Vec3::ZERO
-    } else {
-        *dir
-    };
+    if dir.length_squared() <= EPSILON {
+        // Origin is on the triangle plane. Keep the full 3-point simplex and
+        // let the main loop's zero-direction check handle containment.
+        *dir = Vec3::ZERO;
+    }
     false
 }
 
@@ -517,5 +526,90 @@ mod tests {
 
         let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
         assert_eq!(result, GjkResult::NoIntersection);
+    }
+
+    #[test]
+    fn gjk_intersects_non_uniform_cuboids() {
+        // Long thin cuboid (6×1×1) vs same, separated by 4 along X → overlap = 2
+        let cuboid = ConvexCollider::cuboid(Vec3::new(6.0, 1.0, 1.0), CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let b_transform = transform_at(Vec3::new(4.0, 0.0, 0.0));
+
+        let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
+        match result {
+            GjkResult::Intersection(hit) => {
+                assert!(hit.simplex.len() >= 2);
+            }
+            _ => panic!("Expected intersection for non-uniform cuboids."),
+        }
+    }
+
+    #[test]
+    fn gjk_no_intersection_non_uniform_cuboids() {
+        let cuboid = ConvexCollider::cuboid(Vec3::new(6.0, 1.0, 1.0), CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let b_transform = transform_at(Vec3::new(7.0, 0.0, 0.0));
+
+        let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
+        assert_eq!(result, GjkResult::NoIntersection);
+    }
+
+    #[test]
+    fn gjk_intersects_non_uniform_rotated() {
+        // Tall thin cuboid (1×1×6) rotated 90° around Y, should intersect a cuboid at x=2
+        let cuboid = ConvexCollider::cuboid(Vec3::new(1.0, 1.0, 6.0), CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let b_transform = transform_at_with_rotation(
+            Vec3::new(2.0, 0.0, 0.0),
+            Quat::from_rotation_y(90.0_f32.to_radians()),
+        );
+
+        let result = gjk_intersect(&cuboid, a_transform, &cuboid, b_transform);
+        match result {
+            GjkResult::Intersection(hit) => {
+                assert!(hit.simplex.len() >= 2);
+            }
+            _ => panic!("Expected intersection for rotated non-uniform cuboids."),
+        }
+    }
+
+    #[test]
+    fn gjk_simplex_has_at_least_two_points() {
+        // Ensure GJK always returns a simplex with >= 2 points for EPA
+        let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let b_transform = transform_at(Vec3::new(0.5, 0.0, 0.0));
+
+        let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+        match result {
+            GjkResult::Intersection(hit) => {
+                assert!(
+                    hit.simplex.len() >= 2,
+                    "GJK simplex should have at least 2 points for EPA, got {}",
+                    hit.simplex.len()
+                );
+            }
+            _ => panic!("Expected intersection."),
+        }
+    }
+
+    #[test]
+    fn gjk_coincident_centers() {
+        // Both objects at the same position (deep penetration edge case)
+        let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let b_transform = transform_at(Vec3::ZERO);
+
+        let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+        match result {
+            GjkResult::Intersection(hit) => {
+                assert!(
+                    hit.simplex.len() >= 2,
+                    "GJK simplex should have at least 2 points even for coincident centers, got {}",
+                    hit.simplex.len()
+                );
+            }
+            _ => panic!("Expected intersection for coincident cubes."),
+        }
     }
 }

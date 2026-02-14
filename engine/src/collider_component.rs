@@ -96,6 +96,12 @@ pub enum ConvexShape {
         v1: Vec3,
         v2: Vec3,
     },
+    TrianglePrism {
+        v0: Vec3,
+        v1: Vec3,
+        v2: Vec3,
+        half_thickness: f32,
+    },
     Egg {
         length: f32,
         radius: f32,
@@ -146,6 +152,24 @@ impl ConvexCollider {
     pub fn triangle(v0: Vec3, v1: Vec3, v2: Vec3, layer: CollisionLayer) -> Self {
         Self {
             shape: ConvexShape::Triangle { v0, v1, v2 },
+            layer,
+        }
+    }
+
+    pub fn triangle_prism(
+        v0: Vec3,
+        v1: Vec3,
+        v2: Vec3,
+        half_thickness: f32,
+        layer: CollisionLayer,
+    ) -> Self {
+        Self {
+            shape: ConvexShape::TrianglePrism {
+                v0,
+                v1,
+                v2,
+                half_thickness: half_thickness.max(1e-5),
+            },
             layer,
         }
     }
@@ -224,6 +248,37 @@ impl ConvexCollider {
                 }
                 best
             }
+            ConvexShape::TrianglePrism {
+                v0,
+                v1,
+                v2,
+                half_thickness,
+            } => {
+                let mut best = v0;
+                let mut best_dot = v0.dot(local_dir);
+                let v1_dot = v1.dot(local_dir);
+                if v1_dot > best_dot {
+                    best = v1;
+                    best_dot = v1_dot;
+                }
+                let v2_dot = v2.dot(local_dir);
+                if v2_dot > best_dot {
+                    best = v2;
+                }
+
+                let n = (v1 - v0).cross(v2 - v0);
+                if n.length_squared() <= SUPPORT_EPSILON {
+                    best
+                } else {
+                    let n = n.normalize();
+                    let offset = if local_dir.dot(n) >= 0.0 {
+                        n * half_thickness
+                    } else {
+                        -n * half_thickness
+                    };
+                    best + offset
+                }
+            }
             ConvexShape::Egg { length, radius } => {
                 let half_length = length * 0.5;
                 let local_point = Vec3::new(
@@ -280,6 +335,30 @@ impl Collider for ConvexCollider {
                     min: local_min,
                     max: local_max,
                 };
+                transform_aabb(local_aabb, transform)
+            }
+            ConvexShape::TrianglePrism {
+                v0,
+                v1,
+                v2,
+                half_thickness,
+            } => {
+                let n = (v1 - v0).cross(v2 - v0);
+                let n = if n.length_squared() > SUPPORT_EPSILON {
+                    n.normalize() * half_thickness
+                } else {
+                    Vec3::Z * half_thickness
+                };
+
+                let points = [v0 + n, v1 + n, v2 + n, v0 - n, v1 - n, v2 - n];
+                let mut min = points[0];
+                let mut max = points[0];
+                for p in points.iter().skip(1) {
+                    min = min.min(*p);
+                    max = max.max(*p);
+                }
+
+                let local_aabb = AABB { min, max };
                 transform_aabb(local_aabb, transform)
             }
             ConvexShape::Egg { length, radius } => {

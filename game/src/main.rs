@@ -160,33 +160,33 @@ fn main() {
         PlayerComponent { speed: 1.0 },
     ));
 
-    // (0..1).for_each(|i| {
-    //     engine.world.spawn((
-    //         TransformComponent {
-    //             position: Vec3::new(0.0, 0.0, i as f32 * 4.01),
-    //             rotation: Quat::IDENTITY,
-    //             scale: player_scale,
-    //         },
-    //         VelocityComponent {
-    //             translational: Vec3::ZERO,
-    //             angular: Vec3::ZERO,
-    //         },
-    //         RenderBodyComponent {
-    //             render_body_id: cube,
-    //         },
-    //         ConvexCollider::cube(2.0, CollisionLayer::Default),
-    //         PhysicsComponent {
-    //             mass: 5.0,
-    //             physics_type: PhysicsType::Dynamic,
-    //             friction: 0.9,
-    //             drag_coefficient: 0.1,
-    //             angular_drag_coefficient: 0.1,
-    //             restitution: 0.5,
-    //             local_inertia: glam::Mat3::IDENTITY,
-    //         },
-    //         // SleepComponent::default(),
-    //     ));
-    // });
+    (0..100).for_each(|i| {
+        engine.world.spawn((
+            TransformComponent {
+                position: Vec3::new(0.0, 0.0, i as f32 * 4.01),
+                rotation: Quat::IDENTITY,
+                scale: player_scale,
+            },
+            VelocityComponent {
+                translational: Vec3::ZERO,
+                angular: Vec3::ZERO,
+            },
+            RenderBodyComponent {
+                render_body_id: cube,
+            },
+            ConvexCollider::cube(2.0, CollisionLayer::Default),
+            PhysicsComponent {
+                mass: 5.0,
+                physics_type: PhysicsType::Dynamic,
+                friction: 0.9,
+                drag_coefficient: 0.1,
+                angular_drag_coefficient: 0.1,
+                restitution: 0.5,
+                local_inertia: glam::Mat3::IDENTITY,
+            },
+            // SleepComponent::default(),
+        ));
+    });
 
     engine.world.spawn((
         TransformComponent {

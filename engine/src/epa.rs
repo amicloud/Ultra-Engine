@@ -5,7 +5,7 @@ use glam::{Mat4, Vec3};
 
 use crate::{collider_component::ConvexCollider, physics_resource::ContactManifold};
 
-const EPA_MAX_ITERATIONS: usize = 64;
+const EPA_MAX_ITERATIONS: usize = 128;
 const EPA_TOLERANCE: f32 = 1e-4;
 const EPSILON: f32 = 1e-6;
 
@@ -27,7 +27,7 @@ pub fn epa(
     b: &ConvexCollider,
     b_transform: Mat4,
     simplex: &[Vec3],
-    previous_manifold: Option<&ContactManifold>,
+    _previous_manifold: Option<&ContactManifold>,
 ) -> Option<EpaResult> {
     let (mut vertices, mut faces) =
         build_initial_polytope(a, a_transform, b, b_transform, simplex)?;
@@ -38,28 +38,12 @@ pub fn epa(
     let mut horizon_edges: Vec<(usize, usize)> = Vec::with_capacity(64);
     let mut new_faces: Vec<Face> = Vec::with_capacity(128);
 
-    // Keep track of previous closest face normal to reduce oscillation
-    let prev_normal = previous_manifold.map_or(Vec3::ZERO, |m| m.normal);
-
     for _ in 0..EPA_MAX_ITERATIONS {
         horizon_edges.clear();
         new_faces.clear();
         {
             let closest_index = find_closest_face(&faces)?;
-
-            // Stabilize: pick the face whose normal is most aligned with previous frame
-            let closest_face = if prev_normal != Vec3::ZERO {
-                faces
-                    .iter()
-                    .min_by(|f1, f2| {
-                        let d1 = f1.normal.dot(prev_normal).abs();
-                        let d2 = f2.normal.dot(prev_normal).abs();
-                        d2.partial_cmp(&d1).unwrap() // pick most aligned
-                    })
-                    .unwrap()
-            } else {
-                &faces[closest_index]
-            };
+            let closest_face = &faces[closest_index];
 
             let support = support_minkowski(a, a_transform, b, b_transform, closest_face.normal);
             let support_distance = closest_face.normal.dot(support);
@@ -367,7 +351,8 @@ mod tests {
         let b_center = b_transform.transform_point3(Vec3::ZERO);
         let ab = b_center - a_center;
         if ab.length_squared() > EPSILON {
-            assert!(normal.dot(ab) > 0.0);
+            // In symmetric/tie cases, the separating axis can be orthogonal to center-to-center.
+            assert!(normal.dot(ab) >= -1e-4);
         }
     }
 
@@ -436,6 +421,53 @@ mod tests {
 
         let result = run_epa(&a, a_transform, &b, b_transform);
         assert!(result.penetration_depth > 0.0);
+        assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+    }
+
+    #[test]
+    fn epa_non_uniform_cuboid_axis_aligned() {
+        // Non-uniform cuboid: 4×2×2 box
+        let a = ConvexCollider::cuboid(Vec3::new(4.0, 2.0, 2.0), CollisionLayer::Default);
+        let b = ConvexCollider::cuboid(Vec3::new(4.0, 2.0, 2.0), CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO, Quat::IDENTITY);
+        let b_transform = transform_at(Vec3::new(3.0, 0.0, 0.0), Quat::IDENTITY);
+
+        let result = run_epa(&a, a_transform, &b, b_transform);
+        // Overlap on X: (2 + 2) - 3 = 1.0
+        assert!(result.penetration_depth > 0.0);
+        assert!((result.penetration_depth - 1.0).abs() < 0.1);
+        assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+        // Normal should be approximately +X
+        assert!(result.normal.x.abs() > 0.9);
+    }
+
+    #[test]
+    fn epa_non_uniform_cuboid_rotated() {
+        let a = ConvexCollider::cuboid(Vec3::new(6.0, 1.0, 1.0), CollisionLayer::Default);
+        let b = ConvexCollider::cuboid(Vec3::new(6.0, 1.0, 1.0), CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO, Quat::IDENTITY);
+        let b_transform = transform_at(
+            Vec3::new(0.0, 1.0, 0.0),
+            Quat::from_rotation_z(90.0_f32.to_radians()),
+        );
+
+        let result = run_epa(&a, a_transform, &b, b_transform);
+        assert!(result.penetration_depth > 0.0);
+        assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+    }
+
+    #[test]
+    fn epa_cuboid_vs_sphere() {
+        let cuboid = ConvexCollider::cuboid(Vec3::new(2.0, 4.0, 2.0), CollisionLayer::Default);
+        let sphere = ConvexCollider::sphere(1.5, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO, Quat::IDENTITY);
+        let b_transform = transform_at(Vec3::new(0.0, 2.0, 0.0), Quat::IDENTITY);
+
+        let result = run_epa(&cuboid, a_transform, &sphere, b_transform);
+        // Cuboid y half-extent = 2.0, sphere radius = 1.5, distance = 2.0
+        // Overlap = 2.0 + 1.5 - 2.0 = 1.5
+        assert!(result.penetration_depth > 0.0);
+        assert!((result.penetration_depth - 1.5).abs() < 0.4);
         assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
     }
 }

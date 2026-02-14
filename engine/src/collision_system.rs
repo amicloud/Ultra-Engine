@@ -563,23 +563,84 @@ fn cuboid_cuboid_contact(
     let (a_len, a_wid, a_hei) = collider_a.as_cuboid()?;
     let (b_len, b_wid, b_hei) = collider_b.as_cuboid()?;
 
-    let a_center = transform_a.position;
-    let b_center = transform_b.position;
+    // Build world transforms that include scale.
+    let a_mat = transform_a.to_mat4();
+    let b_mat = transform_b.to_mat4();
 
-    // Local axes in world space
+    let a_center = a_mat.transform_point3(Vec3::ZERO);
+    let b_center = b_mat.transform_point3(Vec3::ZERO);
+
+    // Extract world-space axes. These include scale in their lengths.
+    let a_axis_raw = [
+        a_mat.transform_vector3(Vec3::X),
+        a_mat.transform_vector3(Vec3::Y),
+        a_mat.transform_vector3(Vec3::Z),
+    ];
+    let b_axis_raw = [
+        b_mat.transform_vector3(Vec3::X),
+        b_mat.transform_vector3(Vec3::Y),
+        b_mat.transform_vector3(Vec3::Z),
+    ];
+
+    // Axis lengths encode the entity scale; multiply collider half-extents
+    // by these lengths to get true world-space half-extents, then normalize
+    // the axes to unit length for the SAT.
+    let a_scale = Vec3::new(
+        a_axis_raw[0].length(),
+        a_axis_raw[1].length(),
+        a_axis_raw[2].length(),
+    );
+    let b_scale = Vec3::new(
+        b_axis_raw[0].length(),
+        b_axis_raw[1].length(),
+        b_axis_raw[2].length(),
+    );
+
     let a_axes = [
-        transform_a.rotation * Vec3::X,
-        transform_a.rotation * Vec3::Y,
-        transform_a.rotation * Vec3::Z,
+        if a_scale.x > f32::EPSILON {
+            a_axis_raw[0] / a_scale.x
+        } else {
+            Vec3::X
+        },
+        if a_scale.y > f32::EPSILON {
+            a_axis_raw[1] / a_scale.y
+        } else {
+            Vec3::Y
+        },
+        if a_scale.z > f32::EPSILON {
+            a_axis_raw[2] / a_scale.z
+        } else {
+            Vec3::Z
+        },
     ];
     let b_axes = [
-        transform_b.rotation * Vec3::X,
-        transform_b.rotation * Vec3::Y,
-        transform_b.rotation * Vec3::Z,
+        if b_scale.x > f32::EPSILON {
+            b_axis_raw[0] / b_scale.x
+        } else {
+            Vec3::X
+        },
+        if b_scale.y > f32::EPSILON {
+            b_axis_raw[1] / b_scale.y
+        } else {
+            Vec3::Y
+        },
+        if b_scale.z > f32::EPSILON {
+            b_axis_raw[2] / b_scale.z
+        } else {
+            Vec3::Z
+        },
     ];
 
-    let a_extents = Vec3::new(a_len * 0.5, a_wid * 0.5, a_hei * 0.5);
-    let b_extents = Vec3::new(b_len * 0.5, b_wid * 0.5, b_hei * 0.5);
+    let a_extents = Vec3::new(
+        a_len * 0.5 * a_scale.x,
+        a_wid * 0.5 * a_scale.y,
+        a_hei * 0.5 * a_scale.z,
+    );
+    let b_extents = Vec3::new(
+        b_len * 0.5 * b_scale.x,
+        b_wid * 0.5 * b_scale.y,
+        b_hei * 0.5 * b_scale.z,
+    );
 
     let t = b_center - a_center;
 
@@ -929,9 +990,20 @@ fn convex_mesh_contact_at_transform(
                 }
             }
             _ => {
-                // Use GJK/EPA for other convex colliders for now
-                let triangle_collider =
-                    ConvexCollider::triangle(tri.v0, tri.v1, tri.v2, convex_collider.layer);
+                // Use a tiny-thickness triangle prism so GJK/EPA operates on a full 3D
+                // convex polytope instead of a degenerate 2D triangle.
+                let e0 = (tri.v1 - tri.v0).length();
+                let e1 = (tri.v2 - tri.v1).length();
+                let e2 = (tri.v0 - tri.v2).length();
+                let tri_scale = e0.max(e1).max(e2).max(1e-3);
+                let half_thickness = tri_scale * 1e-3;
+                let triangle_collider = ConvexCollider::triangle_prism(
+                    tri.v0,
+                    tri.v1,
+                    tri.v2,
+                    half_thickness,
+                    convex_collider.layer,
+                );
 
                 let result = gjk_intersect(
                     &triangle_collider,
@@ -945,19 +1017,52 @@ fn convex_mesh_contact_at_transform(
                     GjkResult::NoIntersection => continue,
                 };
 
-                let Some(epa_result) = epa(
+                let epa_result = epa(
                     &triangle_collider,
                     *mesh_world,
                     convex_collider,
                     convex_world,
                     &simplex,
                     previous_manifold,
-                ) else {
-                    continue;
+                );
+
+                let (mut normal, penetration_depth) = match epa_result {
+                    Some(result) => (result.normal, result.penetration_depth),
+                    None => {
+                        // EPA can still fail on near-degenerate configurations.
+                        // Fallback to plane-based contact from triangle normal.
+                        let Some(mut n) = face_normal_world else {
+                            continue;
+                        };
+                        let tri_center_local = (tri.v0 + tri.v1 + tri.v2) / 3.0;
+                        let tri_center_world = mesh_world.transform_point3(tri_center_local);
+                        let convex_center_world = convex_world.transform_point3(Vec3::ZERO);
+                        if n.dot(convex_center_world - tri_center_world) < 0.0 {
+                            n = -n;
+                        }
+
+                        let support = convex_collider.support(convex_world, -n);
+                        let signed_dist = (support - tri_world.v0).dot(n);
+                        if signed_dist >= 0.0 {
+                            continue;
+                        }
+
+                        let penetration = -signed_dist;
+                        let projected = support - n * signed_dist;
+                        let contact_point = closest_point_on_triangle(projected, &tri_world);
+
+                        candidates.push(ContactCandidate {
+                            point: contact_point,
+                            normal: n,
+                            penetration,
+                        });
+                        continue;
+                    }
                 };
 
-                let mut normal = epa_result.normal;
-                let tri_normal = face_normal_world.unwrap();
+                let Some(tri_normal) = face_normal_world else {
+                    continue;
+                };
                 if tri_normal.dot(normal) > 0.95 {
                     normal = tri_normal;
                 }
@@ -980,7 +1085,7 @@ fn convex_mesh_contact_at_transform(
                 candidates.push(ContactCandidate {
                     point: contact_point,
                     normal,
-                    penetration: epa_result.penetration_depth,
+                    penetration: penetration_depth,
                 });
                 // println!("GJK results: simplex={:?}", simplex);
                 // println!(
@@ -1223,6 +1328,44 @@ mod tests {
     }
 
     #[test]
+    fn convex_mesh_contact_at_transform_cuboid_hits_triangle() {
+        let tri = make_triangle();
+        let bvh = BVHNode::build(vec![tri], 4);
+
+        let convex_collider = ConvexCollider::cuboid(Vec3::splat(1.0), CollisionLayer::Default);
+        let convex_transform = TransformComponent {
+            position: Vec3::new(0.25, 0.25, 0.4),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::ONE,
+        };
+        let convex_world = convex_transform.to_mat4();
+
+        let mesh_world = Mat4::IDENTITY;
+        let mesh_world_inv = mesh_world.inverse();
+
+        let contacts = convex_mesh_contact_at_transform(
+            &convex_collider,
+            convex_world,
+            &mesh_world,
+            &mesh_world_inv,
+            &bvh,
+            None,
+        );
+
+        assert!(
+            !contacts.is_empty(),
+            "Expected cuboid-mesh contact candidates"
+        );
+        let best = contacts
+            .iter()
+            .max_by(|a, b| a.penetration.total_cmp(&b.penetration))
+            .unwrap();
+        assert!(best.penetration > 0.0);
+        // Triangle is on Z=0 with +Z normal; cuboid center is above, so normal should be upward.
+        assert!(best.normal.z > 0.0);
+    }
+
+    #[test]
     fn reduce_contact_candidates_caps_to_four() {
         let mesh_entity = Entity::from_bits(1);
         let convex_entity = Entity::from_bits(2);
@@ -1343,7 +1486,7 @@ mod tests {
     }
 
     #[test]
-    fn cuboid_cuboid_contact_scaling_does_not_change_overlap_state() {
+    fn cuboid_cuboid_contact_scaling_changes_overlap_state() {
         let entity_a = Entity::from_bits(10);
         let entity_b = Entity::from_bits(11);
 
@@ -1361,8 +1504,10 @@ mod tests {
             &collider_b,
             &transform_b,
         );
+        // At scale 1: A spans [-1,1], B spans [1.1,3.1] → no overlap
         assert!(initial.is_none());
 
+        // At scale 1.2x: B spans [2.1-1.2, 2.1+1.2] = [0.9, 3.3] → overlaps A
         transform_b.scale = Vec3::new(1.2, 1.0, 1.0);
         let scaled = cuboid_cuboid_contact(
             entity_a,
@@ -1373,7 +1518,9 @@ mod tests {
             &transform_b,
         );
 
-        assert_eq!(initial.is_some(), scaled.is_some());
+        assert!(scaled.is_some(), "Scaling should cause overlap");
+        let contact = scaled.unwrap();
+        assert!(contact.penetration > 0.0);
     }
 
     #[test]
@@ -1581,5 +1728,113 @@ mod tests {
         );
 
         assert!(contact.is_none());
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_scaled_cuboid_overlaps() {
+        // A cube(2) at origin: spans [-1,1]. B cube(2) at x=1.5 with scale 2:
+        // B spans [1.5-2, 1.5+2] = [-0.5, 3.5] → overlap of 1.5
+        let entity_a = Entity::from_bits(50);
+        let entity_b = Entity::from_bits(51);
+
+        let collider = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let transform_b =
+            make_transform(Vec3::new(1.5, 0.0, 0.0), Quat::IDENTITY, Vec3::splat(2.0));
+
+        let contact = cuboid_cuboid_contact(
+            entity_a,
+            &collider,
+            &transform_a,
+            entity_b,
+            &collider,
+            &transform_b,
+        )
+        .expect("Expected overlap with scaled cuboid");
+
+        assert_relative_eq!(contact.penetration, 1.5, epsilon = 0.05);
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_non_uniform_scale_y() {
+        // A cube(2) at origin spans [-1,1] on all axes.
+        // B cube(2) at y=1.5 with scale (1,2,1): B y-extent becomes 2 → spans [-0.5, 3.5]
+        // Overlap on y = 1.5, overlap on x and z = 2.0 each. Min penetration = 1.5 on y.
+        let entity_a = Entity::from_bits(52);
+        let entity_b = Entity::from_bits(53);
+
+        let collider = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let transform_b = make_transform(
+            Vec3::new(0.0, 1.5, 0.0),
+            Quat::IDENTITY,
+            Vec3::new(1.0, 2.0, 1.0),
+        );
+
+        let contact = cuboid_cuboid_contact(
+            entity_a,
+            &collider,
+            &transform_a,
+            entity_b,
+            &collider,
+            &transform_b,
+        )
+        .expect("Expected overlap with non-uniform y-scaled cuboid");
+
+        assert!(contact.penetration > 0.0);
+        // Normal should point roughly in +Y direction
+        assert!(contact.normal.y.abs() > 0.5);
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_non_uniform_scale_no_overlap() {
+        // A cube(2) at origin spans [-1,1].
+        // B cube(2) at x=3.5 with scale (1,1,1): B spans [2.5, 4.5] → no overlap
+        let entity_a = Entity::from_bits(54);
+        let entity_b = Entity::from_bits(55);
+
+        let collider = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let transform_b = make_transform(Vec3::new(3.5, 0.0, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let contact = cuboid_cuboid_contact(
+            entity_a,
+            &collider,
+            &transform_a,
+            entity_b,
+            &collider,
+            &transform_b,
+        );
+
+        assert!(contact.is_none());
+    }
+
+    #[test]
+    fn cuboid_cuboid_contact_rotated_and_scaled_overlap() {
+        // Two cubes, B rotated 45° around Z and scaled by 1.5.
+        // At x=2.0, a 45° rotated cube(2) scaled 1.5 has diagonal reach of
+        // sqrt(2) * 1.5 ≈ 2.12 which should overlap A's edge at 1.0.
+        let entity_a = Entity::from_bits(56);
+        let entity_b = Entity::from_bits(57);
+
+        let collider = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let transform_b = make_transform(
+            Vec3::new(2.0, 0.0, 0.0),
+            Quat::from_rotation_z(45.0_f32.to_radians()),
+            Vec3::splat(1.5),
+        );
+
+        let contact = cuboid_cuboid_contact(
+            entity_a,
+            &collider,
+            &transform_a,
+            entity_b,
+            &collider,
+            &transform_b,
+        )
+        .expect("Expected overlap for rotated+scaled cuboid");
+
+        assert!(contact.penetration > 0.0);
     }
 }
