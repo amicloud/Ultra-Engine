@@ -3,10 +3,8 @@ mod camera_controller;
 mod game_controller;
 mod settings;
 
-use std::f32::INFINITY;
-
 #[allow(unused_imports)]
-use bowl_controller::{BowlFloatComponent, BowlFloatTime, update_bowl_float};
+// use bowl_controller::{BowlFloatComponent, BowlFloatTime, update_bowl_float};
 use camera_controller::{
     FlyingCameraComponent, PlayerComponent, apply_flying_camera_input,
     apply_flying_camera_movement, apply_player_movement_impulses, update_orbit_camera_target,
@@ -25,7 +23,6 @@ use engine::{
     physics_component::{PhysicsComponent, PhysicsType},
 };
 use glam::{Quat, Vec3};
-use rand::random_range;
 
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -171,7 +168,7 @@ fn main() {
         PlayerComponent { speed: 1.0 },
     ));
 
-    (0..10).for_each(|i| {
+    (0..300).for_each(|i| {
         engine.world.spawn((
             TransformComponent {
                 position: Vec3::new(0.0, 0.0, i as f32 * 3.01),

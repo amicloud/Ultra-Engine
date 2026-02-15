@@ -1,4 +1,3 @@
-use std::cmp::min;
 use std::collections::HashMap;
 
 use crate::WorldBasis;
@@ -28,6 +27,7 @@ pub struct ContactConstraint {
 }
 
 const PGS_ITERATIONS: usize = 8;
+const ENABLE_RESTING_STABILIZATION: bool = false;
 
 impl PhysicsSystem {
     pub fn integrate_motion(
@@ -103,14 +103,22 @@ impl PhysicsSystem {
         manifold
             .contacts
             .iter()
-            .map(|contact| ContactConstraint {
-                entity_a: contact.entity_a,
-                entity_b: contact.entity_b,
-                normal: manifold.normal,
-                penetration: contact.penetration,
-                accumulated_tangent_lambda: 0.0,
-                accumulated_normal_lambda: 0.0,
-                contact_point: contact.contact_point,
+            .map(|contact| {
+                let normal = if contact.normal.length_squared() > f32::EPSILON {
+                    contact.normal
+                } else {
+                    manifold.normal
+                };
+
+                ContactConstraint {
+                    entity_a: contact.entity_a,
+                    entity_b: contact.entity_b,
+                    normal,
+                    penetration: contact.penetration,
+                    accumulated_tangent_lambda: 0.0,
+                    accumulated_normal_lambda: 0.0,
+                    contact_point: contact.contact_point,
+                }
             })
             .collect()
     }
@@ -264,7 +272,7 @@ impl PhysicsSystem {
         // Parameters
         let slop = 0.025;
         let percent = 0.45;
-        let max_correction = 100.0;
+        let max_correction = 2.0;
 
         // Track accumulated corrections per entity
         let mut corrections: HashMap<Entity, Vec3> = HashMap::new();
@@ -429,7 +437,9 @@ impl PhysicsSystem {
         }
 
         Self::positional_correction(&physics_frame_data.constraints, &mut query);
-        Self::stabilize_resting_contacts(&collision_frame_data, &mut query);
+        if ENABLE_RESTING_STABILIZATION {
+            Self::stabilize_resting_contacts(&collision_frame_data, &mut query);
+        }
         physics_frame_data.clear();
     }
 }
