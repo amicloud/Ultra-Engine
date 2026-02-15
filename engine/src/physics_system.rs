@@ -10,7 +10,7 @@ use crate::{
     transform_component::TransformComponent,
 };
 use bevy_ecs::prelude::*;
-use glam::Vec3;
+use glam::{Mat3, Vec3};
 pub struct PhysicsSystem {}
 
 pub fn delta_time() -> f32 {
@@ -132,10 +132,10 @@ impl PhysicsSystem {
         let (transform_b, mut vel_b_opt, phys_b_opt) = (&mut b.0, b.1, b.2);
 
         // --- Physics properties ---
-        let (inv_mass_a, restitution_a, friction_a, inv_inertia_a) = physics_props(phys_a_opt);
-        let (inv_mass_b, restitution_b, friction_b, inv_inertia_b) = physics_props(phys_b_opt);
+        let props_a = physics_props(phys_a_opt);
+        let props_b = physics_props(phys_b_opt);
 
-        let inv_mass_sum = inv_mass_a + inv_mass_b;
+        let inv_mass_sum = props_a.inv_mass + props_b.inv_mass;
         if inv_mass_sum <= f32::EPSILON {
             return;
         }
@@ -176,7 +176,7 @@ impl PhysicsSystem {
         let restitution_threshold = 0.1;
         let restitution = if rvn < -restitution_threshold {
             // ((restitution_a.sqrt() + restitution_b.sqrt()) * 0.5).powi(2)
-            f32::min(restitution_a, restitution_b)
+            f32::min(props_a.restitution, props_b.restitution)
         } else {
             0.0
         };
@@ -185,8 +185,8 @@ impl PhysicsSystem {
         let ra_cross_n = ra.cross(normal);
         let rb_cross_n = rb.cross(normal);
         let k = inv_mass_sum
-            + normal.dot((inv_inertia_a * ra_cross_n).cross(ra))
-            + normal.dot((inv_inertia_b * rb_cross_n).cross(rb));
+            + normal.dot((props_a.inv_inertia * ra_cross_n).cross(ra))
+            + normal.dot((props_b.inv_inertia * rb_cross_n).cross(rb));
         if k <= f32::EPSILON {
             return;
         }
@@ -199,14 +199,14 @@ impl PhysicsSystem {
         let impulse = normal * delta_normal;
 
         if let Some(vel_a) = vel_a_opt.as_mut() {
-            vel_a.translational -= impulse * inv_mass_a;
-            vel_a.angular -= inv_inertia_a * ra.cross(impulse);
+            vel_a.translational -= impulse * props_a.inv_mass;
+            vel_a.angular -= props_a.inv_inertia * ra.cross(impulse);
             v_a = vel_a.translational;
             omega_a = vel_a.angular;
         }
         if let Some(vel_b) = vel_b_opt.as_mut() {
-            vel_b.translational += impulse * inv_mass_b;
-            vel_b.angular += inv_inertia_b * rb.cross(impulse);
+            vel_b.translational += impulse * props_b.inv_mass;
+            vel_b.angular += props_b.inv_inertia * rb.cross(impulse);
             v_b = vel_b.translational;
             omega_b = vel_b.angular;
         }
@@ -220,7 +220,7 @@ impl PhysicsSystem {
         }
         tangent /= tangent_len;
 
-        let friction = (friction_a * friction_b).sqrt();
+        let friction = (props_a.friction * props_b.friction).sqrt();
         if friction <= 0.0 {
             return;
         }
@@ -229,8 +229,8 @@ impl PhysicsSystem {
         let ra_cross_t = ra.cross(tangent);
         let rb_cross_t = rb.cross(tangent);
         let k_t = inv_mass_sum
-            + tangent.dot((inv_inertia_a * ra_cross_t).cross(ra))
-            + tangent.dot((inv_inertia_b * rb_cross_t).cross(rb));
+            + tangent.dot((props_a.inv_inertia * ra_cross_t).cross(ra))
+            + tangent.dot((props_b.inv_inertia * rb_cross_t).cross(rb));
         if k_t <= f32::EPSILON {
             return;
         }
@@ -244,12 +244,12 @@ impl PhysicsSystem {
         let friction_impulse = tangent * delta_tangent;
 
         if let Some(vel_a) = vel_a_opt.as_mut() {
-            vel_a.translational -= friction_impulse * inv_mass_a;
-            vel_a.angular -= inv_inertia_a * ra.cross(friction_impulse);
+            vel_a.translational -= friction_impulse * props_a.inv_mass;
+            vel_a.angular -= props_a.inv_inertia * ra.cross(friction_impulse);
         }
         if let Some(vel_b) = vel_b_opt.as_mut() {
-            vel_b.translational += friction_impulse * inv_mass_b;
-            vel_b.angular += inv_inertia_b * rb.cross(friction_impulse);
+            vel_b.translational += friction_impulse * props_b.inv_mass;
+            vel_b.angular += props_b.inv_inertia * rb.cross(friction_impulse);
         }
     }
 
@@ -264,7 +264,7 @@ impl PhysicsSystem {
         // Parameters
         let slop = 0.025; // small penetration allowed before correction
         let percent = 0.25; // softer correction to reduce resting jitter
-        let max_correction = 0.04; // maximum correction per timestep per body
+        let max_correction = 100.0; // maximum correction per timestep per body
 
         // Track accumulated corrections per entity
         let mut corrections: HashMap<Entity, Vec3> = HashMap::new();
@@ -278,9 +278,9 @@ impl PhysicsSystem {
             let (_, _, phys_a) = (&mut a.0, a.1, a.2);
             let (_, _, phys_b) = (&mut b.0, b.1, b.2);
 
-            let (inv_mass_a, _, _, _) = physics_props(phys_a);
-            let (inv_mass_b, _, _, _) = physics_props(phys_b);
-            let inv_mass_sum = inv_mass_a + inv_mass_b;
+            let props_a = physics_props(phys_a);
+            let props_b = physics_props(phys_b);
+            let inv_mass_sum = props_a.inv_mass + props_b.inv_mass;
             if inv_mass_sum <= f32::EPSILON {
                 continue;
             }
@@ -297,13 +297,13 @@ impl PhysicsSystem {
             // Accumulate corrections
             corrections
                 .entry(constraint.entity_a)
-                .and_modify(|v| *v += -correction * inv_mass_a)
-                .or_insert(-correction * inv_mass_a);
+                .and_modify(|v| *v += -correction * props_a.inv_mass)
+                .or_insert(-correction * props_a.inv_mass);
 
             corrections
                 .entry(constraint.entity_b)
-                .and_modify(|v| *v += correction * inv_mass_b)
-                .or_insert(correction * inv_mass_b);
+                .and_modify(|v| *v += correction * props_b.inv_mass)
+                .or_insert(correction * props_b.inv_mass);
         }
 
         // Apply clamped corrections
@@ -434,11 +434,16 @@ impl PhysicsSystem {
     }
 }
 
-fn physics_props(physics: Option<&PhysicsComponent>) -> (f32, f32, f32, glam::Mat3) {
+fn physics_props(physics: Option<&PhysicsComponent>) -> PhysicsProps {
     use crate::physics_component::PhysicsType;
 
     let Some(physics) = physics else {
-        return (0.0, 0.0, 0.0, glam::Mat3::ZERO);
+        return PhysicsProps {
+            inv_mass: 0.0,
+            restitution: 0.0,
+            friction: 0.0,
+            inv_inertia: Mat3::ZERO,
+        };
     };
 
     // --- Inverse mass ---
@@ -453,10 +458,22 @@ fn physics_props(physics: Option<&PhysicsComponent>) -> (f32, f32, f32, glam::Ma
         // Avoid dividing by zero
         physics.local_inertia.inverse_or_zero()
     } else {
-        glam::Mat3::ZERO
+        Mat3::ZERO
     };
 
-    (inv_mass, physics.restitution, physics.friction, inv_inertia)
+    PhysicsProps {
+        inv_mass,
+        restitution: physics.restitution,
+        friction: physics.friction,
+        inv_inertia,
+    }
+}
+
+struct PhysicsProps {
+    inv_mass: f32,
+    restitution: f32,
+    friction: f32,
+    inv_inertia: Mat3,
 }
 
 #[cfg(test)]

@@ -38,6 +38,12 @@ pub fn gjk_intersect_with_params(
     b_transform: Mat4,
     max_iterations: usize,
 ) -> GjkResult {
+    if centers_coincident(a_transform, b_transform)
+        && let Some(seed) = build_coincident_center_tetrahedron_seed(a, a_transform, b, b_transform)
+    {
+        return GjkResult::Intersection(GjkHit { simplex: seed });
+    }
+
     let mut dir = initial_direction(a_transform, b_transform);
     let mut simplex: Vec<Vec3> = Vec::with_capacity(4);
 
@@ -47,7 +53,18 @@ pub fn gjk_intersect_with_params(
 
     for _ in 0..max_iterations {
         if dir.length_squared() <= EPSILON {
-            return GjkResult::Intersection(GjkHit { simplex });
+            if promote_simplex_to_tetrahedron(
+                &mut simplex,
+                a,
+                a_transform,
+                b,
+                b_transform,
+                max_iterations,
+            ) {
+                return GjkResult::Intersection(GjkHit { simplex });
+            }
+
+            return GjkResult::NoIntersection;
         }
 
         let support = support_minkowski(a, a_transform, b, b_transform, dir);
@@ -60,18 +77,149 @@ pub fn gjk_intersect_with_params(
             return GjkResult::Intersection(GjkHit { simplex });
         }
     }
-
     GjkResult::NoIntersection
+}
+
+fn centers_coincident(a_transform: Mat4, b_transform: Mat4) -> bool {
+    let a_center = a_transform.transform_point3(Vec3::ZERO);
+    let b_center = b_transform.transform_point3(Vec3::ZERO);
+    (a_center - b_center).length_squared() <= EPSILON
+}
+
+fn build_coincident_center_tetrahedron_seed(
+    a: &ConvexCollider,
+    a_transform: Mat4,
+    b: &ConvexCollider,
+    b_transform: Mat4,
+) -> Option<Vec<Vec3>> {
+    let directions = [
+        Vec3::new(1.0, 0.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        Vec3::new(0.0, 0.0, 1.0),
+        Vec3::new(-1.0, -1.0, -1.0),
+    ];
+
+    let mut simplex = Vec::with_capacity(4);
+    for dir in directions {
+        let support = support_minkowski(a, a_transform, b, b_transform, dir);
+        if support.dot(dir) <= 0.0 {
+            return None;
+        }
+        if simplex
+            .iter()
+            .any(|p: &Vec3| (*p - support).length_squared() <= EPSILON)
+        {
+            return None;
+        }
+        simplex.push(support);
+    }
+
+    let volume = (simplex[1] - simplex[0])
+        .cross(simplex[2] - simplex[0])
+        .dot(simplex[3] - simplex[0])
+        .abs();
+    if volume <= EPSILON {
+        return None;
+    }
+
+    let mut check_dir = Vec3::ZERO;
+    if handle_tetrahedron(&mut simplex, &mut check_dir) {
+        Some(simplex)
+    } else {
+        None
+    }
+}
+
+fn promote_simplex_to_tetrahedron(
+    simplex: &mut Vec<Vec3>,
+    a: &ConvexCollider,
+    a_transform: Mat4,
+    b: &ConvexCollider,
+    b_transform: Mat4,
+    max_iterations: usize,
+) -> bool {
+    let extra_steps = max_iterations.max(4);
+
+    for _ in 0..extra_steps {
+        if simplex.len() >= 4 {
+            let mut check_dir = Vec3::ZERO;
+            return handle_tetrahedron(simplex, &mut check_dir);
+        }
+
+        let candidate_dirs = expansion_directions(simplex);
+        let mut added_point = false;
+
+        'dir_search: for d in candidate_dirs {
+            if d.length_squared() <= EPSILON {
+                continue;
+            }
+
+            for sign in [1.0_f32, -1.0_f32] {
+                let query_dir = d * sign;
+                let support = support_minkowski(a, a_transform, b, b_transform, query_dir);
+                if support.dot(query_dir) <= EPSILON {
+                    continue;
+                }
+
+                if simplex
+                    .iter()
+                    .any(|p| (*p - support).length_squared() <= EPSILON)
+                {
+                    continue;
+                }
+
+                simplex.push(support);
+                added_point = true;
+                break 'dir_search;
+            }
+        }
+
+        if !added_point {
+            return false;
+        }
+
+        let mut dir = fallback_direction_from_simplex(simplex);
+        if handle_simplex(simplex, &mut dir) && simplex.len() == 4 {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn expansion_directions(simplex: &[Vec3]) -> Vec<Vec3> {
+    match simplex.len() {
+        0 => vec![Vec3::X],
+        1 => vec![Vec3::X, Vec3::Y, Vec3::Z],
+        2 => {
+            let edge = simplex[1] - simplex[0];
+            let perp = any_perpendicular(edge);
+            vec![perp, edge.cross(perp)]
+        }
+        3 => {
+            let a = simplex[2];
+            let b = simplex[1];
+            let c = simplex[0];
+            let normal = (b - a).cross(c - a);
+            if normal.length_squared() <= EPSILON {
+                vec![any_perpendicular(b - a)]
+            } else {
+                vec![normal]
+            }
+        }
+        _ => vec![Vec3::X],
+    }
 }
 
 fn initial_direction(a_transform: Mat4, b_transform: Mat4) -> Vec3 {
     let a_center = a_transform.transform_point3(Vec3::ZERO);
     let b_center = b_transform.transform_point3(Vec3::ZERO);
     let dir = b_center - a_center;
-    if dir.length_squared() <= EPSILON {
-        Vec3::NEG_Z
+    let biased = dir + Vec3::new(0.137, 0.223, 0.389);
+    if biased.length_squared() <= EPSILON {
+        Vec3::new(1.0, 1.0, 1.0)
     } else {
-        dir
+        biased
     }
 }
 
@@ -102,10 +250,8 @@ fn handle_line(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
     let ab = b - a;
     let ab_len_sq = ab.length_squared();
     if ab_len_sq <= EPSILON {
-        // Degenerate line (both points coincide). Keep both points so EPA
-        // always receives at least a 2-point simplex.
+        // Degenerate line (both points coincide).
         *dir = -a;
-        // Let the main loop's zero-direction check handle containment.
         return false;
     }
 
@@ -130,11 +276,57 @@ fn handle_line(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
     let closest = a + ab * t;
     *dir = -closest;
     if dir.length_squared() <= EPSILON {
-        // Origin is on the line segment. Don't declare containment yet;
-        // keep the 2-point simplex and let the main loop detect it.
         *dir = Vec3::ZERO;
     }
     false
+}
+
+fn fallback_direction_from_simplex(simplex: &[Vec3]) -> Vec3 {
+    match simplex.len() {
+        0 => Vec3::X,
+        1 => {
+            let a = simplex[0];
+            if a.length_squared() <= EPSILON {
+                Vec3::X
+            } else {
+                -a
+            }
+        }
+        2 => any_perpendicular(simplex[1] - simplex[0]),
+        3 => {
+            let a = simplex[2];
+            let b = simplex[1];
+            let c = simplex[0];
+            let normal = (b - a).cross(c - a);
+            if normal.length_squared() <= EPSILON {
+                any_perpendicular(b - a)
+            } else {
+                normal
+            }
+        }
+        _ => Vec3::X,
+    }
+}
+
+fn any_perpendicular(v: Vec3) -> Vec3 {
+    if v.length_squared() <= EPSILON {
+        return Vec3::X;
+    }
+
+    let axis = if v.x.abs() <= v.y.abs() && v.x.abs() <= v.z.abs() {
+        Vec3::X
+    } else if v.y.abs() <= v.z.abs() {
+        Vec3::Y
+    } else {
+        Vec3::Z
+    };
+
+    let perp = v.cross(axis);
+    if perp.length_squared() <= EPSILON {
+        Vec3::X
+    } else {
+        perp
+    }
 }
 
 fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
@@ -211,15 +403,13 @@ fn handle_triangle(simplex: &mut Vec<Vec3>, dir: &mut Vec3) -> bool {
     }
 
     // Origin is inside the triangle (in barycentric sense). The search
-    // direction is the triangle normal toward the origin.
+    // direction is the closest point on the triangle toward the origin.
     let denom = 1.0 / (va + vb + vc);
     let v = vb * denom;
     let w = vc * denom;
     let closest = a + ab * v + ac * w;
     *dir = -closest;
     if dir.length_squared() <= EPSILON {
-        // Origin is on the triangle plane. Keep the full 3-point simplex and
-        // let the main loop's zero-direction check handle containment.
         *dir = Vec3::ZERO;
     }
     false
@@ -260,8 +450,7 @@ fn face_outside(a: Vec3, b: Vec3, c: Vec3, opposite: Vec3, ao: Vec3) -> Option<(
     }
 
     if normal.dot(ao) > 0.0 {
-        let face = vec![c, b, a];
-        return Some((face, normal));
+        return Some((vec![c, b, a], normal));
     }
 
     None
@@ -384,10 +573,10 @@ mod tests {
         };
         let cuboid = ConvexCollider::cuboid_from_aabb(aabb, CollisionLayer::Default);
         let sphere = ConvexCollider::sphere(1.5, CollisionLayer::Default);
-        let a_transform = transform_at(Vec3::ZERO);
-        let b_transform = transform_at(Vec3::new(1.0, 0.0, 0.0));
+        let cube_transform = transform_at(Vec3::ZERO);
+        let sphere_transform = transform_at(Vec3::new(1.0, 0.0, 0.0));
 
-        let result = gjk_intersect(&cuboid, a_transform, &sphere, b_transform);
+        let result = gjk_intersect(&cuboid, cube_transform, &sphere, sphere_transform);
         match result {
             GjkResult::Intersection(hit) => {
                 assert!(!hit.simplex.is_empty());
@@ -404,10 +593,10 @@ mod tests {
         };
         let cuboid = ConvexCollider::cuboid_from_aabb(aabb, CollisionLayer::Default);
         let sphere = ConvexCollider::sphere(1.0, CollisionLayer::Default);
-        let a_transform = transform_at(Vec3::ZERO);
-        let b_transform = transform_at(Vec3::new(3.1, 0.0, 0.0));
+        let cube_transform = transform_at(Vec3::ZERO);
+        let sphere_transform = transform_at(Vec3::new(3.1, 0.0, 0.0));
 
-        let result = gjk_intersect(&cuboid, a_transform, &sphere, b_transform);
+        let result = gjk_intersect(&cuboid, cube_transform, &sphere, sphere_transform);
         assert_eq!(result, GjkResult::NoIntersection);
     }
 
@@ -574,8 +763,8 @@ mod tests {
     }
 
     #[test]
-    fn gjk_simplex_has_at_least_two_points() {
-        // Ensure GJK always returns a simplex with >= 2 points for EPA
+    fn gjk_simplex_has_4_points() {
+        // Ensure GJK always returns a simplex with 4 points for EPA
         let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let a_transform = transform_at(Vec3::ZERO);
         let b_transform = transform_at(Vec3::new(0.5, 0.0, 0.0));
@@ -614,13 +803,31 @@ mod tests {
     }
 
     #[test]
-    fn gjk_coplaner_faces_cuboids() {
+    fn gjk_coplanar_faces_cuboids() {
         let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let a_transform = transform_at(Vec3::ZERO);
         let b_transform = transform_at(Vec3::new(0.0, 0.0, 2.0)); // Just touching along Z
 
         let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
-        dbg!(&result);
+        match result {
+            GjkResult::Intersection(hit) => {
+                panic!(
+                    "Expected no intersection for coplanar faces, but got simplex with {} points",
+                    hit.simplex.len()
+                );
+            }
+            GjkResult::NoIntersection => {}
+        }
+    }
+
+    #[test]
+    fn gjk_nearly_coplanar_faces_cuboids_1e() {
+        let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let m_epsilon = EPSILON * 1.0;
+        let b_transform = transform_at(Vec3::new(0.0, 0.0, 2.0 - m_epsilon)); // Just touching along Z
+
+        let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
         match result {
             GjkResult::Intersection(hit) => {
                 println!("GJK simplex size: {:?}", hit.simplex.len());
@@ -635,14 +842,13 @@ mod tests {
     }
 
     #[test]
-    fn gjk_nearly_coplaner_faces_cuboids() {
+    fn gjk_nearly_coplanar_faces_cuboids_half_e() {
         let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let a_transform = transform_at(Vec3::ZERO);
-        let m_epsilon = EPSILON * 100.0;
+        let m_epsilon = EPSILON * 0.5;
         let b_transform = transform_at(Vec3::new(0.0, 0.0, 2.0 - m_epsilon)); // Just touching along Z
 
         let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
-        dbg!(&result);
         match result {
             GjkResult::Intersection(hit) => {
                 println!("GJK simplex size: {:?}", hit.simplex.len());
@@ -653,6 +859,38 @@ mod tests {
                 );
             }
             _ => panic!("Expected intersection for nearly coplanar faces."),
+        }
+    }
+
+    #[test]
+    fn gjk_nearly_coplanar_faces_cuboids_half_e_no_hit() {
+        let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let m_epsilon = EPSILON * 0.5;
+        let b_transform = transform_at(Vec3::new(0.0, 0.0, 2.0 + m_epsilon)); // Just touching along Z
+
+        let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+        match result {
+            GjkResult::NoIntersection => {}
+            _ => {
+                panic!("Expected no intersection for nearly coplanar faces with positive epsilon.")
+            }
+        }
+    }
+
+    #[test]
+    fn gjk_nearly_coplanar_faces_cuboids_e_no_hit() {
+        let cube = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO);
+        let m_epsilon = EPSILON * 1.0;
+        let b_transform = transform_at(Vec3::new(0.0, 0.0, 2.0 + m_epsilon)); // Just touching along Z
+
+        let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
+        match result {
+            GjkResult::NoIntersection => {}
+            _ => {
+                panic!("Expected no intersection for nearly coplanar faces with positive epsilon.")
+            }
         }
     }
 
@@ -665,7 +903,6 @@ mod tests {
         let b_transform = transform_at(Vec3::new(0.0, 0.0, size - diff));
 
         let result = gjk_intersect(&cube, a_transform, &cube, b_transform);
-        dbg!(&result);
         match result {
             GjkResult::Intersection(hit) => {
                 println!("GJK simplex size: {:?}", hit.simplex.len());

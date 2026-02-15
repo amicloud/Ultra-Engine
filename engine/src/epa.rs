@@ -21,6 +21,7 @@ struct Face {
     normal: Vec3,
     distance: f32,
 }
+
 pub fn epa(
     a: &ConvexCollider,
     a_transform: Mat4,
@@ -29,8 +30,7 @@ pub fn epa(
     simplex: &[Vec3],
     _previous_manifold: Option<&ContactManifold>,
 ) -> Option<EpaResult> {
-    let (mut vertices, mut faces) =
-        build_initial_polytope(a, a_transform, b, b_transform, simplex)?;
+    let (mut vertices, mut faces) = build_initial_polytope(simplex)?;
 
     vertices.reserve(64);
     faces.reserve(128);
@@ -129,18 +129,18 @@ fn orient_result(
     (normal, penetration_depth)
 }
 
-fn build_initial_polytope(
-    a: &ConvexCollider,
-    a_transform: Mat4,
-    b: &ConvexCollider,
-    b_transform: Mat4,
-    simplex: &[Vec3],
-) -> Option<(Vec<Vec3>, Vec<Face>)> {
+fn build_initial_polytope(simplex: &[Vec3]) -> Option<(Vec<Vec3>, Vec<Face>)> {
     let vertices: Vec<Vec3> = simplex.to_vec();
 
     match vertices.len() {
         4 => {}
-        _ => return None,
+        _ => {
+            println!(
+                "EPA requires a tetrahedral simplex, got {} vertices",
+                vertices.len()
+            );
+            return None;
+        }
     }
 
     let mut faces = Vec::with_capacity(4);
@@ -157,75 +157,6 @@ fn build_initial_polytope(
     }
 
     Some((vertices, faces))
-}
-
-fn fallback_direction(a: Vec3, b: Vec3) -> Vec3 {
-    let ab = b - a;
-    let axis = if ab.cross(Vec3::X).length_squared() > EPSILON {
-        Vec3::X
-    } else if ab.cross(Vec3::Y).length_squared() > EPSILON {
-        Vec3::Y
-    } else {
-        Vec3::Z
-    };
-
-    let perp = ab.cross(axis);
-    if perp.length_squared() <= EPSILON {
-        Vec3::Z
-    } else {
-        perp.normalize()
-    }
-}
-
-fn direction_to_origin_line(a: Vec3, b: Vec3) -> Option<Vec3> {
-    let ab = b - a;
-    let ao = -a;
-    let perp = ab.cross(ao).cross(ab);
-    if perp.length_squared() <= EPSILON {
-        None
-    } else {
-        Some(perp.normalize())
-    }
-}
-
-fn direction_to_origin_triangle(a: Vec3, b: Vec3, c: Vec3) -> Option<Vec3> {
-    let ab = b - a;
-    let ac = c - a;
-    let mut normal = ab.cross(ac);
-    if normal.length_squared() <= EPSILON {
-        return None;
-    }
-
-    if normal.dot(-a) < 0.0 {
-        normal = -normal;
-    }
-
-    Some(normal.normalize())
-}
-
-fn support_unique(
-    a: &ConvexCollider,
-    a_transform: Mat4,
-    b: &ConvexCollider,
-    b_transform: Mat4,
-    dir: Vec3,
-    existing: &[Vec3],
-) -> Option<Vec3> {
-    let mut support = support_minkowski(a, a_transform, b, b_transform, dir);
-    if existing
-        .iter()
-        .any(|p| (*p - support).length_squared() <= EPSILON)
-    {
-        support = support_minkowski(a, a_transform, b, b_transform, -dir);
-        if existing
-            .iter()
-            .any(|p| (*p - support).length_squared() <= EPSILON)
-        {
-            return None;
-        }
-    }
-
-    Some(support)
 }
 
 fn make_face_outward(vertices: &[Vec3], a: usize, b: usize, c: usize) -> Option<Face> {
