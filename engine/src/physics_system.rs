@@ -380,8 +380,8 @@ impl PhysicsSystem {
                     if linear_speed < linear_rest_threshold
                         && angular_speed < angular_rest_threshold
                     {
-                        // Strong rolling/spin damping while supported.
-                        vel.angular *= 0.85;
+                        // Weak rolling/spin damping while supported.
+                        vel.angular *= 0.99;
 
                         let vertical_speed = vel.translational.dot(up);
                         if vertical_speed.abs() < 0.5 {
@@ -395,7 +395,7 @@ impl PhysicsSystem {
                         }
 
                         // Hard lock very small residual motion so bodies fully settle.
-                        if vel.angular.z < 0.01 {
+                        if vel.angular.z.abs() < 0.01 {
                             vel.angular.z = 0.0;
                         }
                         if vel.translational.length() < 0.01 {
@@ -430,7 +430,7 @@ impl PhysicsSystem {
         }
 
         Self::positional_correction(&physics_frame_data.constraints, &mut query);
-        Self::stabilize_resting_contacts(&collision_frame_data, &mut query);
+        // Self::stabilize_resting_contacts(&collision_frame_data, &mut query);
         physics_frame_data.clear();
     }
 }

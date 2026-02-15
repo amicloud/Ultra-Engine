@@ -230,8 +230,8 @@ mod tests {
     use crate::gjk::{GjkResult, gjk_intersect};
     use crate::mesh::AABB;
     use crate::transform_component::TransformComponent;
+    use assert_approx_eq::assert_approx_eq;
     use glam::{Quat, Vec3};
-
     fn transform_at(position: Vec3, rotation: Quat) -> Mat4 {
         TransformComponent {
             position,
@@ -379,5 +379,64 @@ mod tests {
         assert!(result.penetration_depth > 0.0);
         assert!((result.penetration_depth - 1.5).abs() < 0.4);
         assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+    }
+
+    #[test]
+    fn epa_box_vs_box_colliding_nearly_coplanar_1e() {
+        let a = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let b = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO, Quat::IDENTITY);
+
+        let e = EPSILON * 1.0;
+
+        let b_transform = transform_at(Vec3::new(0.0, 0.0, 2.0 - e), Quat::IDENTITY);
+
+        let result = run_epa(&a, a_transform, &b, b_transform);
+        assert!(result.penetration_depth > 0.0);
+        assert_approx_eq!(result.penetration_depth, e, EPSILON);
+        assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+    }
+
+    #[test]
+    fn epa_box_vs_box_colliding_nearly_coplanar_sweep() {
+        let a = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let b = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO, Quat::IDENTITY);
+        let coplanar_point = 2.0;
+
+        for i in 1..10_000 {
+            let e = (1000.0 * EPSILON) / i as f32;
+            let b_transform =
+                transform_at(Vec3::new(0.0, 0.0, coplanar_point - (e)), Quat::IDENTITY);
+            let result = run_epa(&a, a_transform, &b, b_transform);
+            assert!(result.penetration_depth > 0.0);
+            assert_approx_eq!(result.penetration_depth, e, EPSILON);
+            assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+        }
+    }
+
+    #[test]
+    fn epa_box_vs_prism_colliding_nearly_coplanar_sweep() {
+        // let a = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a = ConvexCollider::triangle_prism(
+            Vec3::new(-5.0, 5.0, 0.0),
+            Vec3::new(5.0, 5.0, 0.0),
+            Vec3::new(0.0, -5.0, 0.0),
+            2.0,
+            CollisionLayer::Default,
+        );
+        let b = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let a_transform = transform_at(Vec3::ZERO, Quat::IDENTITY);
+        let coplanar_point = 2.0;
+
+        for i in 1..10_000 {
+            let e = (1000.0 * EPSILON) / i as f32;
+            let b_transform =
+                transform_at(Vec3::new(0.0, 0.0, coplanar_point - (e)), Quat::IDENTITY);
+            let result = run_epa(&a, a_transform, &b, b_transform);
+            assert!(result.penetration_depth > 0.0);
+            assert_approx_eq!(result.penetration_depth, e, EPSILON);
+            assert_normal_points_from_a_to_b(result.normal, a_transform, b_transform);
+        }
     }
 }

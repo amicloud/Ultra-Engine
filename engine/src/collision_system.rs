@@ -1250,33 +1250,6 @@ fn convex_mesh_contact_at_transform(
                 let (mut normal, penetration_depth) = match epa_result {
                     Some(result) => (result.normal, result.penetration_depth),
                     None => {
-                        // EPA can still fail on near-degenerate configurations.
-                        // Fallback to plane-based contact from triangle normal.
-                        let Some(mut n) = face_normal_world else {
-                            continue;
-                        };
-                        let tri_center_local = (tri.v0 + tri.v1 + tri.v2) / 3.0;
-                        let tri_center_world = mesh_world.transform_point3(tri_center_local);
-                        let convex_center_world = convex_world.transform_point3(Vec3::ZERO);
-                        if n.dot(convex_center_world - tri_center_world) < 0.0 {
-                            n = -n;
-                        }
-
-                        let support = convex_collider.support(convex_world, -n);
-                        let signed_dist = (support - tri_world.v0).dot(n);
-                        if signed_dist >= 0.0 {
-                            continue;
-                        }
-
-                        let penetration = -signed_dist;
-                        let projected = support - n * signed_dist;
-                        let contact_point = closest_point_on_triangle(projected, &tri_world);
-
-                        candidates.push(ContactCandidate {
-                            point: contact_point,
-                            normal: n,
-                            penetration,
-                        });
                         continue;
                     }
                 };
