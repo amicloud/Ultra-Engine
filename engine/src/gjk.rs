@@ -1001,7 +1001,6 @@ mod tests {
 
     #[test]
     fn gjk_box_vs_prism_colliding_nearly_coplanar_sweep_simplex_comparisons() {
-        // let a = ConvexCollider::cube(2.0, CollisionLayer::Default);
         let a = ConvexCollider::triangle_prism(
             Vec3::new(-5.0, 5.0, 0.0),
             Vec3::new(5.0, 5.0, 0.0),

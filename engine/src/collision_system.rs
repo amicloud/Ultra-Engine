@@ -18,6 +18,7 @@ use crate::{
     physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource},
     physics_system::delta_time,
     render_resource_manager::RenderResourceManager,
+    transform_component,
     velocity_component::VelocityComponent,
 };
 
@@ -311,15 +312,21 @@ impl CollisionSystem {
             merged_contacts.extend_from_slice(&manifold.contacts);
         }
         frame.contacts.extend(merged_contacts);
-        if frame.contacts.len() > 0 {
-            frame
-                .contacts
-                .iter()
-                .filter(|c| c.penetration > 1.0)
-                .for_each(|c| {
-                    dbg!(c.penetration);
-                });
-        }
+        frame
+            .contacts
+            .iter()
+            .filter(|c| c.penetration > 1.0)
+            .for_each(|c| {
+                dbg!(c.penetration);
+                dbg!(c.entity_a);
+                let transform_a = all_query.get(c.entity_a).ok().map(|(_, t, ..)| t);
+                dbg!(transform_a);
+                dbg!(c.entity_b);
+                let transform_b = all_query.get(c.entity_b).ok().map(|(_, t, ..)| t);
+                dbg!(transform_b);
+                dbg!(c.contact_point);
+                dbg!(c.normal);
+            });
     }
 }
 
@@ -1439,6 +1446,7 @@ mod tests {
     use super::*;
     use approx::assert_relative_eq;
     use glam::{Mat4, Quat, Vec3};
+    use std::path::Path;
 
     fn make_transform(position: Vec3, rotation: Quat, scale: Vec3) -> TransformComponent {
         TransformComponent {
@@ -1454,6 +1462,48 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(0.0, 1.0, 0.0),
         }
+    }
+
+    fn load_obj_triangles(obj_path: &str) -> Vec<Triangle> {
+        let (models, _) = tobj::load_obj(
+            Path::new(obj_path),
+            &tobj::LoadOptions {
+                triangulate: true,
+                single_index: true,
+                ..Default::default()
+            },
+        )
+        .expect("Failed to load OBJ");
+
+        let mut triangles = Vec::new();
+        for model in models {
+            let mesh = model.mesh;
+            for tri_idx in (0..mesh.indices.len()).step_by(3) {
+                let i0 = mesh.indices[tri_idx] as usize;
+                let i1 = mesh.indices[tri_idx + 1] as usize;
+                let i2 = mesh.indices[tri_idx + 2] as usize;
+
+                let v0 = Vec3::new(
+                    mesh.positions[i0 * 3],
+                    mesh.positions[i0 * 3 + 1],
+                    mesh.positions[i0 * 3 + 2],
+                );
+                let v1 = Vec3::new(
+                    mesh.positions[i1 * 3],
+                    mesh.positions[i1 * 3 + 1],
+                    mesh.positions[i1 * 3 + 2],
+                );
+                let v2 = Vec3::new(
+                    mesh.positions[i2 * 3],
+                    mesh.positions[i2 * 3 + 1],
+                    mesh.positions[i2 * 3 + 2],
+                );
+
+                triangles.push(Triangle { v0, v1, v2 });
+            }
+        }
+
+        triangles
     }
 
     #[test]
@@ -2030,5 +2080,142 @@ mod tests {
         .expect("Expected overlap for rotated+scaled cuboid");
 
         assert!(contact.penetration > 0.0);
+    }
+
+    #[test]
+    fn reproduce_large_penetration_from_main_scene_snapshot() {
+        let mesh_transform = TransformComponent {
+            position: Vec3::new(0.0, 0.0, -20.0),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::splat(10.0),
+        };
+
+        let convex_transform = TransformComponent {
+            position: Vec3::new(0.14915955, 0.91336507, -17.742033),
+            rotation: Quat::from_xyzw(-0.0040421374, -0.003234554, 0.33637854, 0.9417117),
+            scale: Vec3::ONE,
+        };
+
+        let convex_collider =
+            ConvexCollider::cuboid(Vec3::new(2.0, 2.0, 2.000001), CollisionLayer::Player);
+        let ground_obj = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../resources/models/test_ground/test_ground.obj");
+        let triangles = load_obj_triangles(ground_obj.to_str().expect("Invalid UTF-8 path"));
+        let bvh = BVHNode::build(triangles, 8);
+
+        let mesh_world = mesh_transform.to_mat4();
+        let mesh_world_inv = mesh_world.inverse();
+        let convex_world = convex_transform.to_mat4();
+
+        let candidates = convex_mesh_contact_at_transform(
+            &convex_collider,
+            convex_world,
+            &mesh_world,
+            &mesh_world_inv,
+            &bvh,
+            None,
+        );
+
+        assert!(
+            !candidates.is_empty(),
+            "Expected at least one convex-vs-mesh contact candidate"
+        );
+
+        let contacts = reduce_contact_candidates(
+            Entity::from_bits(3),
+            Entity::from_bits(2),
+            candidates,
+            convex_collider.aabb(&convex_world),
+        );
+
+        assert!(
+            !contacts.is_empty(),
+            "Expected reduced contact set to be non-empty"
+        );
+
+        let best_penetration = contacts
+            .iter()
+            .map(|c| c.penetration)
+            .fold(0.0_f32, f32::max);
+
+        assert!(
+            best_penetration > 1.0,
+            "Expected to reproduce large penetration > 1.0, got {}",
+            best_penetration
+        );
+
+        let best = contacts
+            .iter()
+            .max_by(|a, b| a.penetration.total_cmp(&b.penetration))
+            .unwrap();
+        assert!(
+            best.normal.z > 0.9,
+            "Expected near +Z normal, got {:?}",
+            best.normal
+        );
+    }
+
+    #[test]
+    #[ignore = "Enable after penetration fix lands"]
+    fn target_penetration_bound_for_main_scene_snapshot() {
+        let mesh_transform = TransformComponent {
+            position: Vec3::new(0.0, 0.0, -20.0),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::splat(10.0),
+        };
+
+        let convex_transform = TransformComponent {
+            position: Vec3::new(0.14915955, 0.91336507, -17.742033),
+            rotation: Quat::from_xyzw(-0.0040421374, -0.003234554, 0.33637854, 0.9417117),
+            scale: Vec3::ONE,
+        };
+
+        let convex_collider =
+            ConvexCollider::cuboid(Vec3::new(2.0, 2.0, 2.000001), CollisionLayer::Player);
+        let ground_obj = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../resources/models/test_ground/test_ground.obj");
+        let triangles = load_obj_triangles(ground_obj.to_str().expect("Invalid UTF-8 path"));
+        let bvh = BVHNode::build(triangles, 8);
+
+        let mesh_world = mesh_transform.to_mat4();
+        let mesh_world_inv = mesh_world.inverse();
+        let convex_world = convex_transform.to_mat4();
+
+        let candidates = convex_mesh_contact_at_transform(
+            &convex_collider,
+            convex_world,
+            &mesh_world,
+            &mesh_world_inv,
+            &bvh,
+            None,
+        );
+
+        assert!(
+            !candidates.is_empty(),
+            "Expected at least one convex-vs-mesh contact candidate"
+        );
+
+        let contacts = reduce_contact_candidates(
+            Entity::from_bits(3),
+            Entity::from_bits(2),
+            candidates,
+            convex_collider.aabb(&convex_world),
+        );
+
+        assert!(
+            !contacts.is_empty(),
+            "Expected reduced contact set to be non-empty"
+        );
+
+        let best_penetration = contacts
+            .iter()
+            .map(|c| c.penetration)
+            .fold(0.0_f32, f32::max);
+
+        assert!(
+            best_penetration <= 0.25,
+            "Penetration bound violated for snapshot: {}",
+            best_penetration
+        );
     }
 }
