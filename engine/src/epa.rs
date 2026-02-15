@@ -5,9 +5,10 @@ use glam::{Mat4, Vec3};
 
 use crate::{collider_component::ConvexCollider, physics_resource::ContactManifold};
 
-const EPA_MAX_ITERATIONS: usize = 128;
+const EPA_MAX_ITERATIONS: usize = 256;
 const EPA_TOLERANCE: f32 = 1e-4;
 const EPSILON: f32 = 1e-6;
+const FACE_VISIBILITY_EPSILON: f32 = 1e-6;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EpaResult {
@@ -62,6 +63,24 @@ pub fn epa(
                 });
             }
 
+            // If support is numerically identical to an existing vertex, the
+            // polytope cannot expand further in this direction.
+            if vertices
+                .iter()
+                .any(|v| (*v - support).length_squared() <= EPSILON * 10.0)
+            {
+                let (normal, penetration_depth) = orient_result(
+                    closest_face.normal,
+                    closest_face.distance,
+                    a_transform,
+                    b_transform,
+                );
+                return Some(EpaResult {
+                    normal,
+                    penetration_depth,
+                });
+            }
+
             let new_index = vertices.len();
             vertices.push(support);
 
@@ -81,7 +100,16 @@ pub fn epa(
 
             // SAFETY: if no horizon edges, break early
             if horizon_edges.is_empty() {
-                break;
+                let (normal, penetration_depth) = orient_result(
+                    closest_face.normal,
+                    closest_face.distance,
+                    a_transform,
+                    b_transform,
+                );
+                return Some(EpaResult {
+                    normal,
+                    penetration_depth,
+                });
             }
 
             // ---- Rebuild faces from horizon ----
@@ -94,12 +122,18 @@ pub fn epa(
                 }
             }
         }
+        if new_faces.is_empty() {
+            let closest_index = find_closest_face(&faces)?;
+            let face = &faces[closest_index];
+            let (normal, penetration_depth) =
+                orient_result(face.normal, face.distance, a_transform, b_transform);
+            return Some(EpaResult {
+                normal,
+                penetration_depth,
+            });
+        }
         std::mem::swap(&mut faces, &mut new_faces);
     }
-    println!(
-        "EPA failed to converge after {} iterations",
-        EPA_MAX_ITERATIONS
-    );
     // Fallback: return closest face we have
     let closest_index = find_closest_face(&faces)?;
     let face = &faces[closest_index];
@@ -200,7 +234,7 @@ fn find_closest_face(faces: &[Face]) -> Option<usize> {
 
 fn is_face_visible(vertices: &[Vec3], face: &Face, point: Vec3) -> bool {
     let face_point = vertices[face.indices[0]];
-    face.normal.dot(point - face_point) > 0.0
+    face.normal.dot(point - face_point) > FACE_VISIBILITY_EPSILON
 }
 
 fn add_edge(edges: &mut Vec<(usize, usize)>, a: usize, b: usize) {

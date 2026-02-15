@@ -100,12 +100,15 @@ fn main() {
             apply_flying_camera_input,
             apply_flying_camera_movement,
             apply_player_movement_impulses,
-            apply_switch_camera_input,
             // do_gameplay,
             // update_bowl_float,
         )
             .chain(),
     );
+
+    engine
+        .game_frame_schedule
+        .add_systems((apply_switch_camera_input,).chain());
 
     // engine.world.insert_resource(BowlFloatTime::default());
 
@@ -168,7 +171,7 @@ fn main() {
         PlayerComponent { speed: 1.0 },
     ));
 
-    (0..300).for_each(|i| {
+    (0..10000).for_each(|i| {
         engine.world.spawn((
             TransformComponent {
                 position: Vec3::new(0.0, 0.0, i as f32 * 3.01),
