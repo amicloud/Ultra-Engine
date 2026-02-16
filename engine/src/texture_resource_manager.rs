@@ -1,4 +1,5 @@
 use crate::handles::TextureHandle;
+use crate::renderer;
 use crate::texture::Texture;
 use glow::Context;
 use image::GenericImageView;
@@ -12,7 +13,6 @@ pub struct TextureResource {
     pub default_normal_map: TextureHandle,
 }
 
-#[allow(dead_code)]
 impl TextureResource {
     pub fn add_texture(&mut self, texture: Texture) -> TextureHandle {
         let id = texture.id;
@@ -31,7 +31,6 @@ impl TextureResource {
         id
     }
 
-    #[allow(dead_code)]
     pub fn load_from_file(&mut self, gl: &Context, path: &OsStr) -> TextureHandle {
         // Load image with the `image` crate
         let img = image::open(path).expect(&format!("Failed to open texture image: {:?}", path));
@@ -40,14 +39,14 @@ impl TextureResource {
         let id = self.make_hashed_id(&path);
 
         let mut tex = Texture::new(id, width, height);
-        tex.upload_to_gpu(gl, &rgba);
+        renderer::Renderer::upload_texture_to_gpu(&mut tex, gl, &rgba);
         self.add_texture(tex)
     }
 
     pub fn create_solid_rgba(&mut self, gl: &Context, rgba: [u8; 4]) -> TextureHandle {
         let id = self.make_hashed_id(&("solid_rgba", rgba));
         let mut tex = Texture::new(id, 1, 1);
-        tex.upload_to_gpu(gl, &rgba);
+        renderer::Renderer::upload_texture_to_gpu(&mut tex, gl, &rgba);
         self.add_texture(tex)
     }
 
@@ -61,7 +60,7 @@ impl TextureResource {
     ) -> TextureHandle {
         let id = self.make_hashed_id(key);
         let mut tex = Texture::new(id, width, height);
-        tex.upload_to_gpu(gl, rgba);
+        renderer::Renderer::upload_texture_to_gpu(&mut tex, gl, rgba);
         self.add_texture(tex)
     }
 
@@ -70,7 +69,7 @@ impl TextureResource {
         let pixels: [u8; 4] = [128, 128, 255, 255];
         let mut tex = Texture::new(TextureHandle(0), 1, 1);
 
-        tex.upload_to_gpu(gl, &pixels);
+        renderer::Renderer::upload_texture_to_gpu(&mut tex, gl, &pixels);
         let id = self.add_texture(tex);
         self.default_normal_map = id;
         id

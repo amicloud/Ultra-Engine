@@ -10,6 +10,7 @@ use crate::shader::InputRate::PerInstance;
 use crate::shader::InputRate::PerVertex;
 use crate::shader::UniformValue;
 use crate::shader::VertexAttribType;
+use crate::texture;
 use glam::{Mat4, Vec3};
 use glow::Context as GlowContext;
 use glow::HasContext;
@@ -402,7 +403,7 @@ impl Renderer {
         }
     }
 
-    pub fn upload_to_gpu(
+    pub fn upload_mesh_to_gpu(
         gl: &glow::Context,
         mesh: &Mesh,
         mesh_render_data: &mut HashMap<MeshHandle, MeshRenderData>,
@@ -446,6 +447,9 @@ impl Renderer {
                 instance_count: 0,
             };
             mesh_render_data.insert(mesh.id, mesh_data);
+
+            // Unbind the vertex array to avoid accidental state corruption.
+            gl.bind_vertex_array(None);
         }
     }
 
@@ -455,6 +459,8 @@ impl Renderer {
         mesh_render_data: &mut HashMap<MeshHandle, MeshRenderData>,
         instance_matrices: &[[f32; 16]],
     ) {
+
+        
         let mesh_data = mesh_render_data
             .get_mut(&mesh_handle)
             .expect("Mesh not found");
@@ -463,8 +469,9 @@ impl Renderer {
             return;
         }
 
-        let instance_buf = mesh_data.instance_vbo.unwrap();
+        mesh_data.instance_count = instance_matrices.len();
 
+        let instance_buf = mesh_data.instance_vbo.unwrap();
         unsafe {
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(instance_buf));
             gl.buffer_data_u8_slice(
@@ -473,8 +480,6 @@ impl Renderer {
                 glow::DYNAMIC_DRAW,
             );
             gl.bind_buffer(glow::ARRAY_BUFFER, None);
-
-            mesh_data.instance_count = instance_matrices.len();
         }
     }
 
@@ -500,7 +505,7 @@ impl Renderer {
                 .mesh_manager
                 .get_mesh(*mesh)
                 .expect("Mesh not found");
-            Self::upload_to_gpu(gl, mesh_data, mesh_render_data);
+            Self::upload_mesh_to_gpu(gl, mesh_data, mesh_render_data);
         }
 
         let mesh_data = mesh_render_data.get(mesh).unwrap();
@@ -655,6 +660,50 @@ impl Renderer {
                     return 1;
                 }
             }
+        }
+    }
+
+    /// Upload raw RGBA bytes to GPU
+    pub fn upload_texture_to_gpu(texture: &mut texture::Texture, gl: &glow::Context, data: &[u8]) {
+        unsafe {
+            let tex = gl.create_texture().expect("Failed to create texture");
+            gl.bind_texture(glow::TEXTURE_2D, Some(tex));
+            gl.pixel_store_i32(glow::UNPACK_ALIGNMENT, 1);
+
+            // Set wrapping
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+
+            // Upload texture data
+            gl.tex_image_2d(
+                glow::TEXTURE_2D,
+                0,                 // base mip level
+                glow::RGBA as i32, // internal format
+                texture.width as i32,
+                texture.height as i32,
+                0,          // border must be 0
+                glow::RGBA, // format
+                glow::UNSIGNED_BYTE,
+                glow::PixelUnpackData::Slice(Some(data)),
+            );
+
+            // Generate mipmaps
+            gl.generate_mipmap(glow::TEXTURE_2D);
+
+            // Set filtering to use mipmaps
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MIN_FILTER,
+                glow::LINEAR_MIPMAP_LINEAR as i32, // trilinear filtering
+            );
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MAG_FILTER,
+                glow::LINEAR_MIPMAP_LINEAR as i32, // magnification
+            );
+
+            gl.bind_texture(glow::TEXTURE_2D, None);
+            texture.gl_tex = Some(tex);
         }
     }
 }
