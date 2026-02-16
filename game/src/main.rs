@@ -129,7 +129,7 @@ fn main() {
     // });
 
     let player_scale: Vec3 = Vec3::splat(1.0);
-    let player_start = Vec3::new(0.0, 0.0, 2.2);
+    let player_start = Vec3::new(0.0, 5.0, 2.2);
     let player_local_aabb = engine
         .aabb_from_render_body(cube)
         .expect("Player render body AABB not found");
@@ -138,10 +138,6 @@ fn main() {
         player_local_size.max_element() * 0.5,
         CollisionLayer::Player,
     );
-    // NOTE: `ConvexCollider::cube` / `cuboid_from_aabb` in engine currently apply
-    // legacy doubling semantics. Use explicit `cuboid(size)` here to keep the
-    // local collider aligned with the render model and let transform scale drive
-    // world size.
     let cuboid_collider = ConvexCollider::cuboid(player_local_size, CollisionLayer::Player);
     let _egg_collider = ConvexCollider::egg(3.0, player_scale.x, CollisionLayer::Player);
     engine.world.spawn((
@@ -171,33 +167,34 @@ fn main() {
         PlayerComponent { speed: 1.0 },
     ));
 
-    // (0..10).for_each(|i| {
-    //     engine.world.spawn((
-    //         TransformComponent {
-    //             position: Vec3::new(0.0, 0.0, i as f32 * 3.01),
-    //             rotation: Quat::IDENTITY,
-    //             scale: player_scale,
-    //         },
-    //         VelocityComponent {
-    //             translational: Vec3::ZERO,
-    //             angular: Vec3::ZERO,
-    //         },
-    //         RenderBodyComponent {
-    //             render_body_id: cube,
-    //         },
-    //         cuboid_collider,
-    //         PhysicsComponent {
-    //             mass: 5.0,
-    //             physics_type: PhysicsType::Dynamic,
-    //             friction: 0.9,
-    //             drag_coefficient: 0.1,
-    //             angular_drag_coefficient: 0.1,
-    //             restitution: 0.5,
-    //             local_inertia: glam::Mat3::IDENTITY,
-    //         },
-    //         SleepComponent::default(),
-    //     ));
-    // });
+    (1..=10).for_each(|i| {
+        let p = (player_local_size / 2.0) * Vec3::new(0.0, 0.0, i as f32);
+        engine.world.spawn((
+            TransformComponent {
+                position: p,
+                rotation: Quat::IDENTITY,
+                scale: player_scale,
+            },
+            VelocityComponent {
+                translational: Vec3::ZERO,
+                angular: Vec3::ZERO,
+            },
+            RenderBodyComponent {
+                render_body_id: cube,
+            },
+            cuboid_collider,
+            PhysicsComponent {
+                mass: 5.0,
+                physics_type: PhysicsType::Dynamic,
+                friction: 0.9,
+                drag_coefficient: 0.1,
+                angular_drag_coefficient: 0.1,
+                restitution: 0.5,
+                local_inertia: glam::Mat3::IDENTITY,
+            },
+            SleepComponent::default(),
+        ));
+    });
 
     // engine.world.spawn((
     //     TransformComponent {

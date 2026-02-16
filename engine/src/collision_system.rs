@@ -264,7 +264,6 @@ impl CollisionSystem {
         let mut merged_contacts = Vec::new();
         for manifold in frame.manifolds.values() {
             merged_contacts.extend_from_slice(&manifold.contacts);
-            dbg!(&manifold);
         }
         frame.contacts.extend(merged_contacts);
     }
@@ -300,9 +299,7 @@ fn convex_convex_pair_manifold(
     previous_manifold: Option<&ContactManifold>,
 ) -> Option<ContactManifold> {
     let pair = ordered_pair(entity_a, entity_b);
-    let mut new_contacts = Vec::new();
-
-    if let Some(contact) = convex_convex_contact(
+    let contacts = convex_convex_contact(
         entity_a,
         collider_a,
         transform_a,
@@ -312,12 +309,20 @@ fn convex_convex_pair_manifold(
         transform_b,
         velocity_b,
         previous_manifold,
-    ) {
-        new_contacts.push(orient_contact_to_pair(contact, pair));
-    }
+    );
+    let oriented_contacts: Vec<Contact> = contacts
+        .into_iter()
+        .map(|contact| orient_contact_to_pair(contact, pair))
+        .collect();
 
     let merge_distance = manifold_merge_distance_pair_map(world_aabbs, pair.0, pair.1);
-    let merged = merge_contact_manifold(previous_manifold, &new_contacts, merge_distance, 0.95, 4);
+    let merged = merge_contact_manifold(
+        previous_manifold,
+        &oriented_contacts,
+        merge_distance,
+        0.95,
+        4,
+    );
 
     if merged.contacts.is_empty() {
         None
@@ -557,9 +562,9 @@ fn sphere_sphere_contact(
     entity_b: Entity,
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
-) -> Option<Contact> {
-    let radius_a = collider_a.as_sphere_radius()?;
-    let radius_b = collider_b.as_sphere_radius()?;
+) -> Vec<Contact> {
+    let radius_a = collider_a.as_sphere_radius().unwrap();
+    let radius_b = collider_b.as_sphere_radius().unwrap();
 
     let center_a = transform_a.position;
     let center_b = transform_b.position;
@@ -569,7 +574,7 @@ fn sphere_sphere_contact(
     let radius_sum_sq = radius_sum * radius_sum;
 
     if distance_sq >= radius_sum_sq {
-        return None;
+        return Vec::new();
     }
 
     let distance = distance_sq.sqrt();
@@ -583,16 +588,15 @@ fn sphere_sphere_contact(
 
     let contact_point = center_a + normal * radius_a;
 
-    Some(Contact {
+    vec![Contact {
         entity_a,
         entity_b,
         normal,
         penetration,
         contact_point,
-    })
+    }]
 }
 
-/// This should return a Vec<Contact> just like convex_mesh_contact, need to update (TODO)
 fn cuboid_cuboid_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,
@@ -600,10 +604,14 @@ fn cuboid_cuboid_contact(
     entity_b: Entity,
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
-) -> Option<Contact> {
+) -> Vec<Contact> {
     // Extract half-sizes of cuboids
-    let (a_len, a_wid, a_hei) = collider_a.as_cuboid()?;
-    let (b_len, b_wid, b_hei) = collider_b.as_cuboid()?;
+    let Some((a_len, a_wid, a_hei)) = collider_a.as_cuboid() else {
+        return Vec::new();
+    };
+    let Some((b_len, b_wid, b_hei)) = collider_b.as_cuboid() else {
+        return Vec::new();
+    };
 
     // Build world transforms that include scale.
     let a_mat = transform_a.to_mat4();
@@ -718,7 +726,7 @@ fn cuboid_cuboid_contact(
         let rb = b_extents.x * abs_r[i][0] + b_extents.y * abs_r[i][1] + b_extents.z * abs_r[i][2];
         let sep = t_a[i].abs() - (ra + rb);
         if sep > 0.0 {
-            return None;
+            return Vec::new();
         }
         let mut axis = a_axes[i];
         if t_a[i] < 0.0 {
@@ -734,7 +742,7 @@ fn cuboid_cuboid_contact(
         let t_b = t_a.x * r[0][j] + t_a.y * r[1][j] + t_a.z * r[2][j];
         let sep = t_b.abs() - (ra + rb);
         if sep > 0.0 {
-            return None;
+            return Vec::new();
         }
         let mut axis = b_axes[j];
         if t_b < 0.0 {
@@ -759,7 +767,7 @@ fn cuboid_cuboid_contact(
                 t_a[(i + 2) % 3] * r[(i + 1) % 3][j] - t_a[(i + 1) % 3] * r[(i + 2) % 3][j];
             let sep = t_term.abs() - (ra + rb);
             if sep > 0.0 {
-                return None;
+                return Vec::new();
             }
 
             let mut axis_world = axis.normalize();
@@ -771,22 +779,62 @@ fn cuboid_cuboid_contact(
     }
 
     if best_axis.length_squared() <= eps {
-        return None;
+        return Vec::new();
     }
 
-    // Compute contact point as midpoint along normal
+    // Build up to 4 contact points from vertices inside the opposing OBB.
     let normal = best_axis.normalize();
-    let a_support = collider_a.support(transform_a.to_mat4(), normal);
-    let b_support = collider_b.support(transform_b.to_mat4(), -normal);
-    let contact_point = (a_support + b_support) * 0.5;
+    let a_vertices = cuboid_world_vertices(a_center, a_axes, a_extents);
+    let b_vertices = cuboid_world_vertices(b_center, b_axes, b_extents);
 
-    Some(Contact {
-        entity_a,
-        entity_b,
-        normal,
-        penetration: min_penetration,
-        contact_point,
-    })
+    let mut candidate_points: Vec<Vec3> = Vec::new();
+    for point in a_vertices {
+        if point_inside_obb(point, b_center, b_axes, b_extents, 1e-4) {
+            candidate_points.push(point);
+        }
+    }
+    for point in b_vertices {
+        if point_inside_obb(point, a_center, a_axes, a_extents, 1e-4) {
+            candidate_points.push(point);
+        }
+    }
+
+    if candidate_points.is_empty() {
+        let a_support = collider_a.support(transform_a.to_mat4(), normal);
+        let b_support = collider_b.support(transform_b.to_mat4(), -normal);
+        candidate_points.push((a_support + b_support) * 0.5);
+    }
+
+    candidate_points.sort_by(|a, b| {
+        a.x.total_cmp(&b.x)
+            .then_with(|| a.y.total_cmp(&b.y))
+            .then_with(|| a.z.total_cmp(&b.z))
+    });
+
+    let mut unique_points: Vec<Vec3> = Vec::new();
+    for point in candidate_points {
+        let already_present = unique_points
+            .iter()
+            .any(|existing| (*existing - point).length_squared() <= 1e-6);
+        if !already_present {
+            unique_points.push(point);
+        }
+    }
+
+    if unique_points.len() > 4 {
+        unique_points.truncate(4);
+    }
+
+    unique_points
+        .into_iter()
+        .map(|contact_point| Contact {
+            entity_a,
+            entity_b,
+            normal,
+            penetration: min_penetration,
+            contact_point,
+        })
+        .collect()
 }
 
 /// This should return a Vec<Contact> just like convex_mesh_contact, need to update (TODO)
@@ -794,189 +842,77 @@ fn convex_convex_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,
     transform_a: &TransformComponent,
-    velocity_a: Option<&VelocityComponent>,
+    _velocity_a: Option<&VelocityComponent>,
     entity_b: Entity,
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
-    velocity_b: Option<&VelocityComponent>,
+    _velocity_b: Option<&VelocityComponent>,
     previous_manifold: Option<&ContactManifold>,
-) -> Option<Contact> {
-    // Fast path for sphere-sphere collisions
+) -> Vec<Contact> {
     match (collider_a.shape, collider_b.shape) {
-        (ConvexShape::Sphere { .. }, ConvexShape::Sphere { .. }) => {
-            return sphere_sphere_contact(
-                entity_a,
+        (ConvexShape::Sphere { .. }, ConvexShape::Sphere { .. }) => sphere_sphere_contact(
+            entity_a,
+            collider_a,
+            transform_a,
+            entity_b,
+            collider_b,
+            transform_b,
+        ),
+        (ConvexShape::Cuboid { .. }, ConvexShape::Cuboid { .. }) => cuboid_cuboid_contact(
+            entity_a,
+            collider_a,
+            transform_a,
+            entity_b,
+            collider_b,
+            transform_b,
+        ),
+        _ => {
+            let contact = gjk_epa(
                 collider_a,
                 transform_a,
-                entity_b,
                 collider_b,
                 transform_b,
-            );
-        }
-        (ConvexShape::Cuboid { .. }, ConvexShape::Cuboid { .. }) => {
-            let contact = cuboid_cuboid_contact(
-                entity_a,
-                collider_a,
-                transform_a,
-                entity_b,
-                collider_b,
-                transform_b,
-            );
-
-            if contact.is_some() {
-                return contact;
-            }
-
-            // If no discrete overlap, try swept CCD for fast-moving cuboids.
-            if let Some(swept) = swept_convex_convex_contact(
-                entity_a,
-                collider_a,
-                transform_a,
-                velocity_a,
-                entity_b,
-                collider_b,
-                transform_b,
-                velocity_b,
                 previous_manifold,
-            ) {
-                return Some(swept);
-            }
+            );
 
-            return None;
+            contact
+                .map(|contact| Contact {
+                    entity_a,
+                    entity_b,
+                    normal: contact.normal,
+                    penetration: contact.penetration_depth,
+                    contact_point: contact.contact_point,
+                })
+                .into_iter()
+                .collect()
         }
-        _ => {}
     }
-
-    let contact = gjk_epa_contact_generator(
-        collider_a,
-        transform_a,
-        collider_b,
-        transform_b,
-        previous_manifold,
-    )?;
-
-    // This should return a manifold, need to update (TODO)
-    Some(Contact {
-        entity_a,
-        entity_b,
-        normal: contact.normal,
-        penetration: contact.penetration_depth,
-        contact_point: contact.contact_point,
-    })
 }
 
-fn swept_convex_convex_contact(
-    entity_a: Entity,
-    collider_a: &ConvexCollider,
-    transform_a: &TransformComponent,
-    velocity_a: Option<&VelocityComponent>,
-    entity_b: Entity,
-    collider_b: &ConvexCollider,
-    transform_b: &TransformComponent,
-    velocity_b: Option<&VelocityComponent>,
-    previous_manifold: Option<&ContactManifold>,
-) -> Option<Contact> {
-    let delta_a = velocity_a
-        .map(|v| v.translational * delta_time())
-        .unwrap_or(Vec3::ZERO);
-    let delta_b = velocity_b
-        .map(|v| v.translational * delta_time())
-        .unwrap_or(Vec3::ZERO);
+fn point_inside_obb(
+    point: Vec3,
+    center: Vec3,
+    axes: [Vec3; 3],
+    extents: Vec3,
+    epsilon: f32,
+) -> bool {
+    let local = point - center;
+    local.dot(axes[0]).abs() <= extents.x + epsilon
+        && local.dot(axes[1]).abs() <= extents.y + epsilon
+        && local.dot(axes[2]).abs() <= extents.z + epsilon
+}
 
-    let rel = delta_b - delta_a;
-    if rel.length_squared() <= 1e-8 {
-        return None;
-    }
-
-    let a_start = transform_a.to_mat4();
-    let b_start = transform_b.to_mat4();
-
-    // If already intersecting, let discrete solver handle it.
-    if matches!(
-        gjk_intersect(collider_a, a_start, collider_b, b_start),
-        GjkResult::Intersection(_)
-    ) {
-        return None;
-    }
-
-    let a_end_t = TransformComponent {
-        position: transform_a.position + delta_a,
-        rotation: transform_a.rotation,
-        scale: transform_a.scale,
-    };
-    let b_end_t = TransformComponent {
-        position: transform_b.position + delta_b,
-        rotation: transform_b.rotation,
-        scale: transform_b.scale,
-    };
-    let a_end = a_end_t.to_mat4();
-    let b_end = b_end_t.to_mat4();
-
-    // If no overlap at frame end, no swept hit this frame.
-    if !matches!(
-        gjk_intersect(collider_a, a_end, collider_b, b_end),
-        GjkResult::Intersection(_)
-    ) {
-        return None;
-    }
-
-    // Binary search earliest overlap time in [0,1].
-    let mut lo = 0.0_f32;
-    let mut hi = 1.0_f32;
-    for _ in 0..14 {
-        let mid = 0.5 * (lo + hi);
-        let a_mid_t = TransformComponent {
-            position: transform_a.position + delta_a * mid,
-            rotation: transform_a.rotation,
-            scale: transform_a.scale,
-        };
-        let b_mid_t = TransformComponent {
-            position: transform_b.position + delta_b * mid,
-            rotation: transform_b.rotation,
-            scale: transform_b.scale,
-        };
-
-        let a_mid = a_mid_t.to_mat4();
-        let b_mid = b_mid_t.to_mat4();
-
-        if matches!(
-            gjk_intersect(collider_a, a_mid, collider_b, b_mid),
-            GjkResult::Intersection(_)
-        ) {
-            hi = mid;
-        } else {
-            lo = mid;
-        }
-    }
-
-    // Evaluate contact slightly inside overlap for stable EPA.
-    let t_hit = (hi + 1e-3).min(1.0);
-    let a_hit_t = TransformComponent {
-        position: transform_a.position + delta_a * t_hit,
-        rotation: transform_a.rotation,
-        scale: transform_a.scale,
-    };
-    let b_hit_t = TransformComponent {
-        position: transform_b.position + delta_b * t_hit,
-        rotation: transform_b.rotation,
-        scale: transform_b.scale,
-    };
-
-    let contact = gjk_epa_contact_generator(
-        collider_a,
-        &a_hit_t,
-        collider_b,
-        &b_hit_t,
-        previous_manifold,
-    )?;
-
-    Some(Contact {
-        entity_a,
-        entity_b,
-        normal: contact.normal,
-        penetration: contact.penetration_depth,
-        contact_point: contact.contact_point,
-    })
+fn cuboid_world_vertices(center: Vec3, axes: [Vec3; 3], extents: Vec3) -> [Vec3; 8] {
+    [
+        center + axes[0] * extents.x + axes[1] * extents.y + axes[2] * extents.z,
+        center + axes[0] * extents.x + axes[1] * extents.y - axes[2] * extents.z,
+        center + axes[0] * extents.x - axes[1] * extents.y + axes[2] * extents.z,
+        center + axes[0] * extents.x - axes[1] * extents.y - axes[2] * extents.z,
+        center - axes[0] * extents.x + axes[1] * extents.y + axes[2] * extents.z,
+        center - axes[0] * extents.x + axes[1] * extents.y - axes[2] * extents.z,
+        center - axes[0] * extents.x - axes[1] * extents.y + axes[2] * extents.z,
+        center - axes[0] * extents.x - axes[1] * extents.y - axes[2] * extents.z,
+    ]
 }
 
 struct GjkEpaResult {
@@ -985,7 +921,7 @@ struct GjkEpaResult {
     contact_point: Vec3,
 }
 
-fn gjk_epa_contact_generator(
+fn gjk_epa(
     collider_a: &ConvexCollider,
     transform_a: &TransformComponent,
     collider_b: &ConvexCollider,
@@ -1021,6 +957,7 @@ fn gjk_epa_contact_generator(
     let a_support = collider_a.support(a_world, normal);
     let b_support = collider_b.support(b_world, -normal);
     let contact_point = (a_support + b_support) * 0.5;
+
     Some(GjkEpaResult {
         normal,
         penetration_depth: epa_result.penetration_depth,
@@ -1834,7 +1771,7 @@ mod tests {
             &transform_b,
         );
         // At scale 1: A spans [-1,1], B spans [1.1,3.1] → no overlap
-        assert!(initial.is_none());
+        assert!(initial.is_empty());
 
         // At scale 1.2x: B spans [2.1-1.2, 2.1+1.2] = [0.9, 3.3] → overlaps A
         transform_b.scale = Vec3::new(1.2, 1.0, 1.0);
@@ -1847,9 +1784,12 @@ mod tests {
             &transform_b,
         );
 
-        assert!(scaled.is_some(), "Scaling should cause overlap");
-        let contact = scaled.unwrap();
-        assert!(contact.penetration > 0.0);
+        assert!(!scaled.is_empty(), "Scaling should cause overlap");
+        let max_penetration = scaled
+            .iter()
+            .map(|contact| contact.penetration)
+            .fold(0.0_f32, f32::max);
+        assert!(max_penetration > 0.0);
     }
 
     #[test]
@@ -1871,7 +1811,7 @@ mod tests {
             &collider_b,
             &transform_b,
         );
-        assert!(initial.is_none());
+        assert!(initial.is_empty());
 
         transform_b.rotation = Quat::from_rotation_z(45.0_f32.to_radians());
         let rotated = cuboid_cuboid_contact(
@@ -1893,7 +1833,7 @@ mod tests {
             &transform_b,
         );
 
-        assert_eq!(rotated.is_some(), rotated_scaled.is_some());
+        assert_eq!(rotated.is_empty(), rotated_scaled.is_empty());
     }
 
     #[test]
@@ -1915,7 +1855,7 @@ mod tests {
             &collider_b,
             &transform_b,
         );
-        assert!(initial.is_none());
+        assert!(initial.is_empty());
 
         transform_b.rotation = Quat::from_rotation_z(45.0_f32.to_radians());
         let rotated = cuboid_cuboid_contact(
@@ -1925,11 +1865,15 @@ mod tests {
             entity_b,
             &collider_b,
             &transform_b,
-        )
-        .expect("Expected overlap after rotation");
+        );
 
-        assert!(rotated.penetration > 0.0);
-        assert_relative_eq!(rotated.normal.length(), 1.0, epsilon = 1e-4);
+        assert!(!rotated.is_empty(), "Expected overlap after rotation");
+        let deepest = rotated
+            .iter()
+            .max_by(|a, b| a.penetration.total_cmp(&b.penetration))
+            .unwrap();
+        assert!(deepest.penetration > 0.0);
+        assert_relative_eq!(deepest.normal.length(), 1.0, epsilon = 1e-4);
     }
 
     #[test]
@@ -1952,7 +1896,7 @@ mod tests {
             &collider_b,
             &transform_b,
         );
-        assert!(initial.is_none());
+        assert!(initial.is_empty());
 
         transform_b.scale = Vec3::splat(1.2);
         let scaled = sphere_sphere_contact(
@@ -1964,7 +1908,7 @@ mod tests {
             &transform_b,
         );
 
-        assert_eq!(initial.is_some(), scaled.is_some());
+        assert_eq!(initial.is_empty(), scaled.is_empty());
     }
 
     #[test]
@@ -1987,7 +1931,7 @@ mod tests {
             &collider_b,
             &transform_b,
         );
-        assert!(initial.is_none());
+        assert!(initial.is_empty());
 
         transform_b.rotation = Quat::from_rotation_y(30.0_f32.to_radians());
         let rotated = sphere_sphere_contact(
@@ -2009,7 +1953,7 @@ mod tests {
             &transform_b,
         );
 
-        assert_eq!(rotated.is_some(), rotated_scaled.is_some());
+        assert_eq!(rotated.is_empty(), rotated_scaled.is_empty());
     }
 
     #[test]
@@ -2030,10 +1974,14 @@ mod tests {
             entity_b,
             &collider_b,
             &transform_b,
-        )
-        .expect("Expected overlap for unequal cuboids");
+        );
 
-        assert_relative_eq!(contact.penetration, 0.5, epsilon = 1e-4);
+        assert!(!contact.is_empty(), "Expected overlap for unequal cuboids");
+        let deepest = contact
+            .iter()
+            .map(|c| c.penetration)
+            .fold(0.0_f32, f32::max);
+        assert_relative_eq!(deepest, 0.5, epsilon = 1e-4);
     }
 
     #[test]
@@ -2056,7 +2004,7 @@ mod tests {
             &transform_b,
         );
 
-        assert!(contact.is_none());
+        assert!(contact.is_empty());
     }
 
     #[test]
@@ -2078,10 +2026,14 @@ mod tests {
             entity_b,
             &collider,
             &transform_b,
-        )
-        .expect("Expected overlap with scaled cuboid");
+        );
 
-        assert_relative_eq!(contact.penetration, 1.5, epsilon = 0.05);
+        assert!(!contact.is_empty(), "Expected overlap with scaled cuboid");
+        let deepest = contact
+            .iter()
+            .map(|c| c.penetration)
+            .fold(0.0_f32, f32::max);
+        assert_relative_eq!(deepest, 1.5, epsilon = 0.05);
     }
 
     #[test]
@@ -2107,12 +2059,18 @@ mod tests {
             entity_b,
             &collider,
             &transform_b,
-        )
-        .expect("Expected overlap with non-uniform y-scaled cuboid");
+        );
 
-        assert!(contact.penetration > 0.0);
-        // Normal should point roughly in +Y direction
-        assert!(contact.normal.y.abs() > 0.5);
+        assert!(
+            !contact.is_empty(),
+            "Expected overlap with non-uniform y-scaled cuboid"
+        );
+        let best = contact
+            .iter()
+            .max_by(|a, b| a.penetration.total_cmp(&b.penetration))
+            .unwrap();
+        assert!(best.penetration > 0.0);
+        assert!(best.normal.y.abs() > 0.5);
     }
 
     #[test]
@@ -2135,7 +2093,7 @@ mod tests {
             &transform_b,
         );
 
-        assert!(contact.is_none());
+        assert!(contact.is_empty());
     }
 
     #[test]
@@ -2161,10 +2119,65 @@ mod tests {
             entity_b,
             &collider,
             &transform_b,
-        )
-        .expect("Expected overlap for rotated+scaled cuboid");
+        );
 
-        assert!(contact.penetration > 0.0);
+        assert!(
+            !contact.is_empty(),
+            "Expected overlap for rotated+scaled cuboid"
+        );
+        let max_penetration = contact
+            .iter()
+            .map(|c| c.penetration)
+            .fold(0.0_f32, f32::max);
+        assert!(max_penetration > 0.0);
+    }
+
+    #[test]
+    fn convex_convex_pair_manifold_cuboid_face_face_generates_four_contacts() {
+        let entity_a = Entity::from_bits(70);
+        let entity_b = Entity::from_bits(71);
+
+        let collider_a = ConvexCollider::cube(2.0, CollisionLayer::Default);
+        let collider_b = ConvexCollider::cube(2.0, CollisionLayer::Default);
+
+        let transform_a = make_transform(Vec3::ZERO, Quat::IDENTITY, Vec3::ONE);
+        let transform_b = make_transform(Vec3::new(0.0, 1.5, 0.0), Quat::IDENTITY, Vec3::ONE);
+
+        let mut world_aabbs = std::collections::HashMap::new();
+        world_aabbs.insert(entity_a, collider_a.aabb(&transform_a.to_mat4()));
+        world_aabbs.insert(entity_b, collider_b.aabb(&transform_b.to_mat4()));
+
+        let manifold = convex_convex_pair_manifold(
+            entity_a,
+            &collider_a,
+            &transform_a,
+            None,
+            entity_b,
+            &collider_b,
+            &transform_b,
+            None,
+            &world_aabbs,
+            None,
+        )
+        .expect("Expected cuboid face-face manifold");
+
+        assert_eq!(manifold.contacts.len(), 4);
+
+        for contact in &manifold.contacts {
+            assert_eq!(contact.entity_a, entity_a);
+            assert_eq!(contact.entity_b, entity_b);
+            assert!(contact.penetration > 0.0);
+            assert!(contact.normal.y > 0.5);
+        }
+
+        for i in 0..manifold.contacts.len() {
+            for j in (i + 1)..manifold.contacts.len() {
+                let dist_sq = (manifold.contacts[i].contact_point
+                    - manifold.contacts[j].contact_point)
+                    .length_squared();
+                assert!(dist_sq > 1e-6, "Expected unique manifold points");
+            }
+        }
     }
 
     #[test]
