@@ -72,7 +72,7 @@ pub use crate::input::MouseButton;
 pub use crate::material_component::MaterialComponent;
 pub use crate::render_body_component::RenderBodyComponent;
 pub use crate::sleep_component::SleepComponent;
-use crate::time_resource::TimeResource;
+pub use crate::time_resource::TimeResource;
 pub use crate::transform_component::TransformComponent;
 pub use crate::velocity_component::VelocityComponent;
 pub use crate::world_basis::WorldBasis;
@@ -103,7 +103,7 @@ impl Engine {
         world.insert_resource(PhysicsResource::default());
         world.insert_resource(CollisionFrameData::default());
         world.insert_resource(PhysicsFrameData::default());
-        world.insert_resource(TimeResource::default());
+        world.insert_resource(TimeResource::new(60, 120));
 
         let mut physics_schedule = Schedule::default();
 
@@ -173,8 +173,24 @@ impl Engine {
         let mut last_frame = Instant::now();
         let mut accumulator = Duration::ZERO;
 
-        let target_simulation_dt = Duration::from_millis(16); // ~60 Hz
-        let target_frame_time = Duration::from_millis(16); // ~60 FPS max
+        let fixed_dt: Duration = self
+            .world
+            .get_resource::<TimeResource>()
+            .expect("TimeResource resource not found")
+            .simulation_fixed_dt();
+
+        let frame_target: Duration = self
+            .world
+            .get_resource::<TimeResource>()
+            .expect("TimeResource resource not found")
+            .target_frame_duration();
+
+        // Allow up to 2 frames worth of physics steps to be processed in a single frame before capping.
+        //This is a safety measure to prevent spiral of death if the game can't keep up with the target
+        //frame rate.
+        let max_physics_steps: usize =
+            (frame_target.as_secs_f32() / fixed_dt.as_secs_f32()) as usize * 2;
+
         let mut _frame_count: u64 = 0;
         'render: loop {
             // dbg!(frame_count);
@@ -238,8 +254,6 @@ impl Engine {
                     height: (height * render_scale) as u32,
                 };
 
-                const MAX_PHYSICS_STEPS: usize = 4;
-
                 let now = Instant::now();
                 let frame_time = now - last_frame;
                 last_frame = now;
@@ -254,15 +268,19 @@ impl Engine {
                 accumulator += frame_time;
 
                 let mut steps = 0;
-                while accumulator >= target_simulation_dt && steps < MAX_PHYSICS_STEPS {
+                while accumulator >= fixed_dt && steps < max_physics_steps {
                     self.physics_schedule.run(&mut self.world);
                     self.game_simulation_schedule.run(&mut self.world);
-                    accumulator -= target_simulation_dt;
+                    accumulator -= fixed_dt;
                     steps += 1;
                 }
 
-                if steps == MAX_PHYSICS_STEPS {
-                    accumulator = accumulator.min(target_simulation_dt);
+                if steps == max_physics_steps {
+                    accumulator = accumulator.min(fixed_dt);
+                    println!(
+                        "Warning: Reached max physics steps in a frame. Frame time: {:?}, accumulator: {:?}. Consider increasing target frame duration or decreasing simulation fixed dt.",
+                        frame_time, accumulator
+                    );
                 }
 
                 let camera_data = Self::build_camera_render_data(
@@ -289,8 +307,8 @@ impl Engine {
             }
             self.window.gl_swap_window();
             let frame_time = frame_start.elapsed();
-            if frame_time < target_frame_time {
-                sleep(target_frame_time - frame_time);
+            if frame_time < frame_target {
+                sleep(frame_target - frame_time);
             }
         }
     }

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::WorldBasis;
 use crate::movement_system::MovementSystem;
 use crate::physics_resource::{CollisionFrameData, ContactManifold, PhysicsFrameData};
+use crate::time_resource::TimeResource;
 use crate::velocity_component::VelocityComponent;
 use crate::{
     physics_component::PhysicsComponent, sleep_component::SleepComponent,
@@ -11,10 +12,6 @@ use crate::{
 use bevy_ecs::prelude::*;
 use glam::{Mat3, Vec3};
 pub struct PhysicsSystem {}
-
-pub fn delta_time() -> f32 {
-    1.0 / 60.0
-}
 
 pub struct ContactConstraint {
     entity_a: Entity,
@@ -37,8 +34,9 @@ impl PhysicsSystem {
             &PhysicsComponent,
             Option<&mut SleepComponent>,
         )>,
+        time: Res<TimeResource>,
     ) {
-        let delta_time = delta_time();
+        let delta_time = time.simulation_fixed_dt().as_secs_f32();
         let g = WorldBasis::gravity_vector();
         for (mut transform, mut velocity, physics, mut sleep) in query.iter_mut() {
             if !matches!(

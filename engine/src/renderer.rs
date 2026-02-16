@@ -297,14 +297,14 @@ impl Renderer {
 
         self.frames_rendered += 1;
 
-        if self.frames_rendered % 60 == 0 {
-            println!("Frames rendered: {}", self.frames_rendered);
-            println!(
-                "Render time: {:.2} ms",
-                current_time.elapsed().as_secs_f32() * 1000.0
-            );
-            println!("Draw calls on last frame: {}", draw_calls);
-        }
+        // if self.frames_rendered % 60 == 0 {
+        //     println!("Frames rendered: {}", self.frames_rendered);
+        //     println!(
+        //         "Render time: {:.2} ms",
+        //         current_time.elapsed().as_secs_f32() * 1000.0
+        //     );
+        //     println!("Draw calls on last frame: {}", draw_calls);
+        // }
     }
 
     /// Groups visible instances into material → mesh batches using a sort

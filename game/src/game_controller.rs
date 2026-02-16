@@ -2,8 +2,7 @@ use bevy_ecs::prelude::*;
 use engine::input::InputStateResource;
 use engine::physics_component::{PhysicsComponent, PhysicsType};
 use engine::{
-    ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, RenderBodyComponent,
-    RenderBodyHandle, TransformComponent, VelocityComponent,
+    ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, RenderBodyComponent, RenderBodyHandle, TimeResource, TransformComponent, VelocityComponent
 };
 use glam::Vec3;
 
@@ -16,17 +15,16 @@ pub struct ProjectileSpawner {
     pub scale: f32,
 }
 
-const FRAME_DT: f32 = 1.0 / 60.0;
-
 pub fn do_gameplay(
     mut commands: Commands,
     active_camera: Res<ActiveCamera>,
     input_state: Res<InputStateResource>,
     camera_query: Query<&TransformComponent, With<CameraComponent>>,
     mut spawner: ResMut<ProjectileSpawner>,
+    time: Res<TimeResource>,
 ) {
     if spawner.cooldown_timer > 0.0 {
-        spawner.cooldown_timer = (spawner.cooldown_timer - FRAME_DT).max(0.0);
+        spawner.cooldown_timer = (spawner.cooldown_timer - time.simulation_fixed_dt().as_secs_f32()).max(0.0);
     }
 
     if spawner.cooldown_timer > 0.0 || !input_state.mouse_button_pressed(engine::MouseButton::Left)

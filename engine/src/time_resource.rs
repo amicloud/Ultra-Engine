@@ -1,13 +1,13 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use bevy_ecs::prelude::*;
 #[derive(Resource)]
 pub struct TimeResource {
     dt: f32,
-    simulation_fixed_dt: f32,
+    simulation_fixed_dt: Duration,
     total_time: f64,
     frame_count: u64,
-    target_frame_duration: f32,
+    target_frame_duration: Duration,
     last_frame_time: Instant
 }
 
@@ -15,10 +15,10 @@ impl Default for TimeResource {
     fn default() -> Self {
         TimeResource {
             dt: 0.0,
-            simulation_fixed_dt: 1.0 / 60.0, // Default to 60 Hz
+            simulation_fixed_dt: Duration::from_secs_f32(1.0 / 60.0), // Default to 60 Hz
             total_time: 0.0,
             frame_count: 0,
-            target_frame_duration: 1.0 / 60.0, // Default to 60 FPS max,
+            target_frame_duration: Duration::from_secs_f32(1.0 / 60.0), // Default to 60 FPS max
             last_frame_time: Instant::now(),
         }
     }
@@ -26,8 +26,9 @@ impl Default for TimeResource {
 
 #[allow(dead_code)]
 impl TimeResource {
-    pub fn new(target_frame_rate: u32, simulation_fixed_dt: f32) -> Self {
-        let target_frame_time = 1.0 / target_frame_rate as f32;
+    pub fn new(target_frame_rate: u32, simulation_rate: u32) -> Self {
+        let target_frame_time = Duration::from_secs_f32(1.0 / target_frame_rate as f32);
+        let simulation_fixed_dt = Duration::from_secs_f32(1.0 / simulation_rate as f32);
         TimeResource {
             dt: 0.0,
             total_time: 0.0,
@@ -38,16 +39,16 @@ impl TimeResource {
         }
     }
 
-    pub fn set_simulation_fixed_dt(&mut self, fixed_dt: f32) {
+    pub fn set_simulation_fixed_dt(&mut self, fixed_dt: Duration) {
         self.simulation_fixed_dt = fixed_dt;
     }
 
-    pub fn simulation_fixed_dt(&self) -> f32 {
+    pub fn simulation_fixed_dt(&self) -> Duration {
         self.simulation_fixed_dt
     }
 
     /// Alias for simulation_fixed_dt, for convenience
-    pub fn fixed_dt(&self) -> f32 {
+    pub fn fixed_dt(&self) -> Duration {
         self.simulation_fixed_dt
     }
 
@@ -69,7 +70,7 @@ impl TimeResource {
         self.frame_count
     }
 
-    pub fn target_frame_duration(&self) -> f32 {
+    pub fn target_frame_duration(&self) -> Duration {
         self.target_frame_duration
     }
 

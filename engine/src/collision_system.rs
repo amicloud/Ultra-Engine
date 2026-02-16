@@ -4,21 +4,13 @@ use bevy_ecs::{
 };
 use glam::{Mat4, Vec3};
 use rayon::prelude::*;
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    TransformComponent,
-    collider_component::{
+    TransformComponent, collider_component::{
         BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
         closest_point_on_triangle,
-    },
-    epa::epa,
-    gjk::{GjkResult, gjk_intersect},
-    mesh::AABB,
-    physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource},
-    physics_system::delta_time,
-    render_resource_manager::RenderResourceManager,
-    velocity_component::VelocityComponent,
+    }, epa::epa, gjk::{GjkResult, gjk_intersect}, mesh::AABB, physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource}, render_resource_manager::RenderResourceManager, time_resource::TimeResource, velocity_component::VelocityComponent
 };
 
 #[derive(Default)]
@@ -148,8 +140,10 @@ impl CollisionSystem {
         render_resources: Res<RenderResourceManager>,
         physics_world: Res<PhysicsResource>,
         mut frame: ResMut<CollisionFrameData>,
+        time: Res<TimeResource>,
     ) {
         let old_manifolds = std::mem::take(&mut frame.manifolds);
+        let delta_t = time.simulation_fixed_dt();
         frame.clear();
 
         for (entity, _transform, velocity, _convex, _mesh) in &moving_query {
@@ -160,7 +154,7 @@ impl CollisionSystem {
 
             // --- Build swept AABB ---
             let swept = if let Some(velocity) = velocity {
-                let delta = velocity.translational * delta_time();
+                let delta = velocity.translational * delta_t.as_secs_f32();
                 if delta.length_squared() > 0.0 {
                     swept_aabb(&base_aabb, delta)
                 } else {
@@ -205,6 +199,7 @@ impl CollisionSystem {
                         velocity_b,
                         &physics_world.world_aabbs,
                         previous_manifold,
+                        delta_t
                     )
                     .map(|merged| (pair, merged));
                 }
@@ -221,6 +216,7 @@ impl CollisionSystem {
                         &render_resources,
                         &physics_world.world_aabbs,
                         previous_manifold,
+                        delta_t
                     )
                     .map(|merged| (pair, merged));
                 }
@@ -237,6 +233,7 @@ impl CollisionSystem {
                         &render_resources,
                         &physics_world.world_aabbs,
                         previous_manifold,
+                        delta_t
                     )
                     .map(|merged| (pair, merged));
                 }
@@ -297,6 +294,7 @@ fn convex_convex_pair_manifold(
     velocity_b: Option<&VelocityComponent>,
     world_aabbs: &HashMap<Entity, AABB>,
     previous_manifold: Option<&ContactManifold>,
+    delta_t: Duration,
 ) -> Option<ContactManifold> {
     let pair = ordered_pair(entity_a, entity_b);
     let contacts = convex_convex_contact(
@@ -342,6 +340,7 @@ fn convex_mesh_pair_manifold(
     render_resources: &RenderResourceManager,
     world_aabbs: &HashMap<Entity, AABB>,
     previous_manifold: Option<&ContactManifold>,
+    delta_t: Duration,
 ) -> Option<ContactManifold> {
     let pair = ordered_pair(convex_entity, mesh_entity);
     let mesh_contacts = convex_mesh_contact(
@@ -354,6 +353,7 @@ fn convex_mesh_pair_manifold(
         mesh_transform,
         render_resources,
         previous_manifold,
+        delta_t,
     );
 
     let oriented_contacts: Vec<Contact> = mesh_contacts
@@ -975,6 +975,7 @@ fn convex_mesh_contact(
     mesh_transform: &TransformComponent,
     render_resources: &RenderResourceManager,
     previous_manifold: Option<&ContactManifold>,
+    delta_t: Duration,
 ) -> Vec<Contact> {
     let Some(render_body) = render_resources
         .render_body_manager
@@ -985,7 +986,7 @@ fn convex_mesh_contact(
 
     let convex_world = convex_transform.to_mat4();
     let sweep_delta = convex_velocity
-        .map(|v| v.translational * delta_time())
+        .map(|v| v.translational * delta_t.as_secs_f32())
         .unwrap_or(Vec3::ZERO);
     let has_sweep = sweep_delta.length_squared() > 0.0;
     let swept_transform = TransformComponent {
@@ -2158,6 +2159,7 @@ mod tests {
             None,
             &world_aabbs,
             None,
+            Duration::from_secs_f32(1.0 / 60.0),
         )
         .expect("Expected cuboid face-face manifold");
 

@@ -100,7 +100,7 @@ fn main() {
             apply_flying_camera_input,
             apply_flying_camera_movement,
             apply_player_movement_impulses,
-            // do_gameplay,
+            do_gameplay,
             // update_bowl_float,
         )
             .chain(),
@@ -116,17 +116,17 @@ fn main() {
         .load_model("resources/models/cube/Cube.gltf")
         .unwrap();
 
-    let _sphere = engine
+    let sphere = engine
         .load_model("resources/models/sphere_low/sphere.obj")
         .unwrap();
 
-    // engine.world.insert_resource(ProjectileSpawner {
-    //     sphere_handle: sphere,
-    //     cooldown: 0.2,
-    //     cooldown_timer: 0.0,
-    //     speed: 200.0,
-    //     scale: 1.0,
-    // });
+    engine.world.insert_resource(ProjectileSpawner {
+        sphere_handle: sphere,
+        cooldown: 0.2,
+        cooldown_timer: 0.0,
+        speed: 200.0,
+        scale: 1.0,
+    });
 
     let player_scale: Vec3 = Vec3::splat(1.0);
     let player_start = Vec3::new(0.0, 5.0, 2.2);
