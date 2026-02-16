@@ -1,5 +1,4 @@
 use crate::handles::TextureHandle;
-use glow::HasContext;
 
 #[derive(Debug)]
 pub struct Texture {
