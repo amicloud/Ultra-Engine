@@ -459,8 +459,6 @@ impl Renderer {
         mesh_render_data: &mut HashMap<MeshHandle, MeshRenderData>,
         instance_matrices: &[[f32; 16]],
     ) {
-
-        
         let mesh_data = mesh_render_data
             .get_mut(&mesh_handle)
             .expect("Mesh not found");
