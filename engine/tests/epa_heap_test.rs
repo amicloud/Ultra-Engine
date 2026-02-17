@@ -1,13 +1,10 @@
-use engine::{
-    CollisionLayer, ConvexCollider, TransformComponent, physics
-};
+use engine::{CollisionLayer, ConvexCollider, TransformComponent, physics};
 
-use physics:: {
-
+use glam::{Mat4, Quat, Vec3};
+use physics::{
     epa::{EpaResult, epa},
     gjk::{GjkResult, gjk_intersect},
 };
-use glam::{Mat4, Quat, Vec3};
 
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;

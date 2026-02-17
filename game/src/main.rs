@@ -21,9 +21,7 @@ use engine::{
     SleepComponent, TransformComponent, VelocityComponent,
 };
 
-use engine::physics::{
-    physics_component::{PhysicsComponent, PhysicsType},
-};
+use engine::physics::physics_component::{PhysicsComponent, PhysicsType};
 
 use glam::{Quat, Vec3};
 

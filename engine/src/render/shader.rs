@@ -53,9 +53,13 @@ impl Shader {
     pub fn new(gl: &glow::Context, vertex_src: &OsStr, fragment_src: &OsStr) -> Self {
         unsafe {
             let vertex_shader = gl.create_shader(glow::VERTEX_SHADER).unwrap();
-            let vertex_shader_source =
-                fs::read_to_string(vertex_src.to_str().unwrap()).unwrap_or_else(|_| panic!("Failed to read vertex shader file {}",
-                    vertex_src.to_str().unwrap()));
+            let vertex_shader_source = fs::read_to_string(vertex_src.to_str().unwrap())
+                .unwrap_or_else(|_| {
+                    panic!(
+                        "Failed to read vertex shader file {}",
+                        vertex_src.to_str().unwrap()
+                    )
+                });
 
             gl.shader_source(vertex_shader, &vertex_shader_source);
             gl.compile_shader(vertex_shader);
@@ -68,8 +72,12 @@ impl Shader {
 
             let fragment_shader = gl.create_shader(glow::FRAGMENT_SHADER).unwrap();
             let fragment_shader_source = fs::read_to_string(fragment_src.to_str().unwrap())
-                .unwrap_or_else(|_| panic!("Failed to read fragment shader file {}",
-                    fragment_src.to_str().unwrap()));
+                .unwrap_or_else(|_| {
+                    panic!(
+                        "Failed to read fragment shader file {}",
+                        fragment_src.to_str().unwrap()
+                    )
+                });
             gl.shader_source(fragment_shader, &fragment_shader_source);
             gl.compile_shader(fragment_shader);
             if !gl.get_shader_compile_status(fragment_shader) {
@@ -95,9 +103,10 @@ impl Shader {
 
             for i in 0..count {
                 if let Some(info) = gl.get_active_uniform(program, i as u32)
-                    && let Some(loc) = gl.get_uniform_location(program, &info.name) {
-                        uniforms.insert(info.name, loc);
-                    }
+                    && let Some(loc) = gl.get_uniform_location(program, &info.name)
+                {
+                    uniforms.insert(info.name, loc);
+                }
             }
 
             let mut attributes = Vec::new();

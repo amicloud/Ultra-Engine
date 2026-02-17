@@ -149,7 +149,7 @@ mod tests {
     }
 
     #[test]
-    fn update_frame_dt_tracks_latest_dt_total_time_and_frame_count() {
+    fn update_frame_dt_tracks_ladt_total_time_and_frame_count() {
         let mut time = TimeResource::default();
 
         time.update_frame_dt(0.016);

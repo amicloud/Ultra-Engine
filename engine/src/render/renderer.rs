@@ -1,9 +1,9 @@
-use crate::render::frustum::Frustum;
 use crate::handles::MaterialHandle;
 use crate::handles::MeshHandle;
 use crate::handles::ShaderHandle;
 use crate::mesh::Mesh;
 use crate::mesh::Vertex;
+use crate::render::frustum::Frustum;
 use crate::render::render_instance::RenderInstance;
 use crate::render::render_resource_manager::RenderResourceManager;
 use crate::render::shader::InputRate::PerInstance;
@@ -376,9 +376,7 @@ impl Renderer {
                 .expect("Mesh not found");
 
             let scale = Self::max_scale(inst.transform);
-            let world_center = inst
-                .transform
-                .transform_point3(mesh.sphere_center);
+            let world_center = inst.transform.transform_point3(mesh.sphere_center);
             let world_radius = mesh.sphere_radius * scale;
 
             if frustum.intersects_sphere(world_center, world_radius) {
@@ -392,7 +390,6 @@ impl Renderer {
             gl.enable(glow::DEPTH_TEST);
             gl.depth_func(glow::LESS);
 
-            
             Self {
                 gl,
                 frames_rendered: 0,
@@ -519,9 +516,10 @@ impl Renderer {
             let instance_offset_for = |name: &str| -> Option<i32> {
                 if let Some(suffix) = name.strip_prefix("instance_model_col")
                     && let Ok(index) = suffix.parse::<i32>()
-                        && (0..4).contains(&index) {
-                            return Some(index * 16);
-                        }
+                    && (0..4).contains(&index)
+                {
+                    return Some(index * 16);
+                }
                 None
             };
 

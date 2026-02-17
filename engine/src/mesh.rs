@@ -307,7 +307,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_default() {
+    fn default() {
         let mesh = Mesh::default();
 
         assert!(mesh.vertices.is_empty(), "Default vertices should be empty");
@@ -315,7 +315,7 @@ mod tests {
     }
 
     #[test]
-    fn test_aabb_from_vertices() {
+    fn aabb_from_vertices() {
         let vertices = vec![
             Vertex {
                 position: [1.0, -2.0, 3.0],
@@ -337,7 +337,7 @@ mod tests {
     }
 
     #[test]
-    fn test_compute_bounding_sphere() {
+    fn compute_bounding_sphere() {
         let mut mesh = Mesh::default();
         mesh.vertices = vec![
             Vertex {

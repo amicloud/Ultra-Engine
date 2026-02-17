@@ -1,7 +1,10 @@
-use crate::time_resource::TimeResource;
 use crate::components::velocity_component::VelocityComponent;
+use crate::time_resource::TimeResource;
 use crate::{
-    components::{physics_component::PhysicsComponent, transform_component::TransformComponent, sleep_component::SleepComponent},
+    components::{
+        physics_component::PhysicsComponent, sleep_component::SleepComponent,
+        transform_component::TransformComponent,
+    },
     physics,
 };
 use physics::{
@@ -50,11 +53,12 @@ impl PhysicsSystem {
             }
 
             if let Some(sleep) = sleep.as_deref_mut()
-                && sleep.is_sleeping {
-                    velocity.translational = Vec3::ZERO;
-                    velocity.angular = Vec3::ZERO;
-                    continue;
-                }
+                && sleep.is_sleeping
+            {
+                velocity.translational = Vec3::ZERO;
+                velocity.angular = Vec3::ZERO;
+                continue;
+            }
 
             Self::update_body(&mut transform, &mut velocity, physics, delta_time, g);
 

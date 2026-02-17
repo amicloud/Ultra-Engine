@@ -82,7 +82,7 @@ mod tests {
     }
 
     #[test]
-    fn test_execute_adds_action_to_history() {
+    fn execute_adds_action_to_history() {
         let mut manager = ActionManager::new();
         let action = Box::new(MockAction::new());
 
@@ -93,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn test_execute_clears_future() {
+    fn execute_clears_future() {
         let mut manager = ActionManager::new();
 
         // Execute first action
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn test_undo_moves_action_to_future() {
+    fn undo_moves_action_to_future() {
         let mut manager = ActionManager::new();
         let action = Box::new(MockAction::new());
 
@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_redo_moves_action_back_to_history() {
+    fn redo_moves_action_back_to_history() {
         let mut manager = ActionManager::new();
         let action = Box::new(MockAction::new());
 
@@ -148,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    fn test_execute_calls_action_execute() {
+    fn execute_calls_action_execute() {
         let mut manager = ActionManager::new();
         let action = Box::new(MockAction::new());
         let execute_flag = action.execute_called();
@@ -161,7 +161,7 @@ mod tests {
     }
 
     #[test]
-    fn test_undo_calls_action_undo() {
+    fn undo_calls_action_undo() {
         let mut manager = ActionManager::new();
         let action = Box::new(MockAction::new());
         let undo_flag = action.undo_called();
@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn test_redo_calls_action_execute_again() {
+    fn redo_calls_action_execute_again() {
         let mut manager = ActionManager::new();
         let action = Box::new(MockAction::new());
         let execute_flag = action.execute_called();
@@ -190,7 +190,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multiple_actions() {
+    fn multiple_actions() {
         let mut manager = ActionManager::new();
 
         let action1 = Box::new(MockAction::new());

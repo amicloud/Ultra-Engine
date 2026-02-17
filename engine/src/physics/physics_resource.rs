@@ -2,9 +2,7 @@ use bevy_ecs::prelude::*;
 use glam::Vec3;
 use std::collections::HashMap;
 
-use crate::{
-    mesh::Aabb, physics
-};
+use crate::{mesh::Aabb, physics};
 use physics::{
     dynamic_aabb_tree::{DynamicAabbTree, NodeId},
     physics_system::ContactConstraint,

@@ -456,7 +456,7 @@ mod tests {
     }
 
     #[test]
-    fn leaf_insertion_test() {
+    fn leaf_insertion() {
         let mut tree = DynamicAabbTree::default();
 
         let leaf1 = tree.allocate_leaf(Entity::from_bits(1), make_aabb(Vec3::ZERO, 1.0));
@@ -484,7 +484,7 @@ mod tests {
     }
 
     #[test]
-    fn update_leaf_in_place_and_reinsert_test() {
+    fn update_leaf_in_place_and_reinsert() {
         let mut tree = DynamicAabbTree::default();
         let base = make_aabb(Vec3::ZERO, 1.0);
         let leaf = tree.allocate_leaf(Entity::from_bits(100), base);
@@ -517,7 +517,7 @@ mod tests {
     }
 
     #[test]
-    fn free_list_reuse_test() {
+    fn free_list_reuse() {
         let mut tree = DynamicAabbTree::default();
         let leaf1 = tree.allocate_leaf(Entity::from_bits(1), make_aabb(Vec3::ZERO, 1.0));
         let leaf2 = tree.allocate_leaf(
@@ -542,7 +542,7 @@ mod tests {
     }
 
     #[test]
-    fn tree_rotation_balancing_test() {
+    fn tree_rotation_balancing() {
         let mut tree = DynamicAabbTree::default();
         let mut leaf_count = 0usize;
 
@@ -566,7 +566,7 @@ mod tests {
     }
 
     #[test]
-    fn rotation_edge_case_nested_subtree_test() {
+    fn rotation_edge_case_nested_subtree() {
         let mut tree = DynamicAabbTree::default();
 
         let leaf0 = add_leaf_node(&mut tree, Entity::from_bits(1), make_aabb(Vec3::ZERO, 1.0));
@@ -602,7 +602,7 @@ mod tests {
     }
 
     #[test]
-    fn leaf_removal_test() {
+    fn leaf_removal() {
         // Root leaf removal
         let mut tree = DynamicAabbTree::default();
         let leaf = tree.allocate_leaf(Entity::from_bits(10), make_aabb(Vec3::ZERO, 1.0));
@@ -648,7 +648,7 @@ mod tests {
     }
 
     #[test]
-    fn degenerate_aabb_test() {
+    fn degenerate_aabb() {
         let mut tree = DynamicAabbTree::default();
         let zero = Aabb {
             min: Vec3::new(1.0, 1.0, 1.0),
@@ -684,7 +684,7 @@ mod tests {
     }
 
     #[test]
-    fn query_test() {
+    fn query() {
         let mut tree = DynamicAabbTree::default();
         let mut leaves = Vec::new();
 
@@ -727,7 +727,7 @@ mod tests {
     }
 
     #[test]
-    fn query_edge_cases_test() {
+    fn query_edge_cases() {
         let mut tree = DynamicAabbTree::default();
         let mut found = Vec::new();
         tree.query(make_aabb(Vec3::ZERO, 1.0), |entity| {
@@ -766,7 +766,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_updates_sequence_test() {
+    fn multiple_updates_sequence() {
         let mut rng = StdRng::seed_from_u64(0xDEAD_BEEF_1234_5678);
         let mut tree = DynamicAabbTree::default();
         let mut center = Vec3::new(0.0, 0.0, 0.0);
@@ -786,7 +786,7 @@ mod tests {
     }
 
     #[test]
-    fn worst_case_insertion_order_test() {
+    fn worst_case_insertion_order() {
         let mut tree = DynamicAabbTree::default();
         let count = 128usize;
         for i in 0..count {
@@ -807,7 +807,7 @@ mod tests {
     }
 
     #[test]
-    fn stress_random_test() {
+    fn stress_random() {
         let mut rng = StdRng::seed_from_u64(0xAABB_CCDD_1234_5678);
         let mut tree = DynamicAabbTree::default();
         let mut leaves: Vec<(NodeId, Entity, Aabb)> = Vec::new();
@@ -881,7 +881,7 @@ mod tests {
     }
 
     #[test]
-    fn stress_random_test_max_imbalance() {
+    fn stress_random_max_imbalance() {
         let mut rng = StdRng::seed_from_u64(0xAABB_CCDD_1234_5678);
         let mut tree = DynamicAabbTree::default();
         let mut leaves: Vec<(NodeId, Entity, Aabb)> = Vec::new();

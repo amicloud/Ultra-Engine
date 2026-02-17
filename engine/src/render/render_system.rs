@@ -1,7 +1,7 @@
 use crate::{
-    components::render_body_component::RenderBodyComponent, render::render_instance::RenderInstance,
+    components::render_body_component::RenderBodyComponent,
+    components::transform_component::TransformComponent, render::render_instance::RenderInstance,
     render::render_queue::RenderQueue, render::render_resource_manager::RenderResourceManager,
-    components::transform_component::TransformComponent,
 };
 
 use bevy_ecs::prelude::{Query, Res, ResMut};

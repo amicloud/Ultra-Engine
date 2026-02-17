@@ -36,7 +36,7 @@ impl ShaderResource {
         }
 
         let shader = Shader::new(gl, vertex_src, fragment_src);
-        
+
         self.add_shader(shader, &key)
     }
 

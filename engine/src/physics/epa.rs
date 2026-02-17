@@ -4,7 +4,7 @@
 use glam::{Mat4, Vec3};
 
 use crate::{components::collider_component::ConvexCollider, physics};
-use physics::{physics_resource::ContactManifold};
+use physics::physics_resource::ContactManifold;
 
 const EPA_MAX_ITERATIONS: usize = 256;
 const EPA_TOLERANCE: f32 = 1e-4;
@@ -262,11 +262,11 @@ fn support_minkowski(
 mod tests {
     use super::*;
     use crate::components::collider_component::{CollisionLayer, ConvexCollider};
-    use physics::gjk::{GjkResult, gjk_intersect};
-    use crate::mesh::Aabb;
     use crate::components::transform_component::TransformComponent;
+    use crate::mesh::Aabb;
     use assert_approx_eq::assert_approx_eq;
     use glam::{Quat, Vec3};
+    use physics::gjk::{GjkResult, gjk_intersect};
     fn transform_at(position: Vec3, rotation: Quat) -> Mat4 {
         TransformComponent {
             position,

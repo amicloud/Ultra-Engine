@@ -476,8 +476,8 @@ fn face_outside(a: Vec3, b: Vec3, c: Vec3, opposite: Vec3, ao: Vec3) -> Option<(
 mod tests {
     use super::*;
     use crate::components::collider_component::CollisionLayer;
-    use crate::mesh::Aabb;
     use crate::components::transform_component::TransformComponent;
+    use crate::mesh::Aabb;
     use glam::{Quat, Vec3};
 
     fn transform_at(position: Vec3) -> Mat4 {

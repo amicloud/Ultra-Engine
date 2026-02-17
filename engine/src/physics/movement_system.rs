@@ -1,7 +1,7 @@
 use crate::components::velocity_component::VelocityComponent;
 use crate::{
-    time_resource::TimeResource,
     components::{physics_component::PhysicsComponent, transform_component::TransformComponent},
+    time_resource::TimeResource,
 };
 use bevy_ecs::prelude::*;
 use glam::{Quat, Vec3};
@@ -54,7 +54,7 @@ mod tests {
     const DELTA_TIME: f32 = 1.0;
 
     #[test]
-    fn test_apply_translation() {
+    fn apply_translation() {
         let position = Vec3::new(0.0, 0.0, 0.0);
         let velocity = Vec3::new(1.0, 2.0, 3.0);
         let new_position = MovementSystem::apply_translation(&position, &velocity, DELTA_TIME);
@@ -65,7 +65,7 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_rotation_x() {
+    fn apply_rotation_x() {
         let rotation = Quat::IDENTITY;
         let angular_velocity = Vec3::new(PI, 0.0, 0.0);
         let new_rotation = MovementSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
@@ -73,7 +73,7 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_rotation_y() {
+    fn apply_rotation_y() {
         let rotation = Quat::IDENTITY;
         let angular_velocity = Vec3::new(0.0, PI, 0.0);
         let new_rotation = MovementSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
@@ -81,7 +81,7 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_rotation_z() {
+    fn apply_rotation_z() {
         let rotation = Quat::IDENTITY;
         let angular_velocity = Vec3::new(0.0, 0.0, PI);
         let new_rotation = MovementSystem::apply_rotation(&rotation, &angular_velocity, DELTA_TIME);
