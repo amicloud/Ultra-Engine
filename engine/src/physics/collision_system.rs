@@ -7,18 +7,16 @@ use rayon::prelude::*;
 use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    TransformComponent,
-    collider_component::{
+    TransformComponent, collider_component::{
         BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
         closest_point_on_triangle,
-    },
+    }, mesh::AABB, physics, render_resource_manager::RenderResourceManager, time_resource::TimeResource, velocity_component::VelocityComponent
+};
+
+use physics::{
+    physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource},
     epa::epa,
     gjk::{GjkResult, gjk_intersect},
-    mesh::AABB,
-    physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource},
-    render_resource_manager::RenderResourceManager,
-    time_resource::TimeResource,
-    velocity_component::VelocityComponent,
 };
 
 #[derive(Default)]

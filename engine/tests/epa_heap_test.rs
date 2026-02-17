@@ -1,5 +1,9 @@
 use engine::{
-    CollisionLayer, ConvexCollider, TransformComponent,
+    CollisionLayer, ConvexCollider, TransformComponent, physics
+};
+
+use physics:: {
+
     epa::{EpaResult, epa},
     gjk::{GjkResult, gjk_intersect},
 };

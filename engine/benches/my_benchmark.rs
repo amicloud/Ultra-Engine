@@ -3,7 +3,7 @@ use bevy_ecs::schedule::{IntoScheduleConfigs, Schedule};
 use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
-use engine::physics_resource::{CollisionFrameData, PhysicsResource};
+use engine::physics::physics_resource::{CollisionFrameData, PhysicsResource};
 use engine::{
     CollisionLayer, CollisionSystem, ConvexCollider, RenderResourceManager, TransformComponent,
 };

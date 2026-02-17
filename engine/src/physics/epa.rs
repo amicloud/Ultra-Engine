@@ -3,7 +3,8 @@
 
 use glam::{Mat4, Vec3};
 
-use crate::{collider_component::ConvexCollider, physics_resource::ContactManifold};
+use crate::{collider_component::ConvexCollider, physics};
+use physics::{physics_resource::ContactManifold};
 
 const EPA_MAX_ITERATIONS: usize = 256;
 const EPA_TOLERANCE: f32 = 1e-4;
@@ -261,7 +262,7 @@ fn support_minkowski(
 mod tests {
     use super::*;
     use crate::collider_component::{CollisionLayer, ConvexCollider};
-    use crate::gjk::{GjkResult, gjk_intersect};
+    use physics::gjk::{GjkResult, gjk_intersect};
     use crate::mesh::AABB;
     use crate::transform_component::TransformComponent;
     use assert_approx_eq::assert_approx_eq;

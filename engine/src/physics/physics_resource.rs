@@ -3,8 +3,10 @@ use glam::Vec3;
 use std::collections::HashMap;
 
 use crate::{
+    mesh::AABB, physics
+};
+use physics::{
     dynamic_aabb_tree::{DynamicAabbTree, NodeId},
-    mesh::AABB,
     physics_system::ContactConstraint,
 };
 

@@ -1,7 +1,10 @@
 use crate::velocity_component::VelocityComponent;
 use crate::{
-    physics_component::PhysicsComponent, time_resource::TimeResource,
-    transform_component::TransformComponent,
+    time_resource::TimeResource,
+    transform_component::TransformComponent, physics
+};
+use physics:: {
+    physics_component::PhysicsComponent
 };
 use bevy_ecs::prelude::*;
 use glam::{Quat, Vec3};

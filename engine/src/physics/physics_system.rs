@@ -1,12 +1,16 @@
-use crate::gravity_resource::Gravity;
-use crate::movement_system::MovementSystem;
-use crate::physics_resource::{CollisionFrameData, ContactManifold, PhysicsFrameData};
 use crate::time_resource::TimeResource;
 use crate::velocity_component::VelocityComponent;
 use crate::{
-    physics_component::PhysicsComponent, sleep_component::SleepComponent,
+    physics, sleep_component::SleepComponent,
     transform_component::TransformComponent,
 };
+use physics::{
+    gravity_resource::Gravity,
+    movement_system::MovementSystem,
+    physics_resource::{CollisionFrameData, ContactManifold, PhysicsFrameData},
+    physics_component::PhysicsComponent
+};
+
 use bevy_ecs::prelude::*;
 use glam::{Mat3, Vec3};
 use std::collections::HashMap;
@@ -41,7 +45,7 @@ impl PhysicsSystem {
         for (mut transform, mut velocity, physics, mut sleep) in query.iter_mut() {
             if !matches!(
                 physics.physics_type,
-                crate::physics_component::PhysicsType::Dynamic
+                physics::physics_component::PhysicsType::Dynamic
             ) {
                 continue;
             }
@@ -333,7 +337,7 @@ impl PhysicsSystem {
         )>,
         gravity: Vec3,
     ) {
-        use crate::physics_component::PhysicsType;
+        use physics::physics_component::PhysicsType;
 
         let up = if gravity.length_squared() > f32::EPSILON {
             -gravity.normalize()
@@ -448,7 +452,7 @@ impl PhysicsSystem {
 }
 
 fn physics_props(physics: Option<&PhysicsComponent>) -> PhysicsProps {
-    use crate::physics_component::PhysicsType;
+    use physics::physics_component::PhysicsType;
 
     let Some(physics) = physics else {
         return PhysicsProps {
@@ -491,7 +495,7 @@ struct PhysicsProps {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics_component::PhysicsType;
+    use physics::physics_component::PhysicsType;
 
     use super::*;
     use approx::assert_relative_eq;

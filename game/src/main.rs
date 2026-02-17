@@ -19,8 +19,12 @@ use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
     SleepComponent, TransformComponent, VelocityComponent,
+};
+
+use engine::physics::{
     physics_component::{PhysicsComponent, PhysicsType},
 };
+
 use glam::{Quat, Vec3};
 
 #[cfg(feature = "dhat-heap")]
