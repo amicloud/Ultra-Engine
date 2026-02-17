@@ -1,4 +1,3 @@
-mod bowl_controller;
 mod camera_controller;
 mod game_controller;
 mod settings;
@@ -15,7 +14,7 @@ use crate::camera_controller::{
     initialize_flying_camera_rotation,
 };
 #[allow(unused_imports)]
-use crate::game_controller::{do_gameplay};
+use crate::game_controller::do_gameplay;
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
@@ -118,8 +117,6 @@ fn main() {
         .load_model("resources/models/sphere_low/sphere.obj")
         .unwrap();
 
-    
-
     let player_scale: Vec3 = Vec3::splat(1.0);
     let player_start = Vec3::new(0.0, 5.0, 2.2);
     let player_local_aabb = engine
@@ -187,33 +184,6 @@ fn main() {
             SleepComponent::default(),
         ));
     });
-
-    // engine.world.spawn((
-    //     TransformComponent {
-    //         position: Vec3::new(10.0, 0.0, -25.0),
-    //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::splat(1.0),
-    //     },
-    //     VelocityComponent {
-    //         translational: Vec3::ZERO,
-    //         angular: Vec3::new(3.0, 2.0, 1.0),
-    //     },
-    //     RenderBodyComponent {
-    //         render_body_id: cube,
-    //     },
-    //     cuboid_collider,
-    //     // ConvexCollider::cuboid(Vec3::new(4.0, 4.0, 4.0), CollisionLayer::Default),
-    //     PhysicsComponent {
-    //         mass: 50.0,
-    //         physics_type: PhysicsType::Dynamic,
-    //         friction: 0.9,
-    //         drag_coefficient: 0.1,
-    //         angular_drag_coefficient: 0.1,
-    //         restitution: 0.5,
-    //         local_inertia: glam::Mat3::IDENTITY,
-    //     },
-    //     // SleepComponent::default(),
-    // ));
 
     let t_range = 2.0;
 
@@ -297,35 +267,6 @@ fn main() {
         },
     ));
 
-    // let ground = engine
-    //     .load_model("resources/models/opalton/opalton3Dterrain.gltf")
-    //     .unwrap();
-
-    // let ground_scale = 1.0;
-    // let ground_collider = engine
-    //     .mesh_collider_from_render_body(ground, CollisionLayer::Default)
-    //     .expect("Render body not found");
-    // engine.world.spawn((
-    //     TransformComponent {
-    //         position: Vec3::new(0.0, 0.0, -300.0),
-    //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::new(ground_scale, ground_scale, ground_scale),
-    //     },
-    //     RenderBodyComponent {
-    //         render_body_id: ground,
-    //     },
-    //     ground_collider,
-    //     PhysicsComponent {
-    //         mass: f32::INFINITY,
-    //         physics_type: PhysicsType::Static,
-    //         friction: 0.2,
-    //         drag_coefficient: 0.1,
-    //         angular_drag_coefficient: 0.1,
-    //         restitution: 0.3,
-    //         local_inertia: glam::Mat3::IDENTITY,
-    //     },
-    // ));
-
     // let monkey_ball_platform = engine
     //     .load_model("resources/models/platform/platform.obj")
     //     .unwrap();
@@ -353,40 +294,5 @@ fn main() {
     //         local_inertia: glam::Mat3::IDENTITY,
     //     },
     // ));
-
-    // let bowl = engine.load_model("resources/models/bowl/bowl.obj").unwrap();
-    // let bowl_collider = engine
-    //     .mesh_collider_from_render_body(bowl, CollisionLayer::Default)
-    //     .expect("Render body AABB not found");
-    // engine.world.spawn((
-    //     TransformComponent {
-    //         position: Vec3::splat(0.0),
-    //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::splat(0.22),
-    //     },
-    //     VelocityComponent {
-    //         translational: Vec3::ZERO,
-    //         angular: Vec3::ZERO,
-    //     },
-    //     RenderBodyComponent {
-    //         render_body_id: bowl,
-    //     },
-    //     bowl_collider,
-    //     BowlFloatComponent {
-    //         base_height: 0.0,
-    //         amplitude: 0.0,
-    //         speed: 10.0,
-    //     },
-    //     PhysicsComponent {
-    //         mass: f32::INFINITY,
-    //         physics_type: PhysicsType::Static,
-    //         friction: 0.5,
-    //         drag_coefficient: 0.1,
-    //         angular_drag_coefficient: 0.1,
-    //         restitution: 0.6,
-    //         local_inertia: glam::Mat3::IDENTITY,
-    //     },
-    // ));
-
     engine.run();
 }

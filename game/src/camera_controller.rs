@@ -49,7 +49,7 @@ impl OrbitCameraComponent {
 
         // Final camera position
         transform.position = self.target - forward * self.distance;
-        
+
         let forward = (self.target - transform.position).normalize();
         let right = forward.cross(up).normalize();
         let up = right.cross(forward).normalize();

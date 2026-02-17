@@ -33,7 +33,7 @@ impl Gravity {
     }
 
     #[allow(dead_code)]
-    /// This generally should not be used directly, as it can lead to gimbal lock. 
+    /// This generally should not be used directly, as it can lead to gimbal lock.
     /// Use `rotate_gravity` with a custom rotation or `rotate_gravity_around_axis` instead.
     pub fn rotate_gravity_euler(&mut self, euler_angles: Vec3) {
         let rotation = Quat::from_euler(

@@ -7,10 +7,18 @@ use rayon::prelude::*;
 use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    TransformComponent, collider_component::{
+    TransformComponent,
+    collider_component::{
         BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
         closest_point_on_triangle,
-    }, epa::epa, gjk::{GjkResult, gjk_intersect}, mesh::AABB, physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource}, render_resource_manager::RenderResourceManager, time_resource::TimeResource, velocity_component::VelocityComponent
+    },
+    epa::epa,
+    gjk::{GjkResult, gjk_intersect},
+    mesh::AABB,
+    physics_resource::{CollisionFrameData, Contact, ContactManifold, PhysicsResource},
+    render_resource_manager::RenderResourceManager,
+    time_resource::TimeResource,
+    velocity_component::VelocityComponent,
 };
 
 #[derive(Default)]
@@ -199,7 +207,7 @@ impl CollisionSystem {
                         velocity_b,
                         &physics_world.world_aabbs,
                         previous_manifold,
-                        delta_t
+                        delta_t,
                     )
                     .map(|merged| (pair, merged));
                 }
@@ -216,7 +224,7 @@ impl CollisionSystem {
                         &render_resources,
                         &physics_world.world_aabbs,
                         previous_manifold,
-                        delta_t
+                        delta_t,
                     )
                     .map(|merged| (pair, merged));
                 }
@@ -233,7 +241,7 @@ impl CollisionSystem {
                         &render_resources,
                         &physics_world.world_aabbs,
                         previous_manifold,
-                        delta_t
+                        delta_t,
                     )
                     .map(|merged| (pair, merged));
                 }
@@ -282,7 +290,6 @@ fn manifold_merge_distance_pair_map(
     let extent = extent_a.min(extent_b);
     extent * 0.01
 }
-
 
 /// Delta_t will be used for toi/sweep
 fn convex_convex_pair_manifold(
@@ -2218,9 +2225,9 @@ mod tests {
     }
 
     #[test]
-    /// Contact information gathered from a snapshot of the main scene, 
-    /// where two entities had 4 contact points with identical normals and penetrations. 
-    /// This tests that the merge_contact_manifold function correctly retains all 4 
+    /// Contact information gathered from a snapshot of the main scene,
+    /// where two entities had 4 contact points with identical normals and penetrations.
+    /// This tests that the merge_contact_manifold function correctly retains all 4
     /// contacts when they are identical, rather than erroneously merging them into fewer contacts.
     fn merge_contact_manifold_should_return_full_manifold() {
         let entity_a = Entity::from_bits(420);

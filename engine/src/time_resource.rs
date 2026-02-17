@@ -8,7 +8,7 @@ pub struct TimeResource {
     total_time: f64,
     frame_count: u64,
     target_frame_duration: Duration,
-    last_frame_time: Instant
+    last_frame_time: Instant,
 }
 
 impl Default for TimeResource {

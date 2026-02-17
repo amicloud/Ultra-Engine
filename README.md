@@ -1,3 +1,3 @@
-# UltraMayor
+# Ultra Engine
 
-Uh... It's a thing
+This is a game engine for my planned city builder game project.

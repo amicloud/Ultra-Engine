@@ -1,5 +1,5 @@
 [package]
-name = "UltraMayor"
+name = "Game"
 version = "0.0.1"
 edition = "2024"
 
@@ -24,7 +24,7 @@ tempfile = "3.24.0"
 glam = "0.31.0"
 
 [[bin]]
-name = "UltraMayor"
+name = "Game"
 path = "src/main.rs"
 
 [features]
