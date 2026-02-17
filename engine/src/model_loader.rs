@@ -6,7 +6,7 @@ use std::hash::{Hash, Hasher};
 
 use crate::Engine;
 use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle, TextureHandle};
-use crate::mesh::{AABB, GltfPrimitiveMesh, Mesh, Vertex};
+use crate::mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex};
 use crate::render::material::{Material, MaterialDesc};
 use crate::render::render_body::{RenderBody, RenderBodyPart};
 use crate::render::render_resource_manager::RenderResourceManager;
@@ -258,7 +258,7 @@ impl Engine {
                     model_index.hash(&mut hasher);
                     MeshHandle(hasher.finish() as u32)
                 };
-                built_mesh.aabb = crate::mesh::AABB::from_vertices(&built_mesh.vertices);
+                built_mesh.aabb = crate::mesh::Aabb::from_vertices(&built_mesh.vertices);
                 built_mesh.compute_bounding_sphere();
                 built_mesh.build_bvh(8);
 
@@ -547,7 +547,7 @@ impl Engine {
                     primitive.index().hash(&mut hasher);
                     MeshHandle(hasher.finish() as u32)
                 };
-                mesh.aabb = AABB::from_vertices(&mesh.vertices);
+                mesh.aabb = Aabb::from_vertices(&mesh.vertices);
                 mesh.compute_bounding_sphere();
                 mesh.build_bvh(8);
 

@@ -7,10 +7,16 @@ use rayon::prelude::*;
 use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    TransformComponent, collider_component::{
+    components::collider_component::{
         BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
         closest_point_on_triangle,
-    }, mesh::AABB, physics, render::render_resource_manager::RenderResourceManager, time_resource::TimeResource, velocity_component::VelocityComponent
+    },
+    components::velocity_component::VelocityComponent,
+    render::render_resource_manager::RenderResourceManager,
+    time_resource::TimeResource,
+    mesh::Aabb,
+    physics,
+    TransformComponent,
 };
 
 use physics::{
@@ -273,7 +279,7 @@ impl CollisionSystem {
 }
 
 fn manifold_merge_distance_pair_map(
-    world_aabbs: &HashMap<Entity, AABB>,
+    world_aabbs: &HashMap<Entity, Aabb>,
     a: Entity,
     b: Entity,
 ) -> f32 {
@@ -299,7 +305,7 @@ fn convex_convex_pair_manifold(
     collider_b: &ConvexCollider,
     transform_b: &TransformComponent,
     velocity_b: Option<&VelocityComponent>,
-    world_aabbs: &HashMap<Entity, AABB>,
+    world_aabbs: &HashMap<Entity, Aabb>,
     previous_manifold: Option<&ContactManifold>,
     _delta_t: Duration,
 ) -> Option<ContactManifold> {
@@ -345,7 +351,7 @@ fn convex_mesh_pair_manifold(
     mesh_collider: &MeshCollider,
     mesh_transform: &TransformComponent,
     render_resources: &RenderResourceManager,
-    world_aabbs: &HashMap<Entity, AABB>,
+    world_aabbs: &HashMap<Entity, Aabb>,
     previous_manifold: Option<&ContactManifold>,
     delta_t: Duration,
 ) -> Option<ContactManifold> {
@@ -521,12 +527,12 @@ fn merge_contact_manifold(
     }
 }
 
-fn transform_aabb(local: AABB, transform: &TransformComponent) -> AABB {
+fn transform_aabb(local: Aabb, transform: &TransformComponent) -> Aabb {
     let matrix = transform.to_mat4();
     transform_aabb_with_mat4(local, &matrix)
 }
 
-fn transform_aabb_with_mat4(local: AABB, transform: &Mat4) -> AABB {
+fn transform_aabb_with_mat4(local: Aabb, transform: &Mat4) -> Aabb {
     let min = local.min;
     let max = local.max;
 
@@ -550,13 +556,13 @@ fn transform_aabb_with_mat4(local: AABB, transform: &Mat4) -> AABB {
         world_max = world_max.max(world);
     }
 
-    AABB {
+    Aabb {
         min: world_min,
         max: world_max,
     }
 }
 
-fn aabb_intersects(a: &AABB, b: &AABB) -> bool {
+fn aabb_intersects(a: &Aabb, b: &Aabb) -> bool {
     (a.min.x <= b.max.x && a.max.x >= b.min.x)
         && (a.min.y <= b.max.y && a.max.y >= b.min.y)
         && (a.min.z <= b.max.z && a.max.z >= b.min.z)
@@ -1290,7 +1296,7 @@ fn reduce_contact_candidates(
     mesh_entity: Entity,
     convex_entity: Entity,
     mut candidates: Vec<ContactCandidate>,
-    convex_aabb_world: AABB,
+    convex_aabb_world: Aabb,
 ) -> Vec<Contact> {
     // Filter out degenerate contacts
     candidates.retain(|c| c.penetration > 0.0 && c.normal.length_squared() > f32::EPSILON);
@@ -1353,7 +1359,7 @@ fn reduce_contact_candidates(
         .collect()
 }
 
-fn collect_triangles_in_aabb(bvh: &BVHNode, target: &AABB, out: &mut Vec<Triangle>) {
+fn collect_triangles_in_aabb(bvh: &BVHNode, target: &Aabb, out: &mut Vec<Triangle>) {
     if !aabb_intersects(&bvh.aabb, target) {
         return;
     }
@@ -1376,16 +1382,16 @@ fn collect_triangles_in_aabb(bvh: &BVHNode, target: &AABB, out: &mut Vec<Triangl
     }
 }
 
-fn triangle_aabb(tri: &Triangle) -> AABB {
+fn triangle_aabb(tri: &Triangle) -> Aabb {
     let min = tri.v0.min(tri.v1).min(tri.v2);
     let max = tri.v0.max(tri.v1).max(tri.v2);
-    AABB { min, max }
+    Aabb { min, max }
 }
 
-fn swept_aabb(aabb: &AABB, delta: Vec3) -> AABB {
+fn swept_aabb(aabb: &Aabb, delta: Vec3) -> Aabb {
     let moved_min = aabb.min + delta;
     let moved_max = aabb.max + delta;
-    AABB {
+    Aabb {
         min: aabb.min.min(moved_min),
         max: aabb.max.max(moved_max),
     }
@@ -1394,12 +1400,12 @@ fn swept_aabb(aabb: &AABB, delta: Vec3) -> AABB {
 fn render_body_local_aabb(
     render_body_id: crate::handles::RenderBodyHandle,
     render_resources: &RenderResourceManager,
-) -> Option<AABB> {
+) -> Option<Aabb> {
     let render_body = render_resources
         .render_body_manager
         .get_render_body(render_body_id)?;
 
-    let mut combined: Option<AABB> = None;
+    let mut combined: Option<Aabb> = None;
     for part in &render_body.parts {
         let mesh = render_resources.mesh_manager.get_mesh(part.mesh_id)?;
         let part_aabb = transform_aabb_with_mat4(mesh.aabb, &part.local_transform);
@@ -1412,8 +1418,8 @@ fn render_body_local_aabb(
     combined
 }
 
-fn union_aabb(a: AABB, b: AABB) -> AABB {
-    AABB {
+fn union_aabb(a: Aabb, b: Aabb) -> Aabb {
+    Aabb {
         min: a.min.min(b.min),
         max: a.max.max(b.max),
     }
@@ -1421,7 +1427,7 @@ fn union_aabb(a: AABB, b: AABB) -> AABB {
 
 #[cfg(test)]
 mod tests {
-    use crate::collider_component::CollisionLayer;
+    use crate::components::collider_component::CollisionLayer;
 
     use super::*;
     use approx::assert_relative_eq;
@@ -1643,7 +1649,7 @@ mod tests {
     fn reduce_contact_candidates_caps_to_four() {
         let mesh_entity = Entity::from_bits(1);
         let convex_entity = Entity::from_bits(2);
-        let convex_aabb_world = AABB {
+        let convex_aabb_world = Aabb {
             min: Vec3::splat(-1.0),
             max: Vec3::splat(1.0),
         };
@@ -1695,7 +1701,7 @@ mod tests {
     fn reduce_contact_candidates_clusters() {
         let mesh_entity = Entity::from_bits(1);
         let convex_entity = Entity::from_bits(2);
-        let convex_aabb_world = AABB {
+        let convex_aabb_world = Aabb {
             min: Vec3::splat(-1.0),
             max: Vec3::splat(1.0),
         };

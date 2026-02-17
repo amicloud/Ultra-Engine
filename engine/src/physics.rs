@@ -4,6 +4,6 @@ pub mod epa;
 pub mod gjk;
 pub mod gravity_resource;
 pub mod movement_system;
-pub mod physics_component;
+pub use crate::components::physics_component;
 pub mod physics_resource;
 pub mod physics_system;

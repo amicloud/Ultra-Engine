@@ -3,7 +3,7 @@
 
 use glam::{Mat4, Vec3};
 
-use crate::{collider_component::ConvexCollider, physics};
+use crate::{components::collider_component::ConvexCollider, physics};
 use physics::{physics_resource::ContactManifold};
 
 const EPA_MAX_ITERATIONS: usize = 256;
@@ -142,7 +142,7 @@ pub fn epa(
         orient_result(face.normal, face.distance, a_transform, b_transform);
 
     Some(EpaResult {
-        normal: normal, // Flip normal to point from A to B
+        normal, // Flip normal to point from A to B
         penetration_depth,
     })
 }
@@ -261,10 +261,10 @@ fn support_minkowski(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::collider_component::{CollisionLayer, ConvexCollider};
+    use crate::components::collider_component::{CollisionLayer, ConvexCollider};
     use physics::gjk::{GjkResult, gjk_intersect};
-    use crate::mesh::AABB;
-    use crate::transform_component::TransformComponent;
+    use crate::mesh::Aabb;
+    use crate::components::transform_component::TransformComponent;
     use assert_approx_eq::assert_approx_eq;
     use glam::{Quat, Vec3};
     fn transform_at(position: Vec3, rotation: Quat) -> Mat4 {
@@ -330,7 +330,7 @@ mod tests {
     fn epa_sphere_vs_box() {
         let sphere = ConvexCollider::sphere(2.0, CollisionLayer::Default);
         let box_collider = ConvexCollider::cuboid_from_aabb(
-            AABB {
+            Aabb {
                 min: Vec3::splat(-1.0),
                 max: Vec3::splat(1.0),
             },

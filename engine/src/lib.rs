@@ -3,8 +3,7 @@
 
 mod action;
 mod action_manager;
-mod camera_component;
-mod collider_component;
+pub mod components;
 mod handles;
 pub mod input;
 mod mesh;
@@ -12,8 +11,6 @@ mod model_loader;
 pub mod render;
 mod sleep_component;
 mod time_resource;
-mod transform_component;
-mod velocity_component;
 pub mod world_basis;
 pub mod physics;
 use bevy_ecs::prelude::*;
@@ -29,10 +26,10 @@ use std::time::Instant;
 pub use physics::collision_system::CollisionSystem;
 pub use physics::gravity_resource::Gravity;
 use crate::input::InputStateResource;
-use crate::mesh::AABB;
+use crate::mesh::Aabb;
+use crate::components::physics_component::PhysicsComponent;
 use crate::render::mesh_resource::MeshResource;
 use physics::movement_system::MovementSystem;
-use physics::physics_component::PhysicsComponent;
 use physics::physics_resource::CollisionFrameData;
 use physics::physics_resource::PhysicsFrameData;
 use physics::physics_resource::PhysicsResource;
@@ -42,16 +39,18 @@ pub use crate::render::render_resource_manager::RenderResourceManager;
 use crate::render::render_system::RenderSystem;
 use crate::render::renderer::{CameraRenderData, RenderParams};
 
-pub use crate::camera_component::{ActiveCamera, CameraComponent};
-pub use crate::collider_component::{CollisionLayer, ConvexCollider, ConvexShape, MeshCollider};
+pub use crate::components::camera_component::{ActiveCamera, CameraComponent};
+pub use crate::components::collider_component::{
+    CollisionLayer, ConvexCollider, ConvexShape, MeshCollider,
+};
 pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::input::MouseButton;
-pub use crate::render::material_component::MaterialComponent;
-pub use crate::render::render_body_component::RenderBodyComponent;
+pub use crate::components::material_component::MaterialComponent;
+pub use crate::components::render_body_component::RenderBodyComponent;
 pub use crate::sleep_component::SleepComponent;
 pub use crate::time_resource::TimeResource;
-pub use crate::transform_component::TransformComponent;
-pub use crate::velocity_component::VelocityComponent;
+pub use crate::components::transform_component::TransformComponent;
+pub use crate::components::velocity_component::VelocityComponent;
 pub use crate::world_basis::WorldBasis;
 pub struct Engine {
     pub world: World,
@@ -361,13 +360,13 @@ impl Default for Engine {
 }
 
 impl Engine {
-    pub fn aabb_from_render_body(&self, render_body_id: RenderBodyHandle) -> Option<AABB> {
+    pub fn aabb_from_render_body(&self, render_body_id: RenderBodyHandle) -> Option<Aabb> {
         let render_resource_manager = self.world.get_resource::<RenderResourceManager>()?;
         let render_body = render_resource_manager
             .render_body_manager
             .get_render_body(render_body_id)?;
 
-        let mut combined: Option<AABB> = None;
+        let mut combined: Option<Aabb> = None;
         for part in &render_body.parts {
             let mesh = render_resource_manager
                 .mesh_manager
@@ -405,7 +404,7 @@ impl Engine {
     }
 }
 
-fn transform_aabb_with_mat4(aabb: AABB, transform: &Mat4) -> AABB {
+fn transform_aabb_with_mat4(aabb: Aabb, transform: &Mat4) -> Aabb {
     let min = aabb.min;
     let max = aabb.max;
 
@@ -429,14 +428,14 @@ fn transform_aabb_with_mat4(aabb: AABB, transform: &Mat4) -> AABB {
         world_max = world_max.max(world);
     }
 
-    AABB {
+    Aabb {
         min: world_min,
         max: world_max,
     }
 }
 
-fn union_aabb(a: AABB, b: AABB) -> AABB {
-    AABB {
+fn union_aabb(a: Aabb, b: Aabb) -> Aabb {
+    Aabb {
         min: a.min.min(b.min),
         max: a.max.max(b.max),
     }

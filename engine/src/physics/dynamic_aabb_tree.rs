@@ -1,13 +1,13 @@
 use bevy_ecs::entity::Entity;
 use glam::Vec3;
 
-use crate::mesh::AABB;
+use crate::mesh::Aabb;
 
 pub type NodeId = usize;
 
 #[derive(Debug, Default)]
 struct Node {
-    aabb: AABB,
+    aabb: Aabb,
     parent: Option<NodeId>,
     left: Option<NodeId>,
     right: Option<NodeId>,
@@ -23,7 +23,7 @@ pub struct DynamicAabbTree {
 }
 
 impl DynamicAabbTree {
-    pub fn update(&mut self, node_id: NodeId, new_aabb: AABB) {
+    pub fn update(&mut self, node_id: NodeId, new_aabb: Aabb) {
         let fat = Self::expand_aabb(new_aabb, 0.1);
 
         if self.nodes[node_id].aabb.contains(&fat) {
@@ -38,14 +38,14 @@ impl DynamicAabbTree {
         self.nodes[id].left.is_none()
     }
 
-    fn expand_aabb(aabb: AABB, margin: f32) -> AABB {
-        AABB {
+    fn expand_aabb(aabb: Aabb, margin: f32) -> Aabb {
+        Aabb {
             min: aabb.min - Vec3::splat(margin),
             max: aabb.max + Vec3::splat(margin),
         }
     }
 
-    pub fn allocate_leaf(&mut self, entity: Entity, aabb: AABB) -> NodeId {
+    pub fn allocate_leaf(&mut self, entity: Entity, aabb: Aabb) -> NodeId {
         let leaf = self.allocate_node();
 
         let fat = Self::expand_aabb(aabb, 0.1);
@@ -102,7 +102,7 @@ impl DynamicAabbTree {
         self.recycle_node(parent);
     }
 
-    pub fn insert_leaf(&mut self, leaf: NodeId, aabb: AABB) {
+    pub fn insert_leaf(&mut self, leaf: NodeId, aabb: Aabb) {
         self.nodes[leaf].aabb = aabb;
         self.nodes[leaf].left = None;
         self.nodes[leaf].right = None;
@@ -298,7 +298,7 @@ impl DynamicAabbTree {
         } else {
             let id = self.nodes.len();
             self.nodes.push(Node {
-                aabb: AABB::default(),
+                aabb: Aabb::default(),
                 parent: None,
                 left: None,
                 right: None,
@@ -310,7 +310,7 @@ impl DynamicAabbTree {
     }
 
     fn recycle_node(&mut self, id: NodeId) {
-        self.nodes[id].aabb = AABB::default();
+        self.nodes[id].aabb = Aabb::default();
         self.nodes[id].parent = None;
         self.nodes[id].left = None;
         self.nodes[id].right = None;
@@ -318,7 +318,7 @@ impl DynamicAabbTree {
         self.nodes[id].entity = None;
         self.free_list.push(id);
     }
-    pub fn query<F>(&self, aabb: AABB, mut callback: F)
+    pub fn query<F>(&self, aabb: Aabb, mut callback: F)
     where
         F: FnMut(Entity),
     {
@@ -327,7 +327,7 @@ impl DynamicAabbTree {
         }
     }
 
-    fn query_node<F>(&self, node_id: NodeId, aabb: &AABB, callback: &mut F)
+    fn query_node<F>(&self, node_id: NodeId, aabb: &Aabb, callback: &mut F)
     where
         F: FnMut(Entity),
     {
@@ -354,14 +354,14 @@ mod tests {
     use rand::{Rng, SeedableRng};
     use std::collections::HashSet;
 
-    fn make_aabb(center: Vec3, half_extent: f32) -> AABB {
-        AABB {
+    fn make_aabb(center: Vec3, half_extent: f32) -> Aabb {
+        Aabb {
             min: center - Vec3::splat(half_extent),
             max: center + Vec3::splat(half_extent),
         }
     }
 
-    fn assert_aabb_eq(left: AABB, right: AABB, message: &str) {
+    fn assert_aabb_eq(left: Aabb, right: Aabb, message: &str) {
         assert_eq!(left.min, right.min, "{message} (min)");
         assert_eq!(left.max, right.max, "{message} (max)");
     }
@@ -373,7 +373,7 @@ mod tests {
         visited: &mut HashSet<NodeId>,
         check_balance: bool,
         leaves: &mut Vec<NodeId>,
-    ) -> (i32, AABB) {
+    ) -> (i32, Aabb) {
         assert!(visited.insert(node_id), "cycle detected at node {node_id}");
 
         let node = &tree.nodes[node_id];
@@ -431,7 +431,7 @@ mod tests {
         }
     }
 
-    fn add_leaf_node(tree: &mut DynamicAabbTree, entity: Entity, aabb: AABB) -> NodeId {
+    fn add_leaf_node(tree: &mut DynamicAabbTree, entity: Entity, aabb: Aabb) -> NodeId {
         let id = tree.allocate_node();
         tree.nodes[id].aabb = aabb;
         tree.nodes[id].entity = Some(entity);
@@ -650,12 +650,12 @@ mod tests {
     #[test]
     fn degenerate_aabb_test() {
         let mut tree = DynamicAabbTree::default();
-        let zero = AABB {
+        let zero = Aabb {
             min: Vec3::new(1.0, 1.0, 1.0),
             max: Vec3::new(1.0, 1.0, 1.0),
         };
         let overlapping = make_aabb(Vec3::new(1.0, 1.0, 1.0), 0.5);
-        let touching = AABB {
+        let touching = Aabb {
             min: Vec3::new(2.0, 1.0, 1.0),
             max: Vec3::new(2.0, 1.0, 1.0),
         };
@@ -668,7 +668,7 @@ mod tests {
         tree.allocate_leaf(e2, overlapping);
         tree.allocate_leaf(e3, touching);
 
-        let query = AABB {
+        let query = Aabb {
             min: Vec3::new(1.0, 1.0, 1.0),
             max: Vec3::new(2.0, 1.0, 1.0),
         };
@@ -810,7 +810,7 @@ mod tests {
     fn stress_random_test() {
         let mut rng = StdRng::seed_from_u64(0xAABB_CCDD_1234_5678);
         let mut tree = DynamicAabbTree::default();
-        let mut leaves: Vec<(NodeId, Entity, AABB)> = Vec::new();
+        let mut leaves: Vec<(NodeId, Entity, Aabb)> = Vec::new();
 
         // Insert 300 random leaves
         for i in 0..300u64 {
@@ -884,7 +884,7 @@ mod tests {
     fn stress_random_test_max_imbalance() {
         let mut rng = StdRng::seed_from_u64(0xAABB_CCDD_1234_5678);
         let mut tree = DynamicAabbTree::default();
-        let mut leaves: Vec<(NodeId, Entity, AABB)> = Vec::new();
+        let mut leaves: Vec<(NodeId, Entity, Aabb)> = Vec::new();
 
         // Insert 300 random leaves
         for i in 0..300u64 {

@@ -3,7 +3,7 @@ use glam::Vec3;
 use std::collections::HashMap;
 
 use crate::{
-    mesh::AABB, physics
+    mesh::Aabb, physics
 };
 use physics::{
     dynamic_aabb_tree::{DynamicAabbTree, NodeId},
@@ -27,7 +27,7 @@ pub struct ContactManifold {
 
 #[derive(Resource, Default)]
 pub struct PhysicsResource {
-    pub world_aabbs: HashMap<Entity, AABB>,
+    pub world_aabbs: HashMap<Entity, Aabb>,
     pub broadphase: DynamicAabbTree,
     pub entity_node: HashMap<Entity, NodeId>,
 }

@@ -2,7 +2,7 @@ use bevy_ecs::component::Component;
 use glam::{Mat4, Vec3};
 
 use crate::handles::RenderBodyHandle;
-use crate::mesh::AABB;
+use crate::mesh::Aabb;
 
 #[derive(Debug, Clone, Copy)]
 pub enum CollisionLayer {
@@ -24,7 +24,7 @@ pub struct Triangle {
 
 #[derive(Debug, Clone)]
 pub struct BVHNode {
-    pub aabb: AABB,
+    pub aabb: Aabb,
     pub left: Option<Box<BVHNode>>,
     pub right: Option<Box<BVHNode>>,
     pub triangles: Vec<Triangle>,
@@ -38,7 +38,7 @@ impl BVHNode {
             min = min.min(tri.v0).min(tri.v1).min(tri.v2);
             max = max.max(tri.v0).max(tri.v1).max(tri.v2);
         }
-        let aabb = AABB { min, max };
+        let aabb = Aabb { min, max };
 
         if triangles.len() <= max_leaf_size {
             return BVHNode {
@@ -79,7 +79,7 @@ impl BVHNode {
 }
 
 pub trait Collider {
-    fn aabb(&self, transform: &Mat4) -> AABB;
+    fn aabb(&self, transform: &Mat4) -> Aabb;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -127,7 +127,7 @@ impl ConvexCollider {
         }
     }
 
-    pub fn cuboid_from_aabb(aabb: AABB, layer: CollisionLayer) -> Self {
+    pub fn cuboid_from_aabb(aabb: Aabb, layer: CollisionLayer) -> Self {
         let size = aabb.max - aabb.min;
         Self::cuboid(size, layer)
     }
@@ -175,7 +175,7 @@ impl ConvexCollider {
         }
     }
 
-    pub fn sphere_from_aabb(aabb: AABB, layer: CollisionLayer) -> Self {
+    pub fn sphere_from_aabb(aabb: Aabb, layer: CollisionLayer) -> Self {
         let center = (aabb.min + aabb.max) * 0.5;
         let radius = (aabb.max - center).length();
         Self::sphere(radius, layer)
@@ -318,7 +318,7 @@ impl ConvexCollider {
 }
 
 impl Collider for ConvexCollider {
-    fn aabb(&self, transform: &Mat4) -> AABB {
+    fn aabb(&self, transform: &Mat4) -> Aabb {
         match self.shape {
             ConvexShape::Cuboid {
                 length,
@@ -326,7 +326,7 @@ impl Collider for ConvexCollider {
                 height,
             } => {
                 let half_extents = Vec3::new(length * 0.5, width * 0.5, height * 0.5);
-                let local_aabb = AABB {
+                let local_aabb = Aabb {
                     min: -half_extents,
                     max: half_extents,
                 };
@@ -336,7 +336,7 @@ impl Collider for ConvexCollider {
                 let center = transform.transform_point3(Vec3::ZERO);
                 let scale = max_scale(transform);
                 let radius = radius * scale;
-                AABB {
+                Aabb {
                     min: center - Vec3::splat(radius),
                     max: center + Vec3::splat(radius),
                 }
@@ -344,7 +344,7 @@ impl Collider for ConvexCollider {
             ConvexShape::Triangle { v0, v1, v2 } => {
                 let local_min = v0.min(v1).min(v2);
                 let local_max = v0.max(v1).max(v2);
-                let local_aabb = AABB {
+                let local_aabb = Aabb {
                     min: local_min,
                     max: local_max,
                 };
@@ -371,12 +371,12 @@ impl Collider for ConvexCollider {
                     max = max.max(*p);
                 }
 
-                let local_aabb = AABB { min, max };
+                let local_aabb = Aabb { min, max };
                 transform_aabb(local_aabb, transform)
             }
             ConvexShape::Egg { length, radius } => {
                 let half_length = length * 0.5;
-                let local_aabb = AABB {
+                let local_aabb = Aabb {
                     min: Vec3::new(-half_length, -radius, -radius),
                     max: Vec3::new(half_length, radius, radius),
                 };
@@ -401,7 +401,7 @@ impl MeshCollider {
     }
 }
 
-fn transform_aabb(local: AABB, transform: &Mat4) -> AABB {
+fn transform_aabb(local: Aabb, transform: &Mat4) -> Aabb {
     let min = local.min;
     let max = local.max;
 
@@ -425,7 +425,7 @@ fn transform_aabb(local: AABB, transform: &Mat4) -> AABB {
         world_max = world_max.max(world);
     }
 
-    AABB {
+    Aabb {
         min: world_min,
         max: world_max,
     }

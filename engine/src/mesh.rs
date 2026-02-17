@@ -5,7 +5,7 @@ use bytemuck::{Pod, Zeroable};
 use glam::Vec3;
 use std::hash::{Hash, Hasher};
 
-use crate::collider_component::{BVHNode, Triangle};
+use crate::components::collider_component::{BVHNode, Triangle};
 use crate::handles::MeshHandle;
 
 #[repr(C)]
@@ -82,12 +82,12 @@ impl Vertex {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct AABB {
+pub struct Aabb {
     pub min: Vec3,
     pub max: Vec3,
 }
 
-impl AABB {
+impl Aabb {
     #[allow(dead_code)]
     fn intersect_ray(&self, ray_origin: Vec3, ray_dir: Vec3) -> bool {
         let inv_dir = Vec3::new(1.0 / ray_dir.x, 1.0 / ray_dir.y, 1.0 / ray_dir.z);
@@ -121,14 +121,14 @@ impl AABB {
             max.position[2] = max.position[2].max(vertex.position[2]);
         });
 
-        AABB {
+        Aabb {
             min: min.position.into(),
             max: max.position.into(),
         }
     }
 
-    pub fn union(&self, other: &AABB) -> AABB {
-        AABB {
+    pub fn union(&self, other: &Aabb) -> Aabb {
+        Aabb {
             min: self.min.min(other.min),
             max: self.max.max(other.max),
         }
@@ -139,7 +139,7 @@ impl AABB {
         2.0 * (d.x * d.y + d.x * d.z + d.y * d.z)
     }
 
-    pub fn intersects(&self, other: &AABB) -> bool {
+    pub fn intersects(&self, other: &Aabb) -> bool {
         !(self.max.x < other.min.x
             || self.min.x > other.max.x
             || self.max.y < other.min.y
@@ -148,7 +148,7 @@ impl AABB {
             || self.min.z > other.max.z)
     }
 
-    pub fn contains(&self, other: &AABB) -> bool {
+    pub fn contains(&self, other: &Aabb) -> bool {
         self.min.x <= other.min.x
             && self.max.x >= other.max.x
             && self.min.y <= other.min.y
@@ -165,7 +165,7 @@ pub struct Mesh {
     pub indices: Vec<u32>,
 
     // Bounds
-    pub aabb: AABB,
+    pub aabb: Aabb,
     pub sphere_center: Vec3,
     pub sphere_radius: f32,
 
@@ -331,7 +331,7 @@ mod tests {
             },
         ];
 
-        let aabb = AABB::from_vertices(&vertices);
+        let aabb = Aabb::from_vertices(&vertices);
         assert_eq!(aabb.min, Vec3::new(-4.0, -2.0, -6.0));
         assert_eq!(aabb.max, Vec3::new(7.0, 8.0, 9.0));
     }
@@ -350,7 +350,7 @@ mod tests {
             },
         ];
 
-        mesh.aabb = AABB::from_vertices(&mesh.vertices);
+        mesh.aabb = Aabb::from_vertices(&mesh.vertices);
         mesh.compute_bounding_sphere();
 
         assert_eq!(mesh.sphere_center, Vec3::new(1.0, 0.0, 0.0));

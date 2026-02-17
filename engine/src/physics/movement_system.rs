@@ -1,10 +1,7 @@
-use crate::velocity_component::VelocityComponent;
+use crate::components::velocity_component::VelocityComponent;
 use crate::{
     time_resource::TimeResource,
-    transform_component::TransformComponent, physics
-};
-use physics:: {
-    physics_component::PhysicsComponent
+    components::{physics_component::PhysicsComponent, transform_component::TransformComponent},
 };
 use bevy_ecs::prelude::*;
 use glam::{Quat, Vec3};
@@ -39,8 +36,7 @@ impl MovementSystem {
         let axis = angular_velocity / angular_velocity_magnitude;
         let angle = angular_velocity_magnitude * delta_time;
         let delta_rotation = Quat::from_axis_angle(axis, angle);
-        let new_rotation = delta_rotation * *rotation;
-        new_rotation
+        delta_rotation * *rotation
     }
 
     fn apply_translation(position: &Vec3, translational_velocity: &Vec3, delta_time: f32) -> Vec3 {

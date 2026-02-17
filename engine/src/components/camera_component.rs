@@ -4,7 +4,7 @@
 use bevy_ecs::prelude::*;
 use glam::Mat4;
 
-use crate::transform_component::TransformComponent;
+use crate::components::transform_component::TransformComponent;
 
 /// Camera projection data owned by game logic.
 ///

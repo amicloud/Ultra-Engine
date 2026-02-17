@@ -3,7 +3,7 @@
 
 use glam::{Mat4, Vec3};
 
-use crate::collider_component::ConvexCollider;
+use crate::components::collider_component::ConvexCollider;
 
 const DEFAULT_MAX_ITERATIONS: usize = 32;
 const EPSILON: f32 = 1e-6;
@@ -475,9 +475,9 @@ fn face_outside(a: Vec3, b: Vec3, c: Vec3, opposite: Vec3, ao: Vec3) -> Option<(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::collider_component::CollisionLayer;
-    use crate::mesh::AABB;
-    use crate::transform_component::TransformComponent;
+    use crate::components::collider_component::CollisionLayer;
+    use crate::mesh::Aabb;
+    use crate::components::transform_component::TransformComponent;
     use glam::{Quat, Vec3};
 
     fn transform_at(position: Vec3) -> Mat4 {
@@ -550,7 +550,7 @@ mod tests {
 
     #[test]
     fn gjk_intersects_overlapping_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::splat(-2.0),
             max: Vec3::splat(1.0),
         };
@@ -569,7 +569,7 @@ mod tests {
 
     #[test]
     fn gjk_no_intersection_separated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::splat(-2.0),
             max: Vec3::splat(1.0),
         };
@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn gjk_intersects_cuboid_sphere() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::splat(-1.0),
             max: Vec3::splat(1.0),
         };
@@ -603,7 +603,7 @@ mod tests {
 
     #[test]
     fn gjk_no_intersection_cuboid_sphere() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::splat(-1.0),
             max: Vec3::splat(1.0),
         };
@@ -618,7 +618,7 @@ mod tests {
 
     #[test]
     fn gjk_intersects_rotated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::new(-3.0, -0.25, -0.25),
             max: Vec3::new(3.0, 0.25, 0.25),
         };
@@ -640,7 +640,7 @@ mod tests {
 
     #[test]
     fn gjk_no_intersection_rotated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::new(-2.0, -1.0, -0.5),
             max: Vec3::new(2.0, 1.0, 0.5),
         };
@@ -657,7 +657,7 @@ mod tests {
 
     #[test]
     fn gjk_intersects_x_rotated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::new(-0.25, -3.0, -0.25),
             max: Vec3::new(0.25, 3.0, 0.25),
         };
@@ -679,7 +679,7 @@ mod tests {
 
     #[test]
     fn gjk_no_intersection_x_rotated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::new(-2.0, -1.0, -0.5),
             max: Vec3::new(2.0, 1.0, 0.5),
         };
@@ -696,7 +696,7 @@ mod tests {
 
     #[test]
     fn gjk_intersects_y_rotated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::new(-0.25, -0.25, -3.0),
             max: Vec3::new(0.25, 0.25, 3.0),
         };
@@ -718,7 +718,7 @@ mod tests {
 
     #[test]
     fn gjk_no_intersection_y_rotated_cuboids() {
-        let aabb = AABB {
+        let aabb = Aabb {
             min: Vec3::new(-2.0, -1.0, -0.5),
             max: Vec3::new(2.0, 1.0, 0.5),
         };
