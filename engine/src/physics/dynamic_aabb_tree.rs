@@ -3,7 +3,7 @@ use std::num::NonZeroUsize;
 use bevy_ecs::entity::Entity;
 use glam::Vec3;
 
-use crate::mesh::Aabb;
+use crate::assets::mesh::Aabb;
 
 // Using NonZeroUsize allows for some nice memory layout optimization
 // since Option<NodeId> can be represented as usize with 0 reserved for None.

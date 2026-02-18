@@ -8,12 +8,12 @@ use std::{collections::HashMap, time::Duration};
 
 use crate::{
     TransformComponent,
+    assets::mesh::Aabb,
     components::collider_component::{
         BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
         closest_point_on_triangle,
     },
     components::velocity_component::VelocityComponent,
-    mesh::Aabb,
     physics,
     render::render_resource_manager::RenderResourceManager,
     time_resource::TimeResource,

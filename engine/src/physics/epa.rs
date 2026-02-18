@@ -6,7 +6,7 @@ use glam::{Mat4, Vec3};
 use crate::{components::collider_component::ConvexCollider, physics};
 use physics::physics_resource::ContactManifold;
 
-const EPA_MAX_ITERATIONS: usize = 256;
+const EPA_MAX_ITERATIONS: usize = 64;
 const EPA_TOLERANCE: f32 = 1e-4;
 const EPSILON: f32 = 1e-6;
 const FACE_VISIBILITY_EPSILON: f32 = 1e-6;
@@ -263,9 +263,9 @@ mod tests {
     use assert_approx_eq::assert_approx_eq;
     use glam::{Quat, Vec3};
 
+    use crate::assets::mesh::Aabb;
     use crate::components::collider_component::{CollisionLayer, ConvexCollider};
     use crate::components::transform_component::TransformComponent;
-    use crate::mesh::Aabb;
 
     use physics::gjk::{GjkResult, gjk_intersect};
 

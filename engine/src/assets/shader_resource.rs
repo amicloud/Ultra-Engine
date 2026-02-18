@@ -5,7 +5,7 @@ use std::hash::{Hash, Hasher};
 use glow::Context;
 
 use crate::handles::ShaderHandle;
-use crate::render::shader::Shader;
+use crate::assets::shader::Shader;
 
 #[derive(Default)]
 pub struct ShaderResource {

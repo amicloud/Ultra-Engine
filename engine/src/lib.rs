@@ -6,8 +6,7 @@ mod action_manager;
 pub mod components;
 mod handles;
 pub mod input;
-mod mesh;
-mod model_loader;
+pub mod assets;
 pub mod physics;
 pub mod render;
 mod time_resource;
@@ -31,11 +30,13 @@ use crate::{
         physics_system::PhysicsSystem,
     },
     render::{
-        mesh_resource::MeshResource,
         render_queue::RenderQueue,
         render_system::RenderSystem,
         renderer::{CameraRenderData, RenderParams, Renderer},
     },
+    assets:: {
+        mesh_resource::MeshResource,
+    }
 };
 
 pub use crate::render::render_resource_manager::RenderResourceManager;
@@ -53,7 +54,7 @@ pub use crate::components::transform_component::TransformComponent;
 pub use crate::components::velocity_component::VelocityComponent;
 pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::input::MouseButton;
-pub use crate::mesh::Aabb;
+pub use crate::assets::mesh::Aabb;
 pub use crate::time_resource::TimeResource;
 pub use crate::world_basis::WorldBasis;
 
@@ -183,41 +184,16 @@ impl Engine {
                 if !Self::handle_input(&mut input_state, &mut self.events_loop) {
                     break 'game;
                 }
-                
+
+                // Update things that should run only once per frame
+                self.frame_schedule.run(&mut self.world);
+                self.game_frame_schedule.run(&mut self.world);
+
+                // Render before doing any simulation steps, so that the game feels more responsive.
                 let render_params = RenderParams {
                     width: self.window.size().0,
                     height: self.window.size().1,
                 };
-
-                let now = Instant::now();
-                let frame_time = now - last_frame;
-                last_frame = now;
-
-                // Update things that should run every frame, regardless of physics steps
-                self.frame_schedule.run(&mut self.world);
-                self.game_frame_schedule.run(&mut self.world);
-
-                // Prevent absurd frame times (debugger pauses, window drag, etc.)
-                let frame_time = frame_time.min(Duration::from_millis(250));
-
-                accumulator += frame_time;
-
-                let mut steps = 0;
-                while accumulator >= fixed_dt && steps < max_physics_steps {
-                    self.physics_schedule.run(&mut self.world);
-                    self.game_simulation_schedule.run(&mut self.world);
-                    accumulator -= fixed_dt;
-                    steps += 1;
-                }
-
-                if steps == max_physics_steps {
-                    accumulator = accumulator.min(fixed_dt);
-                    println!(
-                        "Warning: Reached max physics steps in a frame. Frame time: {:?}, accumulator: {:?}. Consider increasing target frame duration or decreasing simulation fixed dt.",
-                        frame_time, accumulator
-                    );
-                }
-
                 let camera_data = Self::build_camera_render_data(
                     &mut self.world,
                     render_params.width,
@@ -232,19 +208,49 @@ impl Engine {
                         .instances,
                 );
 
-                let mut render_data_manager = self
-                    .world
-                    .get_resource_mut::<RenderResourceManager>()
-                    .expect("RenderDataManager resource not found");
+                renderer.render(
+                    render_params,
+                    &mut self
+                        .world
+                        .get_resource_mut::<RenderResourceManager>()
+                        .expect("RenderDataManager resource not found"),
+                    camera_data,
+                );
 
-                // 4. Render
-                renderer.render(render_params, &mut render_data_manager, camera_data);
+                let now = Instant::now();
+                let frame_time = now - last_frame;
+                last_frame = now;
+
+                // Prevent absurd frame times (debugger pauses, window drag, etc.)
+                let frame_time = frame_time.min(Duration::from_millis(250));
+
+                accumulator += frame_time;
+
+                let mut steps = 0;
+                while accumulator >= fixed_dt && steps < max_physics_steps {
+                    let phys_start = Instant::now();
+                    self.physics_schedule.run(&mut self.world);
+                    let phys_time = phys_start.elapsed();
+                    if phys_time > fixed_dt {
+                        println!(
+                            "Warning: Physics step took {:?}, which is longer than the fixed dt of {:?}.",
+                            phys_time, fixed_dt
+                        );
+                    }
+                    self.game_simulation_schedule.run(&mut self.world);
+                    accumulator -= fixed_dt;
+                    steps += 1;
+                }
+
+                if steps == max_physics_steps {
+                    accumulator = accumulator.min(fixed_dt);
+                }
             }
-            self.window.gl_swap_window();
             let frame_time = frame_start.elapsed();
             if frame_time < frame_target {
                 sleep(frame_target - frame_time);
             }
+            self.window.gl_swap_window();
         }
     }
 
@@ -389,7 +395,7 @@ impl Engine {
 
         combined
     }
-    
+
     pub fn mesh_collider_from_render_body(
         &self,
         render_body_id: RenderBodyHandle,

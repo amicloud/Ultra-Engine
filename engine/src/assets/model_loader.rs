@@ -7,14 +7,16 @@ use std::{
 
 use crate::{
     Engine,
-    handles::{MaterialHandle, MeshHandle, RenderBodyHandle, TextureHandle},
-    mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex},
-    render::{
+    assets::{
         material::{Material, MaterialDesc},
-        render_body::{RenderBody, RenderBodyPart},
-        render_resource_manager::RenderResourceManager,
+        mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex},
         shader::UniformValue,
         texture_resource_manager::TextureResource,
+    },
+    handles::{MaterialHandle, MeshHandle, RenderBodyHandle, TextureHandle},
+    render::{
+        render_body::{RenderBody, RenderBodyPart},
+        render_resource_manager::RenderResourceManager,
     },
 };
 
@@ -246,7 +248,7 @@ impl Engine {
 
                 let mut built_mesh = Mesh::default();
                 for i in 0..vertex_count {
-                    built_mesh.vertices.push(crate::mesh::Vertex {
+                    built_mesh.vertices.push(Vertex {
                         position: positions[i],
                         normal: normals[i],
                         barycentric: [0.0, 0.0, 0.0],
@@ -263,7 +265,7 @@ impl Engine {
                     model_index.hash(&mut hasher);
                     MeshHandle(hasher.finish() as u32)
                 };
-                built_mesh.aabb = crate::mesh::Aabb::from_vertices(&built_mesh.vertices);
+                built_mesh.aabb = Aabb::from_vertices(&built_mesh.vertices);
                 built_mesh.compute_bounding_sphere();
                 built_mesh.build_bvh(8);
 

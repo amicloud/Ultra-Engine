@@ -1,8 +1,8 @@
 use bevy_ecs::component::Component;
 use glam::{Mat4, Vec3};
 
+use crate::assets::mesh::Aabb;
 use crate::handles::RenderBodyHandle;
-use crate::mesh::Aabb;
 
 #[derive(Debug, Clone, Copy)]
 pub enum CollisionLayer {

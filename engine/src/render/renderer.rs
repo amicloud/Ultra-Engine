@@ -4,17 +4,18 @@ use glam::{Mat4, Vec3};
 use glow::{Context as GlowContext, HasContext};
 
 use crate::{
-    handles::{MaterialHandle, MeshHandle, ShaderHandle},
-    mesh::{Mesh, Vertex},
-    render::{
-        frustum::Frustum,
-        render_instance::RenderInstance,
-        render_resource_manager::RenderResourceManager,
+    assets::{
+        mesh::{Mesh, Vertex},
         shader::{
             InputRate::{PerInstance, PerVertex},
             UniformValue, VertexAttribType,
         },
         texture,
+    },
+    handles::{MaterialHandle, MeshHandle, ShaderHandle},
+    render::{
+        frustum::Frustum, render_instance::RenderInstance,
+        render_resource_manager::RenderResourceManager,
     },
 };
 
@@ -503,7 +504,7 @@ impl Renderer {
         }
 
         let mesh_data = mesh_render_data.get(mesh).unwrap();
-        let vertex_stride = crate::mesh::Vertex::stride();
+        let vertex_stride = Vertex::stride();
 
         unsafe {
             let vao = gl.create_vertex_array().unwrap();

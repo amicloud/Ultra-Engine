@@ -6,7 +6,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use crate::{handles::TextureHandle, render::renderer, render::texture::Texture};
+use crate::{assets::texture::Texture, handles::TextureHandle, render::renderer};
 
 #[derive(Default)]
 pub struct TextureResource {

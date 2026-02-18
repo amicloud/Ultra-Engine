@@ -1,9 +1,11 @@
 use bevy_ecs::prelude::*;
 
-use crate::render::{
-    material_resource::MaterialResource, mesh_resource::MeshResource,
-    render_body_resource::RenderBodyResource, shader_resource::ShaderResource,
-    texture_resource_manager::TextureResource,
+use crate::{
+    assets::{
+        material_resource::MaterialResource, mesh_resource::MeshResource,
+        shader_resource::ShaderResource, texture_resource_manager::TextureResource,
+    },
+    render::render_body_resource::RenderBodyResource,
 };
 
 #[derive(Resource)]

@@ -1,7 +1,4 @@
 pub mod frustum;
-pub mod material;
-pub mod material_resource;
-pub mod mesh_resource;
 pub mod render_body;
 pub mod render_body_resource;
 pub mod render_instance;
@@ -10,7 +7,3 @@ pub mod render_resource_manager;
 pub mod render_system;
 pub mod renderer;
 pub mod renderer_backends;
-pub mod shader;
-pub mod shader_resource;
-pub mod texture;
-pub mod texture_resource_manager;

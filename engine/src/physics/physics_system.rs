@@ -27,7 +27,6 @@ pub struct ContactConstraint {
     contact_point: Vec3, // world-space contact
 }
 
-const PGS_ITERATIONS: usize = 8;
 const ENABLE_RESTING_STABILIZATION: bool = false;
 
 impl PhysicsSystem {
@@ -427,14 +426,18 @@ impl PhysicsSystem {
         collision_frame_data: Res<CollisionFrameData>,
         mut physics_frame_data: ResMut<PhysicsFrameData>,
         gravity: Res<Gravity>,
+        time: Res<TimeResource>,
     ) {
         for manifold in collision_frame_data.manifolds.values() {
             physics_frame_data
                 .constraints
                 .extend(Self::manifold_to_constraints(manifold));
         }
-
-        for _ in 0..=PGS_ITERATIONS {
+        
+        // For smaller time steps, we can get away with fewer iterations. 
+        // For larger steps, we need more iterations to maintain stability.
+        let pgs_iterations = time.simulation_fixed_dt().as_millis() as u32;
+        for _ in 0..pgs_iterations {
             for constraint in &mut physics_frame_data.constraints {
                 Self::solve_constraint(constraint, &mut query);
             }
