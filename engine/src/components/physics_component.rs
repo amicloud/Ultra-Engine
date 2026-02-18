@@ -1,5 +1,7 @@
 use bevy_ecs::component::Component;
 
+use crate::{TransformComponent, VelocityComponent};
+
 #[derive(Clone, Copy)]
 pub enum PhysicsType {
     Static,
@@ -8,6 +10,7 @@ pub enum PhysicsType {
 }
 
 #[derive(Component, Clone, Copy)]
+#[require(TransformComponent, VelocityComponent)]
 pub struct PhysicsComponent {
     pub physics_type: PhysicsType,
     pub mass: f32,

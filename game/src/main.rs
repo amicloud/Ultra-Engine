@@ -10,7 +10,7 @@ use camera_controller::{
     apply_flying_camera_movement, apply_player_movement_impulses, update_orbit_camera_target,
 };
 use engine::components::physics_event_listener_component::PhysicsEventListenerComponent;
-use engine::physics::physics_event::PhysicsEvent;
+use engine::physics::physics_event::{PhysicsEvent, PhysicsEventType};
 // use input_controller::{update_input_state, InputState};
 use crate::camera_controller::{
     OrbitCameraComponent, apply_orbit_camera_input, apply_switch_camera_input,
@@ -162,7 +162,7 @@ fn main() {
         PhysicsEventListenerComponent {},
     ));
 
-    (1..=6).for_each(|i| {
+    (1..=25).for_each(|i| {
         let p = player_local_size * Vec3::new(0.0, 0.0, i as f32);
         engine.world.spawn((
             TransformComponent {
@@ -191,60 +191,60 @@ fn main() {
         ));
     });
 
-    let t_range = 2.0;
+    // let t_range = 2.0;
 
-    (0..10).for_each(|_| {
-        use rand::random_range;
-        // Random position
-        let pos = Vec3::new(
-            random_range(-20.0..20.0),
-            random_range(-20.0..20.0),
-            random_range(20.0..200.0),
-        );
+    // (0..10).for_each(|_| {
+    //     use rand::random_range;
+    //     // Random position
+    //     let pos = Vec3::new(
+    //         random_range(-20.0..20.0),
+    //         random_range(-20.0..20.0),
+    //         random_range(20.0..200.0),
+    //     );
 
-        // Random translational velocity
-        let translational = Vec3::new(
-            random_range((-t_range)..t_range),
-            random_range((-t_range)..t_range),
-            random_range((-t_range)..t_range),
-        );
-        // let translational = Vec3::new(0.0, 0.0, 0.0);
+    //     // Random translational velocity
+    //     let translational = Vec3::new(
+    //         random_range((-t_range)..t_range),
+    //         random_range((-t_range)..t_range),
+    //         random_range((-t_range)..t_range),
+    //     );
+    //     // let translational = Vec3::new(0.0, 0.0, 0.0);
 
-        // Random angular velocity
-        let angular = Vec3::new(
-            random_range(-1.0..1.0),
-            random_range(-1.0..1.0),
-            random_range(-1.0..1.0),
-        );
+    //     // Random angular velocity
+    //     let angular = Vec3::new(
+    //         random_range(-1.0..1.0),
+    //         random_range(-1.0..1.0),
+    //         random_range(-1.0..1.0),
+    //     );
 
-        let scale = 1.0;
-        // Spawn test objects
-        engine.world.spawn((
-            TransformComponent {
-                position: pos,
-                rotation: Quat::IDENTITY,
-                scale: Vec3::new(scale, scale, scale),
-            },
-            VelocityComponent {
-                translational,
-                angular,
-            },
-            RenderBodyComponent {
-                render_body_id: sphere,
-            },
-            ConvexCollider::sphere(scale, CollisionLayer::Default),
-            PhysicsComponent {
-                mass: 300.0,
-                physics_type: PhysicsType::Dynamic,
-                friction: 0.2,
-                drag_coefficient: 0.1,
-                angular_drag_coefficient: 0.1,
-                restitution: 0.5,
-                local_inertia: glam::Mat3::IDENTITY,
-            },
-            SleepComponent::default(),
-        ));
-    });
+    //     let scale = 1.0;
+    //     // Spawn test objects
+    //     engine.world.spawn((
+    //         TransformComponent {
+    //             position: pos,
+    //             rotation: Quat::IDENTITY,
+    //             scale: Vec3::new(scale, scale, scale),
+    //         },
+    //         VelocityComponent {
+    //             translational,
+    //             angular,
+    //         },
+    //         RenderBodyComponent {
+    //             render_body_id: sphere,
+    //         },
+    //         ConvexCollider::sphere(scale, CollisionLayer::Default),
+    //         PhysicsComponent {
+    //             mass: 300.0,
+    //             physics_type: PhysicsType::Dynamic,
+    //             friction: 0.2,
+    //             drag_coefficient: 0.1,
+    //             angular_drag_coefficient: 0.1,
+    //             restitution: 0.5,
+    //             local_inertia: glam::Mat3::IDENTITY,
+    //         },
+    //         SleepComponent::default(),
+    //     ));
+    // });
 
     let test_ground = engine
         .load_model("resources/models/test_ground/test_ground.obj")
@@ -301,10 +301,9 @@ fn main() {
     //     },
     // ));
     engine.world.add_observer(|collision: On<PhysicsEvent>| {
-        println!(
-            "Collision Event: Entity {:?} had a {:?} event with Entity {:?}.",
-            collision.entity, collision.event_type, collision.other_entity,
-        );
+        if collision.event_type == PhysicsEventType::Hit {
+            // Maybe we could play a sound
+        }
     });
     engine.run();
 }

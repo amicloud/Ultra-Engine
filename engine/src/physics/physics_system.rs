@@ -27,7 +27,7 @@ pub struct ContactConstraint {
     contact_point: Vec3, // world-space contact
 }
 
-const ENABLE_RESTING_STABILIZATION: bool = false;
+const ENABLE_RESTING_STABILIZATION: bool = true;
 
 impl PhysicsSystem {
     pub fn integrate_motion(
@@ -345,9 +345,9 @@ impl PhysicsSystem {
             Vec3::Z
         };
 
-        let support_dot_threshold = 0.5;
-        let linear_rest_threshold = 1.0;
-        let angular_rest_threshold = 2.0;
+        let support_dot_threshold = 0.9;
+        let linear_rest_threshold = 0.2;
+        let angular_rest_threshold = 0.2;
 
         for manifold in collision_frame_data.manifolds.values() {
             if manifold.contacts.is_empty() {

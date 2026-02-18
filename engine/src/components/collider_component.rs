@@ -1,6 +1,7 @@
 use bevy_ecs::component::Component;
 use glam::{Mat4, Vec3};
 
+use crate::TransformComponent;
 use crate::assets::mesh::Aabb;
 use crate::handles::RenderBodyHandle;
 
@@ -110,6 +111,7 @@ pub enum ConvexShape {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
+#[require(TransformComponent)]
 pub struct ConvexCollider {
     pub shape: ConvexShape,
     pub layer: CollisionLayer,
@@ -387,6 +389,7 @@ impl Collider for ConvexCollider {
 }
 
 #[derive(Component, Clone, Copy)]
+#[require(TransformComponent)]
 pub struct MeshCollider {
     pub render_body_id: RenderBodyHandle,
     pub layer: CollisionLayer,
