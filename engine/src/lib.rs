@@ -25,7 +25,6 @@ use glow::HasContext;
 use crate::{
     components::physics_component::PhysicsComponent,
     input::InputStateResource,
-    mesh::Aabb,
     physics::{
         movement_system::MovementSystem,
         physics_resource::{CollisionFrameData, PhysicsFrameData, PhysicsResource},
@@ -54,6 +53,7 @@ pub use crate::components::transform_component::TransformComponent;
 pub use crate::components::velocity_component::VelocityComponent;
 pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::input::MouseButton;
+pub use crate::mesh::Aabb;
 pub use crate::time_resource::TimeResource;
 pub use crate::world_basis::WorldBasis;
 

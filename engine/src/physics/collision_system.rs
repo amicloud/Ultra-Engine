@@ -61,16 +61,24 @@ impl CollisionSystem {
             phys.world_aabbs.insert(entity, world_aabb);
 
             // Sync dynamic tree
-            match phys.entity_node.get(&entity).copied() {
-                Some(node_id) => {
-                    // Existing object -> update
-                    phys.broadphase.update(node_id, world_aabb);
-                }
-                None => {
-                    // New object -> allocate leaf node
-                    let node_id = phys.broadphase.allocate_leaf(entity, world_aabb);
-                    phys.entity_node.insert(entity, node_id);
-                }
+            Self::update_or_allocate_node(entity, world_aabb, &mut phys);
+        }
+    }
+
+    fn update_or_allocate_node(
+        entity: Entity,
+        new_aabb: Aabb,
+        phys: &mut PhysicsResource,
+    ) {
+        match phys.entity_node.get(&entity).copied() {
+            Some(node_id) => {
+                // Existing object -> update
+                phys.broadphase.update(node_id, new_aabb);
+            }
+            None => {
+                // New object -> allocate leaf node
+                let node_id = phys.broadphase.allocate_leaf(entity, new_aabb);
+                phys.entity_node.insert(entity, node_id);
             }
         }
     }
