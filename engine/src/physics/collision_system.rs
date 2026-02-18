@@ -614,6 +614,7 @@ fn sphere_sphere_contact(
     }]
 }
 
+
 fn cuboid_cuboid_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,
@@ -854,7 +855,6 @@ fn cuboid_cuboid_contact(
         .collect()
 }
 
-/// This should return a Vec<Contact> just like convex_mesh_contact, need to update (TODO)
 fn convex_convex_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,

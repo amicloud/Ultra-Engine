@@ -348,25 +348,33 @@ impl PhysicsSystem {
         let support_dot_threshold = 0.9;
         let linear_rest_threshold = 0.2;
         let angular_rest_threshold = 0.2;
+        let vertical_damp_threshold = 0.1;
+        let max_supported_downward_speed = 0.02;
 
         for manifold in collision_frame_data.manifolds.values() {
             if manifold.contacts.is_empty() {
                 continue;
             }
 
-            let normal = if manifold.normal.length_squared() > f32::EPSILON {
-                manifold.normal.normalize()
-            } else {
-                continue;
-            };
-
-            // Only apply this for support-like contacts (roughly aligned with up/down).
-            if normal.dot(up).abs() < support_dot_threshold {
-                continue;
-            }
-
             for contact in &manifold.contacts {
-                for entity in [contact.entity_a, contact.entity_b] {
+                let contact_normal = if contact.normal.length_squared() > f32::EPSILON {
+                    contact.normal.normalize()
+                } else if manifold.normal.length_squared() > f32::EPSILON {
+                    manifold.normal.normalize()
+                } else {
+                    continue;
+                };
+
+                // Stabilize only the body that is supported by the contact normal.
+                // With normal pointing A -> B, A is supported along -normal and B along +normal.
+                for (entity, support_normal) in [
+                    (contact.entity_a, -contact_normal),
+                    (contact.entity_b, contact_normal),
+                ] {
+                    if support_normal.dot(up) < support_dot_threshold {
+                        continue;
+                    }
+
                     let Ok((_, vel_opt, phys_opt)) = query.get_mut(entity) else {
                         continue;
                     };
@@ -393,8 +401,14 @@ impl PhysicsSystem {
                         vel.angular *= 0.99;
 
                         let vertical_speed = vel.translational.dot(up);
-                        if vertical_speed.abs() < 0.5 {
-                            vel.translational -= up * vertical_speed;
+                        if vertical_speed.abs() < vertical_damp_threshold {
+                            vel.translational -= up * (vertical_speed * 0.5);
+                        }
+
+                        // Keep a tiny downward allowance so gravity can break weak/stale contacts.
+                        if vertical_speed < -max_supported_downward_speed {
+                            vel.translational +=
+                                up * (vertical_speed + max_supported_downward_speed);
                         }
 
                         // Dampen tiny horizontal drift that keeps contacts chattering.

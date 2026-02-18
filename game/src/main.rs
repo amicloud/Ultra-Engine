@@ -180,7 +180,11 @@ fn main() {
             cuboid_collider,
             PhysicsComponent {
                 mass: 5.0,
-                physics_type: PhysicsType::Dynamic,
+                physics_type: if i == 1 {
+                    PhysicsType::Static
+                } else {
+                    PhysicsType::Dynamic
+                },
                 friction: 0.9,
                 drag_coefficient: 0.1,
                 angular_drag_coefficient: 0.1,
