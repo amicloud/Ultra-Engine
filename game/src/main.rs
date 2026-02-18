@@ -9,7 +9,8 @@ use camera_controller::{
     FlyingCameraComponent, PlayerComponent, apply_flying_camera_input,
     apply_flying_camera_movement, apply_player_movement_impulses, update_orbit_camera_target,
 };
-use engine::physics::collision_event::CollisionEvent;
+use engine::components::physics_event_listener_component::PhysicsEventListenerComponent;
+use engine::physics::physics_event::PhysicsEvent;
 // use input_controller::{update_input_state, InputState};
 use crate::camera_controller::{
     OrbitCameraComponent, apply_orbit_camera_input, apply_switch_camera_input,
@@ -158,6 +159,7 @@ fn main() {
         },
         // SleepComponent::default(),
         PlayerComponent { speed: 1.0 },
+        PhysicsEventListenerComponent {},
     ));
 
     (1..=6).for_each(|i| {
@@ -298,16 +300,11 @@ fn main() {
     //         local_inertia: glam::Mat3::IDENTITY,
     //     },
     // ));
-    // engine.world.add_observer(|collision: On<CollisionEvent>| {
-    //     println!(
-    //         "Collision Event: Entity {:?} had a {:?} event with Entity {:?}. Info: normal={:?}, penetration={}, contact_point={:?}",
-    //         collision.entity,
-    //         collision.event_type,
-    //         collision.other_entity,
-    //         collision.collision_info.normal,
-    //         collision.collision_info.penetration,
-    //         collision.collision_info.contact_point
-    //     );
-    // });
+    engine.world.add_observer(|collision: On<PhysicsEvent>| {
+        println!(
+            "Collision Event: Entity {:?} had a {:?} event with Entity {:?}.",
+            collision.entity, collision.event_type, collision.other_entity,
+        );
+    });
     engine.run();
 }

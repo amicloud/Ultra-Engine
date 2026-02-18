@@ -161,7 +161,6 @@ impl CollisionSystem {
         mut frame: ResMut<CollisionFrameData>,
         time: Res<TimeResource>,
     ) {
-        let old_manifolds = std::mem::take(&mut frame.manifolds);
         let delta_t = time.simulation_fixed_dt();
         frame.clear();
 
@@ -204,7 +203,7 @@ impl CollisionSystem {
                     all_query.get(*entity_b).ok()?;
 
                 let pair = ordered_pair(*entity_a, *entity_b);
-                let previous_manifold = old_manifolds.get(&pair);
+                let previous_manifold = frame.previous_manifolds.get(&pair);
 
                 if let (Some(convex_a), Some(convex_b)) = (convex_a, convex_b) {
                     return convex_convex_pair_manifold(
@@ -397,7 +396,7 @@ fn convex_mesh_pair_manifold(
     }
 }
 
-fn ordered_pair(a: Entity, b: Entity) -> (Entity, Entity) {
+pub fn ordered_pair(a: Entity, b: Entity) -> (Entity, Entity) {
     if a.to_bits() <= b.to_bits() {
         (a, b)
     } else {

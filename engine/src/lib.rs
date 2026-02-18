@@ -23,7 +23,7 @@ use glow::HasContext;
 
 use crate::{
     assets::mesh_resource::MeshResource, components::physics_component::PhysicsComponent, input::InputStateResource, physics::{
-        collision_event_dispatcher, movement_system::MovementSystem, physics_resource::{CollisionFrameData, PhysicsFrameData, PhysicsResource}, physics_system::PhysicsSystem
+        physics_event_dispatcher, movement_system::MovementSystem, physics_resource::{CollisionFrameData, PhysicsFrameData, PhysicsResource}, physics_system::PhysicsSystem
     }, render::{
         render_queue::RenderQueue,
         render_system::RenderSystem,
@@ -95,7 +95,7 @@ impl Engine {
             )
                 .chain(),
         );
-        physics_schedule.add_systems(collision_event_dispatcher::dispatch_collision_events);
+        physics_schedule.add_systems(physics_event_dispatcher::dispatch_physics_events);
 
         let mut frame_schedule = Schedule::default();
         frame_schedule.add_systems(
