@@ -1397,7 +1397,7 @@ fn swept_aabb(aabb: &Aabb, delta: Vec3) -> Aabb {
 }
 
 fn render_body_local_aabb(
-    render_body_id: crate::handles::RenderBodyHandle,
+    render_body_id: crate::assets::handles::RenderBodyHandle,
     render_resources: &RenderResourceManager,
 ) -> Option<Aabb> {
     let render_body = render_resources

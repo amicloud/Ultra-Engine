@@ -22,13 +22,20 @@ image = "0.25.9"
 gltf = "1.4.1"
 obj-rs = "0.7.4"
 
+# audio
+cpal = "0.17.1"
+rtrb = "0.3.2"
+
 # async / platform glue
 async-compat = "0.2.4"
 sdl2 = "0.38.0"
 tobj = "4.0.3"
 glam = "0.31.0"
 
+# parallelism
 rayon = "1.11.0"
+
+# heap profiling
 dhat = "0.3.3"
 
 # native

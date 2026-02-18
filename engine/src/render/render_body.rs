@@ -1,6 +1,6 @@
 use glam::Mat4;
 
-use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
+use crate::assets::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 
 #[derive(Clone)]
 pub struct RenderBodyPart {

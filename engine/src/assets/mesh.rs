@@ -5,8 +5,10 @@ use bytemuck::{Pod, Zeroable};
 use glam::Vec3;
 use std::hash::{Hash, Hasher};
 
-use crate::components::collider_component::{BVHNode, Triangle};
-use crate::handles::MeshHandle;
+use crate::{
+    assets::handles::MeshHandle,
+    components::collider_component::{BVHNode, Triangle},
+};
 
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy)]

@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 
-use crate::{TransformComponent, handles::RenderBodyHandle};
+use crate::{RenderBodyHandle, TransformComponent};
 
 #[derive(Component, Debug, Clone, Copy)]
 #[require(TransformComponent)]

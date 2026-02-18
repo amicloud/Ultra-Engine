@@ -4,8 +4,8 @@
 mod action;
 mod action_manager;
 pub mod assets;
+mod audio;
 pub mod components;
-mod handles;
 pub mod input;
 pub mod physics;
 pub mod render;
@@ -42,6 +42,7 @@ pub use crate::render::render_resource_manager::RenderResourceManager;
 pub use physics::collision_system::CollisionSystem;
 pub use physics::gravity_resource::Gravity;
 
+pub use crate::assets::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::assets::mesh::Aabb;
 pub use crate::components::camera_component::{ActiveCamera, CameraComponent};
 pub use crate::components::collider_component::{
@@ -52,7 +53,6 @@ pub use crate::components::render_body_component::RenderBodyComponent;
 pub use crate::components::sleep_component::SleepComponent;
 pub use crate::components::transform_component::TransformComponent;
 pub use crate::components::velocity_component::VelocityComponent;
-pub use crate::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
 pub use crate::input::MouseButton;
 pub use crate::time_resource::TimeResource;
 pub use crate::world_basis::WorldBasis;

@@ -1,4 +1,4 @@
-use crate::handles::TextureHandle;
+use crate::assets::handles::TextureHandle;
 
 #[derive(Debug)]
 pub struct Texture {

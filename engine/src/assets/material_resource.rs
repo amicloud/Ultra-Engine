@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 
-use crate::{assets::material::Material, handles::MaterialHandle};
+use crate::assets::{handles::MaterialHandle, material::Material};
 
 #[derive(Resource, Default)]
 pub struct MaterialResource {

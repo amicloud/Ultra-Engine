@@ -162,7 +162,7 @@ fn main() {
         PhysicsEventListenerComponent {},
     ));
 
-    (1..=10).for_each(|i| {
+    (1..=100).for_each(|i| {
         let p = player_local_size * Vec3::new(0.0, 0.0, i as f32);
         engine.world.spawn((
             TransformComponent {
@@ -197,7 +197,7 @@ fn main() {
 
     let t_range = 2.0;
 
-    (0..10).for_each(|_| {
+    (0..100).for_each(|_| {
         use rand::random_range;
         // Random position
         let pos = Vec3::new(

@@ -47,3 +47,4 @@ flamegraph.svg
 dhat-heap.json
 dhat-heap.json
 out.txt
+profile.json.gz

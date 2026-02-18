@@ -1,7 +1,7 @@
 use std::hash::Hash;
 use std::{collections::HashMap, ffi::OsStr, fs};
 
-use crate::handles::TextureHandle;
+use crate::assets::handles::TextureHandle;
 use glow::HasContext;
 
 pub enum UniformValue {

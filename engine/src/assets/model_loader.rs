@@ -8,12 +8,12 @@ use std::{
 use crate::{
     Engine,
     assets::{
+        handles::{MaterialHandle, MeshHandle, RenderBodyHandle, ShaderHandle, TextureHandle},
         material::{Material, MaterialDesc},
         mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex},
         shader::UniformValue,
         texture_resource_manager::TextureResource,
     },
-    handles::{MaterialHandle, MeshHandle, RenderBodyHandle, TextureHandle},
     render::{
         render_body::{RenderBody, RenderBodyPart},
         render_resource_manager::RenderResourceManager,
@@ -41,7 +41,7 @@ impl Engine {
 
     fn create_pbr_material(
         render_resource_manager: &mut RenderResourceManager,
-        shader_handle: crate::handles::ShaderHandle,
+        shader_handle: ShaderHandle,
         albedo_handle: TextureHandle,
         normal_handle: TextureHandle,
         roughness: f32,

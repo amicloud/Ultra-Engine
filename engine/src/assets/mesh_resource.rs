@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use bevy_ecs::prelude::*;
 
-use crate::{assets::mesh::Mesh, handles::MeshHandle, render::renderer::Renderer};
+use crate::{
+    assets::{handles::MeshHandle, mesh::Mesh},
+    render::renderer::Renderer,
+};
 
 #[derive(Resource, Default)]
 pub struct MeshResource {

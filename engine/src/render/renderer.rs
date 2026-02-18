@@ -5,6 +5,7 @@ use glow::{Context as GlowContext, HasContext};
 
 use crate::{
     assets::{
+        handles::{MaterialHandle, MeshHandle, ShaderHandle},
         mesh::{Mesh, Vertex},
         shader::{
             InputRate::{PerInstance, PerVertex},
@@ -12,7 +13,6 @@ use crate::{
         },
         texture,
     },
-    handles::{MaterialHandle, MeshHandle, ShaderHandle},
     render::{
         frustum::Frustum, render_instance::RenderInstance,
         render_resource_manager::RenderResourceManager,
