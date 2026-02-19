@@ -5,7 +5,8 @@ use std::hint::black_box;
 
 use engine::physics::physics_resource::{CollisionFrameData, PhysicsResource};
 use engine::{
-    CollisionLayer, CollisionSystem, ConvexCollider, RenderResourceManager, TransformComponent,
+    CollisionLayer, CollisionSystem, ConvexCollider, RenderResourceManager, TimeResource,
+    TransformComponent,
 };
 use glam::{Quat, Vec3};
 
@@ -49,6 +50,8 @@ fn setup_world(count: usize, spacing: f32, radius: f32) -> World {
     let mut world = World::new();
     world.insert_resource(RenderResourceManager::new());
     world.insert_resource(PhysicsResource::default());
+    world.insert_resource(CollisionFrameData::default());
+    world.insert_resource(TimeResource::default());
     spawn_convex_grid(&mut world, count, spacing, radius);
     world
 }
@@ -84,7 +87,7 @@ fn bench_generate_contacts(c: &mut Criterion) {
     schedule.add_systems(
         (
             CollisionSystem::update_world_dynamic_tree,
-            CollisionSystem::generate_contacts,
+            CollisionSystem::generate_manifolds,
         )
             .chain(),
     );
@@ -98,13 +101,6 @@ fn bench_generate_contacts(c: &mut Criterion) {
             flip = !flip;
             jiggle_transforms(&mut world, delta);
             schedule.run(&mut world);
-            black_box(
-                world
-                    .get_resource::<CollisionFrameData>()
-                    .expect("CollisionFrameData missing")
-                    .contacts
-                    .len(),
-            );
         })
     });
 }
@@ -115,7 +111,7 @@ fn bench_generate_contacts_touching(c: &mut Criterion) {
     schedule.add_systems(
         (
             CollisionSystem::update_world_dynamic_tree,
-            CollisionSystem::generate_contacts,
+            CollisionSystem::generate_manifolds,
         )
             .chain(),
     );
@@ -129,13 +125,6 @@ fn bench_generate_contacts_touching(c: &mut Criterion) {
             flip = !flip;
             jiggle_transforms(&mut world, delta);
             schedule.run(&mut world);
-            black_box(
-                world
-                    .get_resource::<CollisionFrameData>()
-                    .expect("CollisionFrameData missing")
-                    .contacts
-                    .len(),
-            );
         })
     });
 }

@@ -257,60 +257,60 @@ fn main() {
         ));
     });
 
-    let test_ground = engine
-        .load_model("resources/models/test_ground/test_ground.obj")
-        .unwrap();
-    let test_ground_collider = engine
-        .mesh_collider_from_render_body(test_ground, CollisionLayer::Default)
-        .expect("Render body AABB not found");
-    engine.world.spawn((
-        TransformComponent {
-            position: Vec3::new(0.0, 0.0, 0.0),
-            rotation: Quat::IDENTITY,
-            scale: Vec3::splat(10.0),
-        },
-        RenderBodyComponent {
-            render_body_id: test_ground,
-        },
-        test_ground_collider,
-        PhysicsComponent {
-            mass: f32::INFINITY,
-            physics_type: PhysicsType::Static,
-            friction: 0.2,
-            drag_coefficient: 0.1,
-            angular_drag_coefficient: 0.1,
-            restitution: 0.3,
-            local_inertia: glam::Mat3::IDENTITY,
-        },
-    ));
-
-    // let monkey_ball_platform = engine
-    //     .load_model("resources/models/platform/platform.obj")
+    // let test_ground = engine
+    //     .load_model("resources/models/test_ground/test_ground.obj")
     //     .unwrap();
-    // let money_ball_collider = engine
-    //     .mesh_collider_from_render_body(monkey_ball_platform, CollisionLayer::Default)
+    // let test_ground_collider = engine
+    //     .mesh_collider_from_render_body(test_ground, CollisionLayer::Default)
     //     .expect("Render body AABB not found");
-
     // engine.world.spawn((
     //     TransformComponent {
     //         position: Vec3::new(0.0, 0.0, 0.0),
     //         rotation: Quat::IDENTITY,
-    //         scale: Vec3::splat(2.0),
+    //         scale: Vec3::splat(10.0),
     //     },
     //     RenderBodyComponent {
-    //         render_body_id: monkey_ball_platform,
+    //         render_body_id: test_ground,
     //     },
-    //     money_ball_collider,
+    //     test_ground_collider,
     //     PhysicsComponent {
     //         mass: f32::INFINITY,
     //         physics_type: PhysicsType::Static,
-    //         friction: 0.5,
+    //         friction: 0.2,
     //         drag_coefficient: 0.1,
     //         angular_drag_coefficient: 0.1,
     //         restitution: 0.3,
     //         local_inertia: glam::Mat3::IDENTITY,
     //     },
     // ));
+
+    let platform = engine
+        .load_model("resources/models/platform/platform.obj")
+        .unwrap();
+    let platform_mesh_collider = engine
+        .mesh_collider_from_render_body(platform, CollisionLayer::Default)
+        .expect("Render body AABB not found");
+
+    engine.world.spawn((
+        TransformComponent {
+            position: Vec3::new(0.0, 0.0, 0.0),
+            rotation: Quat::IDENTITY,
+            scale: Vec3::splat(2.0),
+        },
+        RenderBodyComponent {
+            render_body_id: platform,
+        },
+        platform_mesh_collider,
+        PhysicsComponent {
+            mass: f32::INFINITY,
+            physics_type: PhysicsType::Static,
+            friction: 0.5,
+            drag_coefficient: 0.1,
+            angular_drag_coefficient: 0.1,
+            restitution: 0.3,
+            local_inertia: glam::Mat3::IDENTITY,
+        },
+    ));
     engine.world.add_observer(|collision: On<PhysicsEvent>| {
         if collision.event_type == PhysicsEventType::Hit {
             // Maybe we could play a sound

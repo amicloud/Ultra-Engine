@@ -10,6 +10,7 @@ pub mod input;
 pub mod physics;
 pub mod render;
 mod time_resource;
+mod utils;
 pub mod world_basis;
 use std::{
     rc::Rc,
@@ -36,6 +37,7 @@ use crate::{
         render_system::RenderSystem,
         renderer::{CameraRenderData, RenderParams, Renderer},
     },
+    utils::scope_timer::ScopeTimer,
 };
 
 pub use crate::render::render_resource_manager::RenderResourceManager;
@@ -71,6 +73,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new() -> Self {
+        env_logger::init();
         let (gl, window, events_loop, gl_context) = unsafe { Self::create_sdl2_context() };
         let gl = Rc::new(gl);
 
@@ -96,7 +99,7 @@ impl Engine {
                 MovementSystem::update,
                 CollisionSystem::update_world_aabb_cache,
                 CollisionSystem::update_world_dynamic_tree,
-                CollisionSystem::generate_contacts,
+                CollisionSystem::generate_manifolds,
                 PhysicsSystem::physics_solver,
                 PhysicsSystem::integrate_motion,
             )
@@ -171,10 +174,10 @@ impl Engine {
 
         let max_physics_steps: usize = 6;
 
-        let mut _frame_count: u64 = 0;
+        let mut frame_count: u64 = 0;
         'game: loop {
-            // dbg!(frame_count);
-            _frame_count += 1;
+            log::info!("Frame count: {}", frame_count);
+            frame_count += 1;
             let frame_start = Instant::now();
             {
                 let mut input_state = self
@@ -208,15 +211,17 @@ impl Engine {
                         .expect("RenderQueue resource not found")
                         .instances,
                 );
-
-                renderer.render(
-                    render_params,
-                    &mut self
-                        .world
-                        .get_resource_mut::<RenderResourceManager>()
-                        .expect("RenderDataManager resource not found"),
-                    camera_data,
-                );
+                {
+                    let _timer = ScopeTimer::new("Render");
+                    renderer.render(
+                        render_params,
+                        &mut self
+                            .world
+                            .get_resource_mut::<RenderResourceManager>()
+                            .expect("RenderDataManager resource not found"),
+                        camera_data,
+                    );
+                }
 
                 let now = Instant::now();
                 let frame_time = now - last_frame;
@@ -231,15 +236,16 @@ impl Engine {
                 while accumulator >= fixed_dt && steps < max_physics_steps {
                     #[cfg(not(debug_assertions))]
                     let phys_start = Instant::now();
-
-                    self.physics_schedule.run(&mut self.world);
-                    
+                    {
+                        let _timer = ScopeTimer::new("Physics Schedule");
+                        self.physics_schedule.run(&mut self.world);
+                    }
                     #[cfg(not(debug_assertions))]
                     {
                         let phys_time = phys_start.elapsed();
                         if phys_time > fixed_dt {
-                            println!(
-                                "Warning: Physics step took {:?}, which is {:.2}% longer than the fixed dt of {:?}.",
+                            log::warn!(
+                                "Physics schedule took {:?}, which is {:.2}% longer than the fixed dt of {:?}.",
                                 phys_time,
                                 phys_time.as_secs_f32() / fixed_dt.as_secs_f32() * 100.0,
                                 fixed_dt

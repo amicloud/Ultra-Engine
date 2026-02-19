@@ -42,7 +42,6 @@ pub struct PhysicsFrameData {
 pub struct CollisionFrameData {
     pub delta_time: f32,
     pub candidate_pairs: Vec<(Entity, Entity)>,
-    pub contacts: Vec<Contact>,
     pub manifolds: ManifoldVec,
     pub previous_manifolds: ManifoldVec,
 }
@@ -95,7 +94,6 @@ impl CollisionFrameData {
     pub fn clear(&mut self) {
         self.delta_time = 0.0;
         self.candidate_pairs.clear();
-        self.contacts.clear();
         self.previous_manifolds = std::mem::take(&mut self.manifolds);
         self.manifolds.clear();
     }

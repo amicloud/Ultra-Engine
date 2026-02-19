@@ -134,7 +134,7 @@ impl CollisionSystem {
         pairs.dedup();
     }
 
-    pub fn generate_contacts(
+    pub fn generate_manifolds(
         moving_query: Query<
             (
                 Entity,
@@ -269,12 +269,6 @@ impl CollisionSystem {
                 frame.manifolds.push(pair, manifold);
             }
         }
-
-        // let mut merged_contacts = Vec::new();
-        // for manifold in frame.manifolds.into_iter() {
-        //     merged_contacts.extend_from_slice(&manifold.contacts);
-        // }
-        // frame.contacts.extend(merged_contacts);
     }
 }
 
