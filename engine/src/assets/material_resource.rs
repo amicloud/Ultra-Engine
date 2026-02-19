@@ -10,8 +10,7 @@ pub struct MaterialResource {
 
 impl MaterialResource {
     pub fn add_material(&mut self, material: Material) -> MaterialHandle {
-        let id = self.materials.insert(material);
-        id
+        self.materials.insert(material)
     }
 
     pub fn get_material(&self, material_id: MaterialHandle) -> Option<&Material> {

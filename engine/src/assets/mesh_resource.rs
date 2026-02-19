@@ -14,8 +14,7 @@ pub struct MeshResource {
 
 impl MeshResource {
     pub fn add_mesh(&mut self, mesh: Mesh) -> MeshHandle {
-        let id = self.meshes.insert(mesh);
-        id
+        self.meshes.insert(mesh)
     }
 
     #[allow(dead_code)]

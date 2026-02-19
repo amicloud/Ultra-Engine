@@ -362,7 +362,6 @@ impl Engine {
         let texture_map = Self::load_textures_from_gltf_data(
             &mut render_resource_manager.texture_manager,
             gl,
-            gltf_path,
             &gltf,
             &images,
         )?;
@@ -408,7 +407,6 @@ impl Engine {
     fn load_textures_from_gltf_data(
         texture_manager: &mut TextureResource,
         gl: &glow::Context,
-        path: &OsStr,
         gltf: &gltf::Document,
         images: &[gltf::image::Data],
     ) -> Result<HashMap<usize, TextureHandle>, Box<dyn std::error::Error>> {
@@ -425,7 +423,6 @@ impl Engine {
 
             let handle = texture_manager.create_from_rgba_with_key(
                 gl,
-                &(path, texture_index),
                 image.width,
                 image.height,
                 &rgba,

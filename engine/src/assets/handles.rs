@@ -3,10 +3,8 @@ use slotmap::new_key_type;
 new_key_type! { 
     pub struct MeshHandle; 
     pub struct MaterialHandle;
+    pub struct TextureHandle;
 }
-
-#[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct TextureHandle(pub u32);
 
 #[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ShaderHandle(pub u32);
