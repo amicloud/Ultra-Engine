@@ -199,7 +199,7 @@ impl Engine {
             };
 
             let mut parts = Vec::with_capacity(models.len());
-            for (_model_index, model) in models.iter().enumerate() {
+            for model in models.iter() {
                 let mesh = &model.mesh;
                 let vertex_count = mesh.positions.len() / 3;
 

@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 use std::ffi::OsStr;
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 
 use glow::Context;
+use slotmap::SlotMap;
 
 use crate::assets::{handles::ShaderHandle, shader::Shader};
 
 #[derive(Default)]
 pub struct ShaderResource {
-    shaders: HashMap<ShaderHandle, Shader>,
+    shaders: SlotMap<ShaderHandle, Shader>,
     shader_cache: HashMap<ShaderKey, ShaderHandle>,
 }
 
@@ -36,29 +37,22 @@ impl ShaderResource {
 
         let shader = Shader::new(gl, vertex_src, fragment_src);
 
-        self.add_shader(shader, &key)
+        self.add_shader(shader, key)
     }
 
     pub fn get_shader(&self, shader_id: ShaderHandle) -> Option<&Shader> {
-        self.shaders.get(&shader_id)
+        self.shaders.get(shader_id)
     }
 
-    fn add_shader(&mut self, shader: Shader, key: &ShaderKey) -> ShaderHandle {
-        let id = self.make_hashed_id(key);
-        self.shaders.insert(id, shader);
+    fn add_shader(&mut self, shader: Shader, key: ShaderKey) -> ShaderHandle {
+        let id = self.shaders.insert(shader);
         self.shader_cache.insert(
             ShaderKey {
-                vertex_path: key.vertex_path.clone(),
-                fragment_path: key.fragment_path.clone(),
+                vertex_path: key.vertex_path,
+                fragment_path: key.fragment_path,
             },
             id,
         );
         id
-    }
-
-    fn make_hashed_id<T: Hash>(&self, value: &T) -> ShaderHandle {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        value.hash(&mut hasher);
-        ShaderHandle(hasher.finish() as u32)
     }
 }
