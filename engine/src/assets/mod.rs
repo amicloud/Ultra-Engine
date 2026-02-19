@@ -9,3 +9,4 @@ pub mod texture;
 pub mod texture_resource_manager;
 pub mod sound;
 pub mod handles;
+pub mod sound_resource;

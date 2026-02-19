@@ -22,7 +22,7 @@ use glam::{Mat4, Vec3};
 use glow::HasContext;
 
 use crate::{
-    assets::mesh_resource::MeshResource,
+    assets::{mesh_resource::MeshResource, sound_resource::SoundResource},
     components::physics_component::PhysicsComponent,
     input::InputStateResource,
     physics::{
@@ -42,7 +42,7 @@ pub use crate::render::render_resource_manager::RenderResourceManager;
 pub use physics::collision_system::CollisionSystem;
 pub use physics::gravity_resource::Gravity;
 
-pub use crate::assets::handles::{MaterialHandle, MeshHandle, RenderBodyHandle};
+pub use crate::assets::handles::{MaterialHandle, MeshHandle, RenderBodyHandle, SoundHandle};
 pub use crate::assets::mesh::Aabb;
 pub use crate::components::camera_component::{ActiveCamera, CameraComponent};
 pub use crate::components::collider_component::{
@@ -86,6 +86,7 @@ impl Engine {
         world.insert_resource(PhysicsFrameData::default());
         world.insert_resource(TimeResource::new(60, 120));
         world.insert_resource(Gravity::default());
+        world.insert_resource(SoundResource::default());
 
         let mut physics_schedule = Schedule::default();
 
