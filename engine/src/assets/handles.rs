@@ -1,5 +1,6 @@
+use slotmap::new_key_type;
 
-pub type MeshHandle = slotmap::DefaultKey;
+new_key_type! { pub struct MeshHandle; }
 
 // #[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Key)]
 // pub struct MeshHandle(pub u32);
