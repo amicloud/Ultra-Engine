@@ -118,7 +118,7 @@ fn main() {
         .load_model("resources/models/cube/Cube.gltf")
         .unwrap();
 
-    let sphere = engine
+    let _sphere = engine
         .load_model("resources/models/sphere_low/sphere.obj")
         .unwrap();
 
