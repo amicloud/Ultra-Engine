@@ -351,16 +351,16 @@ impl PhysicsSystem {
         let vertical_damp_threshold = 0.1;
         let max_supported_downward_speed = 0.02;
 
-        for manifold in collision_frame_data.manifolds.values() {
-            if manifold.contacts.is_empty() {
+        for entry in collision_frame_data.manifolds.iter() {
+            if entry.manifold.contacts.is_empty() {
                 continue;
             }
 
-            for contact in &manifold.contacts {
+            for contact in &entry.manifold.contacts {
                 let contact_normal = if contact.normal.length_squared() > f32::EPSILON {
                     contact.normal.normalize()
-                } else if manifold.normal.length_squared() > f32::EPSILON {
-                    manifold.normal.normalize()
+                } else if entry.manifold.normal.length_squared() > f32::EPSILON {
+                    entry.manifold.normal.normalize()
                 } else {
                     continue;
                 };
@@ -442,10 +442,10 @@ impl PhysicsSystem {
         gravity: Res<Gravity>,
         time: Res<TimeResource>,
     ) {
-        for manifold in collision_frame_data.manifolds.values() {
+        for entry in collision_frame_data.manifolds.iter() {
             physics_frame_data
                 .constraints
-                .extend(Self::manifold_to_constraints(manifold));
+                .extend(Self::manifold_to_constraints(&entry.manifold));
         }
 
         // For smaller time steps, we can get away with fewer iterations.

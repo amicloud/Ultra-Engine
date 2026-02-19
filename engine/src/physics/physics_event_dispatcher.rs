@@ -21,36 +21,36 @@ pub fn dispatch_physics_events(
     mut commands: Commands,
     collision_frame_data: Res<CollisionFrameData>,
 ) {
-    for ((entity_a, entity_b), manifold) in &collision_frame_data.manifolds {
-        let pair = ordered_pair(*entity_a, *entity_b);
-        let event_type = if collision_frame_data.previous_manifolds.contains_key(&pair) {
+    for manifold_entry  in collision_frame_data.manifolds.iter() {
+        let pair = ordered_pair(manifold_entry.entity_a, manifold_entry.entity_b);
+        let event_type = if collision_frame_data.previous_manifolds.get(pair).is_some() {
             PhysicsEventType::Stay
         } else {
             PhysicsEventType::Hit
         };
 
-        if query.get(*entity_a).is_ok() {
+        if query.get(manifold_entry.entity_a).is_ok() {
             let event_a = PhysicsEvent {
-                entity: *entity_a,
+                entity: manifold_entry.entity_a,
                 event_type,
                 collision_info: PhysicsEventInfo {
-                    normal: manifold.normal,
-                    contacts: manifold.contacts.clone(),
+                    normal: manifold_entry.manifold.normal,
+                    contacts: manifold_entry.manifold.contacts.clone(),
                 },
-                other_entity: *entity_b,
+                other_entity: manifold_entry.entity_b,
             };
             commands.trigger(event_a);
         }
 
-        if query.get(*entity_b).is_ok() {
+        if query.get(manifold_entry.entity_b).is_ok() {
             let event_b = PhysicsEvent {
-                entity: *entity_b,
+                entity: manifold_entry.entity_b,
                 event_type,
                 collision_info: PhysicsEventInfo {
-                    normal: -manifold.normal,
-                    contacts: manifold.contacts.clone(),
+                    normal: -manifold_entry.manifold.normal,
+                    contacts: manifold_entry.manifold.contacts.clone(),
                 },
-                other_entity: *entity_a,
+                other_entity: manifold_entry.entity_a,
             };
             commands.trigger(event_b);
         }

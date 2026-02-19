@@ -2,7 +2,10 @@ use bevy_ecs::prelude::*;
 use glam::Vec3;
 use std::collections::HashMap;
 
-use crate::{assets::mesh::Aabb, physics};
+use crate::{
+    assets::mesh::Aabb,
+    physics::{self, collision_system::OrderedEntityPair},
+};
 use physics::{
     dynamic_aabb_tree::{DynamicAabbTree, NodeId},
     physics_system::ContactConstraint,
@@ -40,11 +43,53 @@ pub struct CollisionFrameData {
     pub delta_time: f32,
     pub candidate_pairs: Vec<(Entity, Entity)>,
     pub contacts: Vec<Contact>,
-    pub manifolds: ManifoldMap,
-    pub previous_manifolds: ManifoldMap,
+    pub manifolds: ManifoldVec,
+    pub previous_manifolds: ManifoldVec,
 }
 
-type ManifoldMap = HashMap<(Entity, Entity), ContactManifold>;
+pub struct ManifoldEntry {
+    pub entity_a: Entity,
+    pub entity_b: Entity,
+    pub manifold: ContactManifold,
+}
+
+#[derive(Default)]
+pub struct ManifoldVec(Vec<ManifoldEntry>);
+impl ManifoldVec {
+    pub fn get(&self, pair: OrderedEntityPair) -> Option<&ContactManifold> {
+        self.0
+            .iter()
+            .find(|entry| entry.entity_a == pair.0 && entry.entity_b == pair.1)
+            .map(|entry| &entry.manifold)
+    }
+
+    pub fn get_mut(&mut self, pair: OrderedEntityPair) -> Option<&mut ContactManifold> {
+        self.0
+            .iter_mut()
+            .find(|entry| entry.entity_a == pair.0 && entry.entity_b == pair.1)
+            .map(|entry| &mut entry.manifold)
+    }
+
+    fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &ManifoldEntry> {
+        self.0.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut ManifoldEntry> {
+        self.0.iter_mut()
+    }
+
+    pub fn push(&mut self, pair: OrderedEntityPair, manifold: ContactManifold) {
+        self.0.push(ManifoldEntry {
+            entity_a: pair.0,
+            entity_b: pair.1,
+            manifold,
+        });
+    }
+}
 
 impl CollisionFrameData {
     pub fn clear(&mut self) {

@@ -199,7 +199,7 @@ impl CollisionSystem {
                     all_query.get(*entity_b).ok()?;
 
                 let pair = ordered_pair(*entity_a, *entity_b);
-                let previous_manifold = frame.previous_manifolds.get(&pair);
+                let previous_manifold = frame.previous_manifolds.get(pair);
 
                 if let (Some(convex_a), Some(convex_b)) = (convex_a, convex_b) {
                     return convex_convex_pair_manifold(
@@ -257,26 +257,24 @@ impl CollisionSystem {
             .collect();
 
         for (pair, manifold) in narrowphase_results {
-            frame
-                .manifolds
-                .entry(pair)
-                .and_modify(|existing| {
-                    if manifold.contacts.len() > existing.contacts.len()
-                        || (manifold.contacts.len() == existing.contacts.len()
-                            && manifold_max_penetration(&manifold)
-                                > manifold_max_penetration(existing))
-                    {
-                        *existing = manifold.clone();
-                    }
-                })
-                .or_insert(manifold.clone());
+            if let Some(existing) = frame.manifolds.get_mut(pair) {
+                if manifold.contacts.len() > existing.contacts.len()
+                    || (manifold.contacts.len() == existing.contacts.len()
+                        && manifold_max_penetration(&manifold)
+                            > manifold_max_penetration(&existing))
+                {
+                    *existing = manifold.clone();
+                }
+            } else {
+                frame.manifolds.push(pair, manifold);
+            }
         }
 
-        let mut merged_contacts = Vec::new();
-        for manifold in frame.manifolds.values() {
-            merged_contacts.extend_from_slice(&manifold.contacts);
-        }
-        frame.contacts.extend(merged_contacts);
+        // let mut merged_contacts = Vec::new();
+        // for manifold in frame.manifolds.into_iter() {
+        //     merged_contacts.extend_from_slice(&manifold.contacts);
+        // }
+        // frame.contacts.extend(merged_contacts);
     }
 }
 
@@ -392,7 +390,9 @@ fn convex_mesh_pair_manifold(
     }
 }
 
-pub fn ordered_pair(a: Entity, b: Entity) -> (Entity, Entity) {
+pub type OrderedEntityPair = (Entity, Entity);
+
+pub fn ordered_pair(a: Entity, b: Entity) -> OrderedEntityPair {
     if a.to_bits() <= b.to_bits() {
         (a, b)
     } else {
@@ -400,7 +400,7 @@ pub fn ordered_pair(a: Entity, b: Entity) -> (Entity, Entity) {
     }
 }
 
-fn orient_contact_to_pair(mut contact: Contact, pair: (Entity, Entity)) -> Contact {
+fn orient_contact_to_pair(mut contact: Contact, pair: OrderedEntityPair) -> Contact {
     if contact.entity_a == pair.0 {
         return contact;
     }
