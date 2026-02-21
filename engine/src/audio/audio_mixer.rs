@@ -3,13 +3,12 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
 };
 
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{Device, Stream, SupportedStreamConfig, traits::{DeviceTrait, HostTrait, StreamTrait}};
 
 use crate::{assets::sound_resource::SoundResource, audio::command_queue::AudioCommand};
 
 pub struct AudioMixer {
-    _stream: Option<cpal::Stream>,
-    // producer: Option<Producer<f32>>,
+    stream: Option<Stream>,
     pub sample_rate: cpal::SampleRate,
     tracks: Arc<Mutex<Vec<Track>>>,
     paused: Arc<AtomicBool>,
@@ -105,9 +104,32 @@ impl Default for AudioMixer {
             finished_indices_buffer: Vec::new(),
             muted: false,
         });
-        let stream_tracks = tracks.clone();
+
         let paused = Arc::new(AtomicBool::new(false));
+        let mut s = Self {
+            stream: None,
+            // producer: None,
+            sample_rate,
+            tracks: tracks.clone(),
+            paused: paused.clone(),
+        };
+
+        s.stream = Some(s.build_stream(&device, config, tracks, paused));
+        s
+    }
+}
+
+impl AudioMixer {
+    pub fn build_stream(
+        &mut self,
+        device: &Device,
+        config: SupportedStreamConfig,
+        tracks: Arc<Mutex<Vec<Track>>>,
+        paused: Arc<AtomicBool>,
+    ) -> Stream{
+        let stream_tracks = tracks.clone();
         let stream_paused = paused.clone();
+        let channels = config.channels() as usize;
         let stream = device
             .build_output_stream(
                 &config.into(),
@@ -145,17 +167,9 @@ impl Default for AudioMixer {
             )
             .expect("failed to build output stream");
         stream.play().expect("failed to play stream");
-        Self {
-            _stream: Some(stream),
-            // producer: None,
-            sample_rate,
-            tracks: tracks.clone(),
-            paused: paused.clone(),
-        }
+        stream
     }
-}
 
-impl AudioMixer {
     pub fn add_track(&mut self, volume: f32, channels: usize) {
         self.tracks.lock().unwrap().push(Track {
             volume,
