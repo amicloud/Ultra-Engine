@@ -27,7 +27,7 @@ pub struct Track {
 }
 
 impl Track {
-    pub fn next_frame(&mut self) {
+    pub fn fill_buffer_from_voices(&mut self) {
         self.finished_indices_buffer.clear();
         self.buffer.fill(0.0);
         if !self.playing {
@@ -46,7 +46,7 @@ impl Track {
             }
         }
         for &index in self.finished_indices_buffer.iter().rev() {
-            log::info!("Voice {} finished, removing from track", index);
+            dbg!("Voice {} finished, removing from track", index);
             self.voices.remove(index);
         }
     }
@@ -62,7 +62,7 @@ struct Voice {
 }
 
 impl Voice {
-    /// Returns false when the voice is out of sampels (has no next frame)
+    /// Returns false when the voice is out of samples (has no next frame)
     fn next_frame(&mut self) -> bool {
         let total_frames = self.samples.len() / self.channels;
 
@@ -126,12 +126,10 @@ impl Default for AudioMixer {
                         mixed.fill(0.0);
 
                         for track in tracks.iter_mut() {
-                            // Fill the track buffer
-                            track.next_frame();
+                            track.fill_buffer_from_voices();
                             for c in 0..channels {
                                 // If the track is mono, use the first channel for all output channels
-                                let src_channel = if track.channels == 1 { 0 } else { c };
-                                mixed[c] += track.buffer[src_channel];
+                                mixed[c] += track.buffer[if track.channels == 1 { 0 } else { c }];
                             }
                         }
 

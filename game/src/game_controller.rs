@@ -1,4 +1,6 @@
 use bevy_ecs::prelude::*;
+use engine::assets::sound_resource::SoundResource;
+use engine::audio::command_queue::{AudioCommand, AudioCommandQueue};
 use engine::input::InputStateResource;
 use engine::{Gravity, TimeResource, WorldBasis};
 use glam::Quat;
@@ -54,5 +56,20 @@ pub fn do_gameplay(
         } else {
             gravity.gravity_normal += spring_force.normalize_or_zero() * ratio;
         }
+    }
+}
+
+pub fn sound_control(
+    input_state: Res<InputStateResource>,
+    mut audio_command_queue: ResMut<AudioCommandQueue>,
+    sound_resource: Res<SoundResource>,
+) {
+    if input_state.key_pressed(sdl2::keyboard::Keycode::P) {
+        audio_command_queue.push(AudioCommand::PlaySound {
+            track: 0,
+            sound: sound_resource.get_by_name("sea_shanty_2_short").unwrap(),
+            volume: 0.5,
+            looping: false,
+        });
     }
 }

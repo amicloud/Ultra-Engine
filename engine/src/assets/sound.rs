@@ -99,7 +99,12 @@ impl Engine {
             .world
             .get_resource_mut::<sound_resource::SoundResource>()
             .unwrap();
-        let handle = sound_resource.add_sound(sound);
+        let name = std::path::Path::new(path)
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let handle = sound_resource.add_sound(sound, name);
         Ok(handle)
     }
 }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy_ecs::prelude::*;
 use slotmap::SlotMap;
 
@@ -8,11 +10,15 @@ use crate::{
 #[derive(Resource, Default)]
 pub struct SoundResource {
     pub sounds: SlotMap<SoundHandle, Sound>,
+    pub name_map: HashMap<String, SoundHandle>,
 }
 
 impl SoundResource {
-    pub fn add_sound(&mut self, sound: Sound) -> SoundHandle {
-        self.sounds.insert(sound)
+    pub fn add_sound(&mut self, sound: Sound, name: String) -> SoundHandle {
+        let handle = self.sounds.insert(sound);
+        dbg!("Added sound with ID: {:?} and name: {}", handle, &name);
+        self.name_map.insert(name, handle);
+        handle
     }
 
     pub fn get_sound(&self, sound_id: SoundHandle) -> Option<&Sound> {
@@ -30,5 +36,9 @@ impl SoundResource {
         } else {
             println!("Sound with ID {:?} not found for removal", sound_id);
         }
+    }
+
+    pub fn get_by_name(&self, name: &str) -> Option<SoundHandle> {
+        self.name_map.get(name).copied()
     }
 }

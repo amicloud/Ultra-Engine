@@ -4,11 +4,16 @@ mod settings;
 
 #[allow(unused_imports)]
 use camera_controller::{
-    FlyingCameraComponent, PlayerComponent, apply_flying_camera_input,
-    apply_flying_camera_movement, apply_player_movement_impulses, update_orbit_camera_target, OrbitCameraComponent, apply_orbit_camera_input, initialize_flying_camera_rotation, apply_switch_camera_input};
-use engine::components::{physics_event_listener_component::PhysicsEventListenerComponent,audio_source_component::AudioSourceComponent};
+    FlyingCameraComponent, OrbitCameraComponent, PlayerComponent, apply_flying_camera_input,
+    apply_flying_camera_movement, apply_orbit_camera_input, apply_player_movement_impulses,
+    apply_switch_camera_input, initialize_flying_camera_rotation, update_orbit_camera_target,
+};
+use engine::components::{
+    audio_source_component::AudioSourceComponent,
+    physics_event_listener_component::PhysicsEventListenerComponent,
+};
 
-use crate::game_controller::do_gameplay;
+use crate::game_controller::{do_gameplay, sound_control};
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
@@ -32,16 +37,15 @@ fn main() {
 
     // Create an ECS-driven camera entity and mark it active.
     let aspect_ratio = 1024.0 / 769.0;
-    let camera_transform = TransformComponent {
-        position: Vec3::new(0.0, 0.0, 0.0),
-        rotation: Quat::IDENTITY,
-        scale: Vec3::new(1.0, 1.0, 1.0),
-    };
 
     let _flying_camera = engine
         .world
         .spawn((
-            camera_transform,
+            TransformComponent {
+                position: Vec3::new(25.0, 25.0, 25.0),
+                rotation: Quat::IDENTITY,
+                scale: Vec3::new(1.0, 1.0, 1.0),
+            },
             CameraComponent {
                 fov_y_radians: 75.0_f32.to_radians(),
                 aspect_ratio,
@@ -64,7 +68,11 @@ fn main() {
     let orbit_camera = engine
         .world
         .spawn((
-            camera_transform,
+            TransformComponent {
+                position: Vec3::new(0.0, 0.0, 0.0),
+                rotation: Quat::IDENTITY,
+                scale: Vec3::new(1.0, 1.0, 1.0),
+            },
             CameraComponent {
                 fov_y_radians: 75.0_f32.to_radians(),
                 aspect_ratio,
@@ -103,8 +111,10 @@ fn main() {
 
     engine
         .game_frame_schedule
-        .add_systems((apply_orbit_camera_input,
-            apply_switch_camera_input));
+        .add_systems((apply_orbit_camera_input, 
+            apply_switch_camera_input,
+            sound_control
+        ));
 
     let cube = engine
         .load_model("resources/models/cube/Cube.gltf")
@@ -126,7 +136,6 @@ fn main() {
     );
     let cuboid_collider = ConvexCollider::cuboid(player_local_size, CollisionLayer::Player);
     let _egg_collider = ConvexCollider::egg(3.0, player_scale.x, CollisionLayer::Player);
-    
 
     let _sea_shanty = engine
         .load_wav("resources/sounds/sea_shanty_2.wav")
@@ -161,14 +170,13 @@ fn main() {
         // SleepComponent::default(),
         PlayerComponent { speed: 1.0 },
         PhysicsEventListenerComponent {},
-        AudioSourceComponent{
-            sound: _sea_shanty,
-            volume: 0.5,
-            pitch: 1.0,
-            looping: false,
-        }
+        // AudioSourceComponent {
+        //     sound: _sea_shanty,
+        //     volume: 0.5,
+        //     pitch: 1.0,
+        //     looping: false,
+        // },
     ));
-
 
     #[cfg(debug_assertions)]
     let spawn_mult = 1;
@@ -324,7 +332,7 @@ fn main() {
     //             sound: sound,
     //             volume: 0.5,
     //             looping: false,
-    //         }); 
+    //         });
     //     }
     // });
     engine.run();
