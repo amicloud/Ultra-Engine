@@ -25,7 +25,7 @@ pub struct Track {
 }
 
 impl Track {
-    pub fn fill_buffer_from_voices(&mut self) {
+    pub fn fill_buffer_from_voices(&mut self, listener_position: Option<Vec3>) {
         self.finished_indices_buffer.clear();
         self.buffer.fill(0.0);
         if !self.playing {
@@ -33,7 +33,7 @@ impl Track {
         }
         let mute_gain = if self.muted { 0.0 } else { 1.0 };
         for (i, voice) in self.voices.iter_mut().enumerate() {
-            if voice.next_frame() {
+            if voice.next_frame(listener_position) {
                 for c in 0..self.channels {
                     // If the voice is mono, use the first channel for all output channels
                     let src_channel = if voice.channels == 1 { 0 } else { c };
@@ -63,9 +63,25 @@ struct Voice {
 
 impl Voice {
     /// Returns false when the voice is out of samples (has no next frame)
-    fn next_frame(&mut self) -> bool {
+    fn next_frame(&mut self, listener_position: Option<Vec3>) -> bool {
+        // dbg!(listener_position);
+        // dbg!(self.location);
         let total_frames = self.samples.len() / self.channels;
+        let angle_to_listner =
+            if let (Some(loc), Some(listener_pos)) = (self.location, listener_position) {
+                let dir_to_listener = (listener_pos - loc).normalize_or_zero();
+                dir_to_listener.x.atan2(dir_to_listener.z)
+            } else {
+                0.0
+            };
+        let distance_to_listener = if let (Some(loc), Some(listener_pos)) = (self.location, listener_position) {
+            loc.distance(listener_pos)
+        } else {
+            1.0 
+        };
 
+        let distance_attenuation = 1.0 / (1.0 + distance_to_listener);
+        
         if self.cursor >= total_frames {
             if self.looping {
                 self.cursor = 0;
@@ -74,10 +90,23 @@ impl Voice {
                 return false; // finished
             }
         }
-
-        for c in 0..self.channels {
-            let idx = self.cursor * self.channels + c;
-            self.buffer[c] = self.samples[idx] * self.volume;
+        if self.channels == 2 {
+            // dbg!(angle_to_listner);
+            // Simple panning based on angle to listener. This is really basic and not a proper spatialization algorithm but it's good enough for now.
+            let pan = angle_to_listner.sin() * 0.5 + 0.5; // pan goes from 0 (left) to 1 (right)
+            self.buffer[0] = self.samples[self.cursor * self.channels] * self.volume * (1.0 - pan) * distance_attenuation;
+            self.buffer[1] = self.samples[self.cursor * self.channels + 1] * self.volume * pan * distance_attenuation;
+        } else if self.channels == 1 {
+            // For mono sounds, apply simple panning by adjusting the volume of the single channel
+            let pan = angle_to_listner.sin() * 0.5 + 0.5; // pan goes from 0 (left) to 1 (right)
+            let sample = self.samples[self.cursor] * self.volume * distance_attenuation;
+            self.buffer[0] = sample * (1.0 - pan);
+            self.buffer[1] = sample * pan;
+        } else {
+            for c in 0..self.channels {
+                let idx = self.cursor * self.channels + c;
+                self.buffer[c] = self.samples[idx] * self.volume * distance_attenuation;
+            }
         }
 
         self.cursor += 1;
@@ -106,7 +135,7 @@ enum MixerCommand {
     },
     UpdateListenerPosition {
         position: Vec3,
-    }
+    },
 }
 
 impl Default for AudioMixer {
@@ -142,7 +171,15 @@ impl Default for AudioMixer {
 
         let listener_position = None;
 
-        s.stream = Some(s.build_stream(&device, config, tracks, paused, consumer, muted, listener_position));
+        s.stream = Some(s.build_stream(
+            &device,
+            config,
+            tracks,
+            paused,
+            consumer,
+            muted,
+            listener_position,
+        ));
         s
     }
 }
@@ -184,9 +221,9 @@ impl AudioMixer {
                         mixed.fill(0.0);
 
                         for track in tracks.iter_mut() {
-                            // This is ok for now but I need to move to block processing instead of 
+                            // This is ok for now but I need to move to block processing instead of
                             // per frame... Somehow.
-                            track.fill_buffer_from_voices();
+                            track.fill_buffer_from_voices(listener_position);
                             for (c, channel) in mixed.iter_mut().enumerate().take(channels) {
                                 // If the track is mono, use the first channel for all output channels
                                 *channel += track.buffer[if track.channels == 1 { 0 } else { c }];
@@ -224,7 +261,7 @@ impl AudioMixer {
                     volume,
                     looping,
                     channels,
-                    location
+                    location,
                 } => {
                     if let Some(track) = tracks.get_mut(track) {
                         track.voices.push(Voice {
@@ -234,7 +271,7 @@ impl AudioMixer {
                             looping: looping,
                             channels: channels,
                             buffer: vec![0.0; channels],
-                            location
+                            location,
                         });
                     } else {
                         eprintln!("Track {} does not exist", track);
@@ -286,13 +323,14 @@ impl AudioMixer {
     ) {
         const MIXER_FULL_ERROR_MESSAGE: &str = "Audio mixer command queue is full! Sorry.";
         for command in commands.iter() {
+            // dbg!(command);
             match command {
                 AudioCommand::PlaySound {
                     track,
                     sound,
                     volume,
                     looping,
-                    location
+                    location,
                 } => {
                     if let Some(sound) = sound_resource.get_sound(*sound) {
                         self.producer
@@ -341,7 +379,9 @@ impl AudioMixer {
                 }
                 AudioCommand::UpdateListenerPosition { position } => {
                     self.producer
-                        .push(MixerCommand::UpdateListenerPosition { position: *position })
+                        .push(MixerCommand::UpdateListenerPosition {
+                            position: *position,
+                        })
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
             }

@@ -190,6 +190,12 @@ fn main() {
         },
         cuboid_collider,
         SleepComponent::default(),
+        AudioSourceComponent {
+            sound: _sea_shanty,
+            volume: 1.0,
+            looping: true,
+            pitch: 1.0,
+        },
     ));
 
     // #[cfg(debug_assertions)]

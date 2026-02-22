@@ -3,6 +3,7 @@ use glam::Vec3;
 
 use crate::SoundHandle;
 
+#[derive(Debug)]
 pub enum AudioCommand {
     PlaySound {
         track: usize,

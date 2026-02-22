@@ -64,6 +64,7 @@ pub struct Engine {
     pub world: World,
     pub game_frame_schedule: Schedule,
     pub game_simulation_schedule: Schedule,
+    cleanup_schedule: Schedule,
     frame_schedule: Schedule,
     physics_schedule: Schedule,
     gl: Rc<glow::Context>,
@@ -106,7 +107,7 @@ impl Engine {
                 CollisionSystem::generate_manifolds,
                 PhysicsSystem::physics_solver,
                 PhysicsSystem::integrate_motion,
-                SpatialAudioSystem::update_listener_position,
+
             )
                 .chain(),
         );
@@ -116,14 +117,23 @@ impl Engine {
         frame_schedule.add_systems(
             (
                 RenderSystem::build_render_queue,
-                AudioSystem::build_command_queue,
                 TimeResource::update_time_resource,
+                AudioSystem::build_command_queue,
+                SpatialAudioSystem::update_listener_position,
             )
                 .chain(),
         );
 
         let game_frame_schedule = Schedule::default();
         let game_simulation_schedule = Schedule::default();
+        let mut cleanup_schedule = Schedule::default();
+        cleanup_schedule.add_systems(
+            (
+                // RenderSystem::cleanup_render_queue,
+                AudioSystem::clear_command_queue,
+            )
+                .chain(),
+        );
 
         let mut render_data_manager = world
             .get_resource_mut::<RenderResourceManager>()
@@ -142,6 +152,7 @@ impl Engine {
             game_simulation_schedule,
             frame_schedule,
             physics_schedule,
+            cleanup_schedule,
             gl,
             window,
             events_loop,
@@ -281,6 +292,7 @@ impl Engine {
                     accumulator = accumulator.min(fixed_dt);
                 }
             }
+            self.cleanup_schedule.run(&mut self.world);
             let frame_time = frame_start.elapsed();
             if frame_time < frame_target {
                 sleep(frame_target - frame_time);
