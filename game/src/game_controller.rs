@@ -75,5 +75,9 @@ pub fn sound_control(
         audio_command_queue.push(AudioCommand::PauseMix);
     } else if input_state.key_pressed(sdl2::keyboard::Keycode::O) {
         audio_command_queue.push(AudioCommand::ResumeMix);
+    } else if input_state.key_pressed(sdl2::keyboard::Keycode::M) {
+        audio_command_queue.push(AudioCommand::MuteMix);
+    } else if input_state.key_pressed(sdl2::keyboard::Keycode::U) {
+        audio_command_queue.push(AudioCommand::UnmuteMix);
     }
 }

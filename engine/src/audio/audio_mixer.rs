@@ -1,19 +1,18 @@
-use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicBool, Ordering},
+use cpal::{
+    Device, Stream, SupportedStreamConfig,
+    traits::{DeviceTrait, HostTrait, StreamTrait},
 };
-
-use cpal::{Device, Stream, SupportedStreamConfig, traits::{DeviceTrait, HostTrait, StreamTrait}};
+use rtrb::{Consumer, Producer, RingBuffer};
+use std::sync::Arc;
 
 use crate::{assets::sound_resource::SoundResource, audio::command_queue::AudioCommand};
-
 pub struct AudioMixer {
     stream: Option<Stream>,
     pub sample_rate: cpal::SampleRate,
-    tracks: Arc<Mutex<Vec<Track>>>,
-    paused: Arc<AtomicBool>,
+    producer: Producer<MixerCommand>,
 }
 
+#[derive(Debug)]
 pub struct Track {
     volume: f32,
     playing: bool,
@@ -45,11 +44,12 @@ impl Track {
         }
         for &index in self.finished_indices_buffer.iter().rev() {
             dbg!("Voice {} finished, removing from track", index);
-            self.voices.remove(index);
+            self.voices.swap_remove(index);
         }
     }
 }
 
+#[derive(Debug)]
 struct Voice {
     samples: Arc<[f32]>,
     cursor: usize,
@@ -83,6 +83,26 @@ impl Voice {
     }
 }
 
+enum MixerCommand {
+    AddVoice {
+        track: usize,
+        samples: Arc<[f32]>,
+        volume: f32,
+        looping: bool,
+        channels: usize,
+    },
+    PauseMix,
+    ResumeMix,
+    MuteMix,
+    UnmuteMix,
+    MuteTrack {
+        track: usize,
+    },
+    UnmuteTrack {
+        track: usize,
+    },
+}
+
 impl Default for AudioMixer {
     fn default() -> Self {
         let host = cpal::default_host();
@@ -94,8 +114,8 @@ impl Default for AudioMixer {
         let config = device.default_output_config().unwrap();
         let channels = config.channels() as usize;
 
-        let tracks: Arc<Mutex<Vec<Track>>> = Arc::new(Mutex::new(Vec::new()));
-        tracks.lock().unwrap().push(Track {
+        let mut tracks = Vec::with_capacity(32);
+        tracks.push(Track {
             volume: 1.0,
             playing: true,
             voices: Vec::new(),
@@ -105,36 +125,43 @@ impl Default for AudioMixer {
             muted: false,
         });
 
-        let paused = Arc::new(AtomicBool::new(false));
+        let paused = false;
+        let muted = false;
+        let (producer, consumer) = RingBuffer::<MixerCommand>::new(1024);
         let mut s = Self {
             stream: None,
-            // producer: None,
+            producer,
             sample_rate,
-            tracks: tracks.clone(),
-            paused: paused.clone(),
         };
 
-        s.stream = Some(s.build_stream(&device, config, tracks, paused));
+        s.stream = Some(s.build_stream(&device, config, tracks, paused, consumer, muted));
         s
     }
 }
 
 impl AudioMixer {
-    pub fn build_stream(
+    fn build_stream(
         &mut self,
         device: &Device,
         config: SupportedStreamConfig,
-        tracks: Arc<Mutex<Vec<Track>>>,
-        paused: Arc<AtomicBool>,
-    ) -> Stream{
-        let stream_tracks = tracks.clone();
-        let stream_paused = paused.clone();
+        mut tracks: Vec<Track>,
+        mut paused: bool,
+        mut consumer: Consumer<MixerCommand>,
+        mut muted: bool,
+    ) -> Stream {
         let channels = config.channels() as usize;
+        let mut mixed = vec![0.0; channels];
         let stream = device
             .build_output_stream(
                 &config.into(),
                 move |output: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                    if stream_paused.load(Ordering::Relaxed) {
+                    Self::process_mixer_commands(
+                        &mut consumer,
+                        &mut tracks,
+                        &mut paused,
+                        &mut muted,
+                    );
+                    if paused {
                         for frame_out in output.chunks_mut(channels) {
                             for c in frame_out.iter_mut().take(channels) {
                                 *c = 0.0;
@@ -142,13 +169,13 @@ impl AudioMixer {
                         }
                         return;
                     }
-                    let mut tracks = stream_tracks.lock().unwrap();
-                    let mut mixed = vec![0.0; channels];
 
                     for frame_out in output.chunks_mut(channels) {
                         mixed.fill(0.0);
 
                         for track in tracks.iter_mut() {
+                            // This is ok for now but I need to move to block processing instead of 
+                            // per frame... Somehow.
                             track.fill_buffer_from_voices();
                             for (c, channel) in mixed.iter_mut().enumerate().take(channels) {
                                 // If the track is mono, use the first channel for all output channels
@@ -157,8 +184,10 @@ impl AudioMixer {
                         }
 
                         // clamp to -1..1 to avoid clipping
+                        // If the mix is muted, output silence regardless of track buffers
+                        let mute_gain = if muted { 0.0 } else { 1.0 };
                         for (c, channel) in frame_out.iter_mut().enumerate().take(channels) {
-                            *channel = mixed[c].clamp(-1.0, 1.0);
+                            *channel = mixed[c].clamp(-1.0, 1.0) * mute_gain;
                         }
                     }
                 },
@@ -170,35 +199,76 @@ impl AudioMixer {
         stream
     }
 
-    pub fn add_track(&mut self, volume: f32, channels: usize) {
-        self.tracks.lock().unwrap().push(Track {
-            volume,
-            playing: true,
-            voices: Vec::new(),
-            buffer: vec![0.0; channels],
-            channels,
-            finished_indices_buffer: Vec::new(),
-            muted: false,
-        });
-    }
-
-    pub fn set_track_volume(&mut self, track: usize, volume: f32) {
-        if let Some(track) = self.tracks.lock().unwrap().get_mut(track) {
-            track.volume = volume;
-        } else {
-            eprintln!("Track {} does not exist", track);
+    fn process_mixer_commands(
+        consumer: &mut Consumer<MixerCommand>,
+        tracks: &mut Vec<Track>,
+        paused: &mut bool,
+        muted: &mut bool,
+    ) {
+        while let Some(command) = consumer.pop().ok() {
+            match command {
+                MixerCommand::AddVoice {
+                    track,
+                    samples,
+                    volume,
+                    looping,
+                    channels,
+                } => {
+                    if let Some(track) = tracks.get_mut(track) {
+                        track.voices.push(Voice {
+                            samples: samples,
+                            cursor: 0,
+                            volume: volume,
+                            looping: looping,
+                            channels: channels,
+                            buffer: vec![0.0; channels],
+                        });
+                    } else {
+                        eprintln!("Track {} does not exist", track);
+                    }
+                }
+                MixerCommand::PauseMix => {
+                    eprintln!("Pausing mix");
+                    *paused = true;
+                }
+                MixerCommand::ResumeMix => {
+                    eprintln!("Resuming mix");
+                    *paused = false;
+                }
+                MixerCommand::MuteMix => {
+                    eprintln!("Muting mix");
+                    *muted = true;
+                }
+                MixerCommand::UnmuteMix => {
+                    eprintln!("Unmuting mix");
+                    *muted = false;
+                }
+                MixerCommand::MuteTrack { track } => {
+                    if let Some(track) = tracks.get_mut(track) {
+                        eprintln!("Muting track {:?}", track);
+                        track.muted = true;
+                    } else {
+                        eprintln!("Track {} does not exist", track);
+                    }
+                }
+                MixerCommand::UnmuteTrack { track } => {
+                    if let Some(track) = tracks.get_mut(track) {
+                        eprintln!("Unmuting track {:?}", track);
+                        track.muted = false;
+                    } else {
+                        eprintln!("Track {} does not exist", track);
+                    }
+                }
+            }
         }
     }
 
-    pub fn mute_track(&mut self, track: usize, mute: bool) {
-        if let Some(track) = self.tracks.lock().unwrap().get_mut(track) {
-            track.muted = mute;
-        } else {
-            eprintln!("Track {} does not exist", track);
-        }
-    }
-
-    pub fn process_commands(&mut self, commands: &[AudioCommand], sound_resource: &SoundResource) {
+    pub fn make_mixer_commands(
+        &mut self,
+        commands: &[AudioCommand],
+        sound_resource: &SoundResource,
+    ) {
+        const MIXER_FULL_ERROR_MESSAGE: &str = "Audio mixer command queue is full! Sorry.";
         for command in commands.iter() {
             match command {
                 AudioCommand::PlaySound {
@@ -208,61 +278,50 @@ impl AudioMixer {
                     looping,
                 } => {
                     if let Some(sound) = sound_resource.get_sound(*sound) {
-                        self.add_voice_to_track(
-                            Arc::from(sound.data.clone()),
-                            *track,
-                            *volume,
-                            *looping,
-                            sound.channels,
-                        );
+                        self.producer
+                            .push(MixerCommand::AddVoice {
+                                track: *track,
+                                samples: sound.data.clone(),
+                                volume: *volume,
+                                looping: *looping,
+                                channels: sound.channels,
+                            })
+                            .expect(MIXER_FULL_ERROR_MESSAGE);
                     } else {
-                        eprintln!("Sound with ID {:?} not found in SoundResource", sound);
-                    }
-                }
-                AudioCommand::PauseTrack { track } => {
-                    if let Some(track) = self.tracks.lock().unwrap().get_mut(*track) {
-                        track.playing = false;
-                    } else {
-                        eprintln!("Track {} does not exist", track);
-                    }
-                }
-                AudioCommand::ResumeTrack { track } => {
-                    if let Some(track) = self.tracks.lock().unwrap().get_mut(*track) {
-                        track.playing = true;
-                    } else {
-                        eprintln!("Track {} does not exist", track);
+                        eprintln!("Sound ID {:?} not found", sound);
                     }
                 }
                 AudioCommand::PauseMix => {
-                    self.paused.store(true, Ordering::Relaxed);
+                    self.producer
+                        .push(MixerCommand::PauseMix)
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
                 AudioCommand::ResumeMix => {
-                    self.paused.store(false, Ordering::Relaxed);
+                    self.producer
+                        .push(MixerCommand::ResumeMix)
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
+                }
+                AudioCommand::PauseTrack { track } => {
+                    self.producer
+                        .push(MixerCommand::MuteTrack { track: *track })
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
+                }
+                AudioCommand::ResumeTrack { track } => {
+                    self.producer
+                        .push(MixerCommand::UnmuteTrack { track: *track })
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
+                }
+                AudioCommand::MuteMix => {
+                    self.producer
+                        .push(MixerCommand::MuteMix)
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
+                }
+                AudioCommand::UnmuteMix => {
+                    self.producer
+                        .push(MixerCommand::UnmuteMix)
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
             }
-        }
-    }
-
-    pub fn add_voice_to_track(
-        &mut self,
-        samples: Arc<[f32]>,
-        track: usize,
-        volume: f32,
-        looping: bool,
-        channels: usize,
-    ) {
-        let voice = Voice {
-            samples,
-            cursor: 0,
-            volume,
-            looping,
-            channels,
-            buffer: vec![0.0; channels],
-        };
-        if let Some(track) = self.tracks.lock().unwrap().get_mut(track) {
-            track.voices.push(voice);
-        } else {
-            eprintln!("Track {} does not exist", track);
         }
     }
 }

@@ -17,6 +17,8 @@ pub enum AudioCommand {
     },
     PauseMix,
     ResumeMix,
+    MuteMix,
+    UnmuteMix,
 }
 
 #[derive(Resource, Default)]

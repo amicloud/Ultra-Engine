@@ -1,11 +1,11 @@
-use std::path::Path;
+use std::{path::Path, sync::Arc};
 
 use crate::{Engine, SoundHandle, assets::sound_resource::SoundResource};
 
 pub struct Sound {
     pub sample_rate: u32,
     pub channels: usize,
-    pub data: Vec<f32>,
+    pub data: Arc<[f32]>,
 }
 
 impl Sound {
@@ -13,7 +13,7 @@ impl Sound {
         Self {
             sample_rate,
             channels,
-            data,
+            data: Arc::from(data),
         }
     }
 
@@ -29,7 +29,7 @@ impl Sound {
             Self {
                 sample_rate,
                 channels: spec.channels as usize,
-                data,
+                data: Arc::from(data),
             }
         } else if spec.channels == 2 {
             let samples = reader
@@ -40,7 +40,7 @@ impl Sound {
             Self {
                 sample_rate,
                 channels: spec.channels as usize,
-                data,
+                data: Arc::from(data),
             }
         } else {
             panic!("Unsupported number of channels: {}", spec.channels);

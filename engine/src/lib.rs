@@ -231,7 +231,7 @@ impl Engine {
                     );
                 }
 
-                self.audio_mixer.process_commands(
+                self.audio_mixer.make_mixer_commands(
                     &self
                         .world
                         .get_resource::<AudioCommandQueue>()
