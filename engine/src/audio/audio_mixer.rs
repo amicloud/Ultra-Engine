@@ -4,7 +4,7 @@ use cpal::{
 };
 use glam::{Quat, Vec3};
 use rtrb::{Consumer, Producer, RingBuffer};
-use std::sync::Arc;
+use std::{f32::consts::PI, sync::Arc};
 
 use crate::{assets::sound_resource::SoundResource, audio::command_queue::AudioCommand};
 pub struct AudioMixer {
@@ -68,6 +68,9 @@ pub type ListenerInfo = Option<(Vec3, Quat)>; // position, rotation
 
 impl Voice {
     fn next_block(&mut self, listener_info: ListenerInfo, required_frames: usize) -> bool {
+        let total_frames = self.samples.len() / self.channels;
+        let frames_to_fill = (total_frames - self.cursor).min(required_frames);
+
         let distance_attenuation =
             if let (Some(location), Some((listener_pos, _))) = (self.location, listener_info) {
                 let distance = location.distance(listener_pos);
@@ -76,20 +79,37 @@ impl Voice {
             } else {
                 1.0
             };
-        let total_frames = self.samples.len() / self.channels;
-        let frames_to_fill = (total_frames - self.cursor).min(required_frames);
+
+        // Simple pan based spatialization
+        let mut pan = 0.0;
+
+        if let Some(location) = self.location {
+            if let Some((listener_pos, listener_rot)) = listener_info {
+                let dir = (location - listener_pos).normalize_or_zero();
+                let right = listener_rot.mul_vec3(Vec3::X);
+
+                // project direction onto listener's horizontal plane (XY)
+                let dir_horizontal = Vec3::new(dir.x, dir.y, 0.0).normalize_or_zero();
+
+                // compute signed pan: dot with right vector
+                pan = right.dot(dir_horizontal).clamp(-1.0, 1.0);
+            }
+        }
+        let pan_rad = (pan + 1.0) * 0.25 * PI; // map -1..1 -> 0..π/2
+        let left_gain = pan_rad.cos(); 
+        let right_gain = pan_rad.sin(); 
 
         for frame in 0..frames_to_fill {
             let sample_idx = self.cursor * self.channels;
             if self.channels == 2 {
                 self.buffer[frame * 2] =
-                    self.samples[sample_idx] * self.volume * distance_attenuation;
+                    self.samples[sample_idx] * self.volume * distance_attenuation * left_gain;
                 self.buffer[frame * 2 + 1] =
-                    self.samples[sample_idx + 1] * self.volume * distance_attenuation;
+                    self.samples[sample_idx + 1] * self.volume * distance_attenuation * right_gain;
             } else if self.channels == 1 {
                 let sample = self.samples[self.cursor] * self.volume * distance_attenuation;
-                self.buffer[frame * 2] = sample;
-                self.buffer[frame * 2 + 1] = sample;
+                self.buffer[frame * 2] = sample * left_gain;
+                self.buffer[frame * 2 + 1] = sample * right_gain;
             } else {
                 for ch in 0..self.channels {
                     self.buffer[frame * self.channels + ch] =
@@ -150,7 +170,7 @@ impl Default for AudioMixer {
             volume: 1.0,
             playing: true,
             voices: Vec::new(),
-            buffer: vec![0.0; 5096 * 2], 
+            buffer: vec![0.0; 5096 * 2],
             channels,
             finished_indices_buffer: Vec::new(),
             muted: false,
@@ -192,7 +212,7 @@ impl AudioMixer {
         mut listener_info: ListenerInfo,
     ) -> Stream {
         let channels = config.channels() as usize;
-            let stream = device
+        let stream = device
             .build_output_stream(
                 &config.into(),
                 move |output: &mut [f32], _: &cpal::OutputCallbackInfo| {
