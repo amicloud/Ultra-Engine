@@ -5,139 +5,16 @@ use cpal::{
 };
 use glam::{Quat, Vec3};
 use rtrb::{Consumer, Producer, RingBuffer};
-use std::{collections::HashMap, f32::consts::PI, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
-use crate::{assets::sound_resource::SoundResource, audio::command_queue::AudioCommand};
+use crate::{assets::sound_resource::SoundResource, audio::{command_queue::AudioCommand, track::Track, voice::Voice}};
 pub struct AudioMixer {
     stream: Option<Stream>,
     pub sample_rate: cpal::SampleRate,
     producer: Producer<MixerCommand>,
 }
 
-#[derive(Debug)]
-pub struct Track {
-    volume: f32,
-    playing: bool,
-    voices: Vec<Voice>,
-    buffer: Vec<f32>,
-    channels: usize,
-    finished_indices_buffer: Vec<usize>,
-    muted: bool,
-}
-impl Track {
-    pub fn fill_buffer_from_voices(&mut self, listener_info: ListenerInfo, required_frames: usize, source_map: &HashMap<Entity, Vec3>) {
-        self.finished_indices_buffer.clear();
-        self.buffer.fill(0.0);
-        if !self.playing {
-            return;
-        }
-        let mute_gain = if self.muted { 0.0 } else { 1.0 };
-        for (i, voice) in self.voices.iter_mut().enumerate() {
-            if voice.next_block(listener_info, required_frames, source_map) {
-                for frame in 0..required_frames {
-                    for ch in 0..self.channels {
-                        let src_ch = if voice.channels == 1 { 0 } else { ch };
-                        self.buffer[frame * self.channels + ch] +=
-                            voice.buffer[frame * voice.channels + src_ch] * self.volume * mute_gain;
-                    }
-                }
-            } else {
-                self.finished_indices_buffer.push(i);
-            }
-        }
-        for &index in self.finished_indices_buffer.iter().rev() {
-            dbg!("Voice {} finished, removing from track", index);
-            self.voices.swap_remove(index);
-        }
-    }
-}
-
-#[derive(Debug)]
-struct Voice {
-    samples: Arc<[f32]>,
-    cursor: usize,
-    volume: f32,
-    looping: bool,
-    channels: usize,
-    buffer: Vec<f32>,
-    // location: Option<Vec3>,
-    source: Option<Entity>,
-    delay_buffer_left: Vec<f32>,  // for ITD
-    delay_buffer_right: Vec<f32>, // for ITD
-}
-
 pub type ListenerInfo = Option<(Vec3, Quat)>; // position, rotation
-
-impl Voice {
-    fn next_block(&mut self, listener_info: ListenerInfo, required_frames: usize, source_map: &HashMap<Entity, Vec3>) -> bool {
-        let total_frames = self.samples.len() / self.channels;
-        let frames_to_fill = (total_frames - self.cursor).min(required_frames);
-
-        let mut location= None;
-        // Simple pan based spatialization
-        let mut pan = 0.0;
-        if let Some(source) = self.source {
-            if let Some(_location) = source_map.get(&source) {
-                location = Some(*_location);
-            }
-        }
-
-        let distance_attenuation =
-            if let (Some(location), Some((listener_pos, _))) = (location, listener_info) {
-                let distance = location.distance(listener_pos);
-                // Simple linear attenuation with distance, clamped to a minimum of 0.1 to avoid complete silence
-                (1.0 - distance / 100.0).max(0.1)
-            } else {
-                1.0
-            };
-
-
-        if let Some(location) = location {
-            if let Some((listener_pos, listener_rot)) = listener_info {
-                let dir = (location - listener_pos).normalize_or_zero();
-                let right = listener_rot.mul_vec3(Vec3::X);
-
-                // project direction onto listener's horizontal plane (XY)
-                let dir_horizontal = Vec3::new(dir.x, dir.y, 0.0).normalize_or_zero();
-
-                // compute signed pan: dot with right vector
-                pan = right.dot(dir_horizontal).clamp(-1.0, 1.0);
-            }
-        }
-        let pan_rad = (pan + 1.0) * 0.25 * PI; // map -1..1 -> 0..π/2
-        let left_gain = pan_rad.cos();
-        let right_gain = pan_rad.sin();
-
-        for frame in 0..frames_to_fill {
-            let sample_idx = self.cursor * self.channels;
-            if self.channels == 2 {
-                self.buffer[frame * 2] =
-                    self.samples[sample_idx] * self.volume * distance_attenuation * left_gain;
-                self.buffer[frame * 2 + 1] =
-                    self.samples[sample_idx + 1] * self.volume * distance_attenuation * right_gain;
-            } else if self.channels == 1 {
-                let sample = self.samples[self.cursor] * self.volume * distance_attenuation;
-                self.buffer[frame * 2] = sample * left_gain;
-                self.buffer[frame * 2 + 1] = sample * right_gain;
-            } else {
-                for ch in 0..self.channels {
-                    self.buffer[frame * self.channels + ch] =
-                        self.samples[sample_idx + ch] * self.volume * distance_attenuation;
-                }
-            }
-            self.cursor += 1;
-        }
-
-        // Zero the rest of the block if we ran out of frames
-        for frame in frames_to_fill..required_frames {
-            for ch in 0..self.channels {
-                self.buffer[frame * self.channels + ch] = 0.0;
-            }
-        }
-
-        return self.cursor < total_frames || self.looping;
-    }
-}
 
 enum MixerCommand {
     AddVoice {
@@ -146,7 +23,6 @@ enum MixerCommand {
         volume: f32,
         looping: bool,
         channels: usize,
-        location: Option<Vec3>,
         source: Option<Entity>,
     },
     PauseMix,
@@ -291,27 +167,22 @@ impl AudioMixer {
                     volume,
                     looping,
                     channels,
-                    location,
                     source,
                 } => {
                     if let Some(track) = tracks.get_mut(track) {
-                        track.voices.push(Voice {
-                            samples: samples,
-                            cursor: 0,
-                            volume: volume,
-                            looping: looping,
-                            channels: channels,
-                            buffer: vec![0.0; required_buffer_size_for_voices],
-                            // location,
-                            delay_buffer_left: vec![0.0; required_buffer_size_for_voices],
-                            delay_buffer_right: vec![0.0; required_buffer_size_for_voices],
+                        track.voices.push(Voice::new(
+                            samples,
+                            volume,
+                            looping,
+                            channels,
                             source,
-                        });
-                        if let (Some(source), Some(location)) = (source, location) {
-                            eprintln!("Adding voice for source {:?} at location {:?}", source, location);
-                            source_map.insert(source, location);
+                            required_buffer_size_for_voices,
+                        ));
+                        if let Some(source) = source {
+                            eprintln!("Adding voice for source {:?}", source);
+                            source_map.insert(source, Vec3::ZERO); // Default location
                         } else {
-                            eprintln!("Adding voice with no source or location");
+                            eprintln!("Adding voice with no source");
                         }
                     } else {
                         eprintln!("Track {} does not exist", track);
@@ -373,7 +244,6 @@ impl AudioMixer {
                     sound,
                     volume,
                     looping,
-                    location,
                     source
                 } => {
                     if let Some(sound) = sound_resource.get_sound(*sound) {
@@ -384,7 +254,6 @@ impl AudioMixer {
                                 volume: *volume,
                                 looping: *looping,
                                 channels: sound.channels,
-                                location: *location,
                                 source: *source,
                             })
                             .expect(MIXER_FULL_ERROR_MESSAGE);

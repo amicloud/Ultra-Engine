@@ -11,13 +11,12 @@ impl AudioSystem {
         query: Query<(Entity, &AudioSourceComponent, Option<&TransformComponent>),  Added<AudioSourceComponent>>,
         mut queue: ResMut<AudioCommandQueue>,
     ) {
-        for (entity, source, transform) in query.iter() {
+        for (entity, source, _) in query.iter() {
             queue.push(AudioCommand::PlaySound {
                 track: 0,
                 sound: source.sound,
                 volume: source.volume,
                 looping: source.looping,
-                location: transform.map(|t| t.position),
                 source: Some(entity),
             });
         }

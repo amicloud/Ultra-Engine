@@ -10,7 +10,6 @@ pub enum AudioCommand {
         sound: SoundHandle,
         volume: f32,
         looping: bool,
-        location: Option<Vec3>,
         source: Option<Entity>,
     },
     PauseTrack {
