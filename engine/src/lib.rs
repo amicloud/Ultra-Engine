@@ -24,7 +24,10 @@ use glow::HasContext;
 
 use crate::{
     assets::{mesh_resource::MeshResource, sound_resource::SoundResource},
-    audio::{audio_mixer::AudioMixer, audio_system::AudioSystem, command_queue::AudioCommandQueue, spatial_audio_system::SpatialAudioSystem},
+    audio::{
+        audio_mixer::AudioMixer, audio_system::AudioSystem, command_queue::AudioCommandQueue,
+        spatial_audio_system::SpatialAudioSystem,
+    },
     components::physics_component::PhysicsComponent,
     input::InputStateResource,
     physics::{
@@ -107,7 +110,6 @@ impl Engine {
                 CollisionSystem::generate_manifolds,
                 PhysicsSystem::physics_solver,
                 PhysicsSystem::integrate_motion,
-
             )
                 .chain(),
         );

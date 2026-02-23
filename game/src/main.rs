@@ -15,7 +15,9 @@ use engine::components::{
     physics_event_listener_component::PhysicsEventListenerComponent,
 };
 
-use crate::game_controller::{SpatialAudioDemoComponent, do_gameplay, sound_control, spatial_audio_orbit_demo};
+use crate::game_controller::{
+    SpatialAudioDemoComponent, do_gameplay, sound_control, spatial_audio_orbit_demo,
+};
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
@@ -43,7 +45,7 @@ fn main() {
     let _flying_camera = engine
         .world
         .spawn((
-        SingleAudioListenerComponent,
+            SingleAudioListenerComponent,
             TransformComponent {
                 position: Vec3::new(25.0, 25.0, 25.0),
                 rotation: Quat::IDENTITY,

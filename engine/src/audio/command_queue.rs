@@ -1,7 +1,9 @@
 use bevy_ecs::prelude::*;
-use glam::Vec3;
 
-use crate::{SoundHandle, audio::audio_mixer::ListenerInfo};
+use crate::{
+    SoundHandle,
+    audio::audio_mixer::{ListenerInfo, SourceInfo},
+};
 
 #[derive(Debug)]
 pub enum AudioCommand {
@@ -23,9 +25,12 @@ pub enum AudioCommand {
     MuteMix,
     UnmuteMix,
     UpdateListenerInfo {
-        listener_info: ListenerInfo,
+        info: ListenerInfo,
     },
-    UpdateSourceInfo { entity: Entity, position: Vec3 },
+    UpdateSourceInfo {
+        entity: Entity,
+        info: SourceInfo,
+    },
 }
 
 #[derive(Resource, Default)]

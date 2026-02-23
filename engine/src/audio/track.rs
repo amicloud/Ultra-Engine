@@ -5,7 +5,6 @@ use glam::Vec3;
 
 use crate::audio::{audio_mixer::ListenerInfo, voice::Voice};
 
-
 #[derive(Debug)]
 pub(crate) struct Track {
     pub(crate) volume: f32,
@@ -17,7 +16,12 @@ pub(crate) struct Track {
     pub(crate) muted: bool,
 }
 impl Track {
-    pub fn fill_buffer_from_voices(&mut self, listener_info: ListenerInfo, required_frames: usize, source_map: &HashMap<Entity, Vec3>) {
+    pub fn fill_buffer_from_voices(
+        &mut self,
+        listener_info: Option<&ListenerInfo>,
+        required_frames: usize,
+        source_map: &HashMap<Entity, Vec3>,
+    ) {
         self.finished_indices_buffer.clear();
         self.buffer.fill(0.0);
         if !self.playing {
@@ -29,8 +33,10 @@ impl Track {
                 for frame in 0..required_frames {
                     for ch in 0..self.channels {
                         let src_ch = if voice.channels() == 1 { 0 } else { ch };
-                        self.buffer[frame * self.channels + ch] +=
-                            voice.buffer[frame * voice.channels() + src_ch] * self.volume * mute_gain;
+                        self.buffer[frame * self.channels + ch] += voice.buffer
+                            [frame * voice.channels() + src_ch]
+                            * self.volume
+                            * mute_gain;
                     }
                 }
             } else {

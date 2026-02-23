@@ -7,14 +7,18 @@ use glam::{Quat, Vec3};
 use rtrb::{Consumer, Producer, RingBuffer};
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{assets::sound_resource::SoundResource, audio::{command_queue::AudioCommand, track::Track, voice::Voice}};
+use crate::{
+    assets::sound_resource::SoundResource,
+    audio::{command_queue::AudioCommand, track::Track, voice::Voice},
+};
 pub struct AudioMixer {
     stream: Option<Stream>,
     pub sample_rate: cpal::SampleRate,
     producer: Producer<MixerCommand>,
 }
 
-pub type ListenerInfo = Option<(Vec3, Quat)>; // position, rotation
+pub(crate) type ListenerInfo = (Vec3, Quat); // position, rotation
+pub(crate) type SourceInfo = Vec3; // position
 
 enum MixerCommand {
     AddVoice {
@@ -36,9 +40,12 @@ enum MixerCommand {
         track: usize,
     },
     UpdateListenerInfo {
-        listener_info: ListenerInfo,
+        info: ListenerInfo,
     },
-    UpdateSourceInfo { entity: Entity, position: Vec3 },
+    UpdateSourceInfo {
+        entity: Entity,
+        info: SourceInfo,
+    },
 }
 
 impl Default for AudioMixer {
@@ -73,6 +80,8 @@ impl Default for AudioMixer {
         };
 
         let listener_info = None; // position, rotation
+
+        // Should probably not use a hashmap here but it works for now. We can optimize later if needed.
         let source_map: HashMap<Entity, Vec3> = HashMap::new();
 
         s.stream = Some(s.build_stream(
@@ -98,7 +107,7 @@ impl AudioMixer {
         mut paused: bool,
         mut consumer: Consumer<MixerCommand>,
         mut muted: bool,
-        mut listener_info: ListenerInfo,
+        mut listener_info: Option<ListenerInfo>,
         mut source_map: HashMap<Entity, Vec3>,
     ) -> Stream {
         let channels = config.channels() as usize;
@@ -127,7 +136,11 @@ impl AudioMixer {
                     let required_frames = output.len() / channels;
 
                     for track in tracks.iter_mut() {
-                        track.fill_buffer_from_voices(listener_info, required_frames, &source_map);
+                        track.fill_buffer_from_voices(
+                            listener_info.as_ref(),
+                            required_frames,
+                            &source_map,
+                        );
                     }
 
                     for frame in 0..required_frames {
@@ -155,7 +168,7 @@ impl AudioMixer {
         tracks: &mut Vec<Track>,
         paused: &mut bool,
         muted: &mut bool,
-        listener_info: &mut ListenerInfo,
+        listener_info: &mut Option<ListenerInfo>,
         required_buffer_size_for_voices: usize,
         source_map: &mut HashMap<Entity, Vec3>,
     ) {
@@ -220,10 +233,13 @@ impl AudioMixer {
                         eprintln!("Track {} does not exist", track);
                     }
                 }
-                MixerCommand::UpdateListenerInfo { listener_info: l } => {
-                    *listener_info = l;
+                MixerCommand::UpdateListenerInfo { info: l } => {
+                    *listener_info = Some(l);
                 }
-                MixerCommand::UpdateSourceInfo { entity, position } => {
+                MixerCommand::UpdateSourceInfo {
+                    entity,
+                    info: position,
+                } => {
                     source_map.insert(entity, position);
                 }
             }
@@ -244,7 +260,7 @@ impl AudioMixer {
                     sound,
                     volume,
                     looping,
-                    source
+                    source,
                 } => {
                     if let Some(sound) = sound_resource.get_sound(*sound) {
                         self.producer
@@ -291,18 +307,23 @@ impl AudioMixer {
                         .push(MixerCommand::UnmuteMix)
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
-                AudioCommand::UpdateListenerInfo { listener_info } => {
+                AudioCommand::UpdateListenerInfo {
+                    info: listener_info,
+                } => {
                     self.producer
                         .push(MixerCommand::UpdateListenerInfo {
-                            listener_info: *listener_info,
+                            info: *listener_info,
                         })
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
-                AudioCommand::UpdateSourceInfo { entity, position } => {
+                AudioCommand::UpdateSourceInfo {
+                    entity,
+                    info: source_info,
+                } => {
                     self.producer
                         .push(MixerCommand::UpdateSourceInfo {
                             entity: *entity,
-                            position: *position,
+                            info: *source_info,
                         })
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }

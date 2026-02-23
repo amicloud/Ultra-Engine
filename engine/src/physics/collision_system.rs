@@ -849,7 +849,7 @@ fn cuboid_cuboid_contact(
         .collect()
 }
 
-    #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 fn convex_convex_contact(
     entity_a: Entity,
     collider_a: &ConvexCollider,
@@ -977,7 +977,7 @@ fn gjk_epa(
     })
 }
 
-    #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 fn convex_mesh_contact(
     convex_entity: Entity,
     convex_collider: &ConvexCollider,

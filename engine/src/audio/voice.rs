@@ -22,7 +22,7 @@ impl Voice {
     pub(crate) fn channels(&self) -> usize {
         self.channels
     }
-    
+
     pub(crate) fn new(
         samples: Arc<[f32]>,
         volume: f32,
@@ -46,7 +46,7 @@ impl Voice {
 
     pub(crate) fn next_block(
         &mut self,
-        listener_info: ListenerInfo,
+        listener_info: Option<&ListenerInfo>,
         required_frames: usize,
         source_map: &HashMap<Entity, Vec3>,
     ) -> bool {
@@ -64,7 +64,7 @@ impl Voice {
 
         let distance_attenuation =
             if let (Some(location), Some((listener_pos, _))) = (location, listener_info) {
-                let distance = location.distance(listener_pos);
+                let distance = location.distance(*listener_pos);
                 // Simple linear attenuation with distance, clamped to a minimum of 0.1 to avoid complete silence
                 (1.0 - distance / 100.0).max(0.1)
             } else {

@@ -97,7 +97,11 @@ pub fn spatial_audio_orbit_demo(
         let rotation_speed = 0.5; // Radians per second
         let angle = time.total_time() * rotation_speed;
         let radius = 5.0;
-        transform.position = Vec3::new((angle.cos() * radius) as f32,(angle.sin() * radius) as f32, 0.0);
+        transform.position = Vec3::new(
+            (angle.cos() * radius) as f32,
+            (angle.sin() * radius) as f32,
+            0.0,
+        );
     }
 }
 
