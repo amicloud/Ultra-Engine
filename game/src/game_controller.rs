@@ -1,8 +1,9 @@
 use bevy_ecs::prelude::*;
 use engine::assets::sound_resource::SoundResource;
 use engine::audio::command_queue::{AudioCommand, AudioCommandQueue};
+use engine::components::audio_source_component::AudioSourceComponent;
 use engine::input::InputStateResource;
-use engine::{Gravity, TimeResource, WorldBasis};
+use engine::{Gravity, TimeResource, TransformComponent, WorldBasis};
 use glam::{Quat, Vec3};
 use sdl2::keyboard::Keycode;
 
@@ -83,3 +84,23 @@ pub fn sound_control(
         audio_command_queue.push(AudioCommand::UnmuteMix);
     }
 }
+
+pub fn spatial_audio_orbit_demo(
+    mut query: Query<(
+        Entity,
+        &mut TransformComponent,
+        &AudioSourceComponent,
+        &SpatialAudioDemoComponent,
+    )>,
+    time: Res<TimeResource>,
+) {
+    for (_, mut transform, _, _) in query.iter_mut() {
+        let rotation_speed = 0.5; // Radians per second
+        let angle = time.total_time() * rotation_speed;
+        let radius = 5.0;
+        transform.position = Vec3::new((angle.cos() * radius) as f32,(angle.sin() * radius) as f32, 0.0);
+    }
+}
+
+#[derive(Component)]
+pub struct SpatialAudioDemoComponent;

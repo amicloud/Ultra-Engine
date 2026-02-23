@@ -15,7 +15,7 @@ use engine::components::{
     physics_event_listener_component::PhysicsEventListenerComponent,
 };
 
-use crate::game_controller::{do_gameplay, sound_control};
+use crate::game_controller::{SpatialAudioDemoComponent, do_gameplay, sound_control, spatial_audio_orbit_demo};
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
     ActiveCamera, CameraComponent, CollisionLayer, ConvexCollider, Engine, RenderBodyComponent,
@@ -107,6 +107,7 @@ fn main() {
             apply_flying_camera_movement,
             apply_player_movement_impulses,
             do_gameplay,
+            spatial_audio_orbit_demo,
             // update_bowl_float,
         )
             .chain(),
@@ -196,6 +197,7 @@ fn main() {
             looping: true,
             pitch: 1.0,
         },
+        SpatialAudioDemoComponent,
     ));
 
     // #[cfg(debug_assertions)]
