@@ -5,8 +5,11 @@ use glam::Vec3;
 
 use crate::audio::audio_mixer::ListenerInfo;
 
+const ITD_DELAY_BUFFER_SIZE: usize = 64; // Must be a power of two
 const DEFAULT_SAMPLE_RATE_HZ: f32 = 44_100.0;
 const PAN_SMOOTH_TIME_SECONDS: f32 = 0.05;
+const BACK_LPF_MAX: f32 = 0.8;
+const LPF_CUTOFF_HZ: f32 = 200.0;
 
 #[derive(Debug)]
 pub(crate) struct Voice {
@@ -18,13 +21,13 @@ pub(crate) struct Voice {
     pub(crate) buffer: Vec<f32>,
     source: Option<Entity>,
     source_channels: usize,
+    location: Option<Vec3>,
     itd_delay: ItdDelay,
     lpf_left: LowPassFilter,
     lpf_right: LowPassFilter,
     pan_smoothed: f32,
 }
 
-const ITD_DELAY_BUFFER_SIZE: usize = 64; // Must be a power of two for efficient wrapping
 #[derive(Debug)]
 struct ItdDelay {
     buffer: [f32; ITD_DELAY_BUFFER_SIZE],
@@ -57,6 +60,7 @@ impl Voice {
         volume: f32,
         looping: bool,
         source: Option<Entity>,
+        location: Option<Vec3>,
         source_channels: usize,
         required_buffer_size: usize,
     ) -> Self {
@@ -66,8 +70,7 @@ impl Voice {
         let sample_rate = 44100.0; // This should come in as an argument
         let itd_range = (itd_max_time_seconds * sample_rate * itd_scale) as usize; // Max delay in samples
 
-        let low_pass_frequency_cutoff = 1500.0;
-        let alpha = 1.0 - (-2.0 * PI * low_pass_frequency_cutoff / sample_rate).exp();
+        let alpha = 1.0 - (-2.0 * PI * LPF_CUTOFF_HZ / sample_rate).exp();
 
         Self {
             samples,
@@ -87,6 +90,7 @@ impl Voice {
             lpf_left: LowPassFilter { z: 0.0, alpha },
             lpf_right: LowPassFilter { z: 0.0, alpha },
             pan_smoothed: 0.0,
+            location,
         }
     }
 
@@ -99,13 +103,13 @@ impl Voice {
         let total_frames = self.samples.len() / self.source_channels;
         let frames_to_fill = (total_frames - self.cursor).min(required_frames);
 
-        let mut location = None;
+        let mut location = self.location;
         // Simple pan based spatialization
         let mut pan = 0.0; // -1.0 = full left, 0.0 = center, 1.0 = full right
-        if let Some(source) = self.source {
-            if let Some(_location) = source_map.get(&source) {
-                location = Some(*_location);
-            }
+        if let Some(source) = self.source
+            && let Some(_location) = source_map.get(&source)
+        {
+            location = Some(*_location);
         }
 
         let distance_attenuation =
@@ -118,21 +122,24 @@ impl Voice {
             } else {
                 1.0
             };
+        let mut back_strength = 0.0;
+        if let Some(location) = location
+            && let Some((listener_pos, listener_rot)) = listener_info
+        {
+            let world_dir = (location - listener_pos).normalize_or_zero();
 
-        if let Some(location) = location {
-            if let Some((listener_pos, listener_rot)) = listener_info {
-                let world_dir = (location - listener_pos).normalize_or_zero();
+            let listener_right = listener_rot.mul_vec3(Vec3::X).normalize_or_zero();
+            let listener_forward = listener_rot.mul_vec3(Vec3::Z).normalize_or_zero();
 
-                // transform world direction into listener local space
-                let local_dir = listener_rot.conjugate().mul_vec3(world_dir);
-
-                // now pan is just local X
-                pan = local_dir.x.clamp(-1.0, 1.0);
-            }
+            // Pan from right-axis alignment, behind from forward-axis alignment
+            pan = world_dir.dot(listener_right).clamp(-1.0, 1.0);
+            let front_back = world_dir.dot(listener_forward).clamp(-1.0, 1.0);
+            back_strength = (front_back).max(0.0);
         }
 
-        let pan_smooth_alpha =
-            1.0 - (-(required_frames as f32) / (DEFAULT_SAMPLE_RATE_HZ * PAN_SMOOTH_TIME_SECONDS)).exp();
+        let pan_smooth_alpha = 1.0
+            - (-(required_frames as f32) / (DEFAULT_SAMPLE_RATE_HZ * PAN_SMOOTH_TIME_SECONDS))
+                .exp();
         self.pan_smoothed += pan_smooth_alpha * (pan - self.pan_smoothed);
 
         let ild_strength = 0.33;
@@ -146,14 +153,20 @@ impl Voice {
         let left_delay = delay_signed.max(0.0);
         let right_delay = (-delay_signed).max(0.0);
         let itd_range_f32 = self.itd_delay.range.max(1) as f32;
-        let left_shadow_mix = (left_delay / itd_range_f32).clamp(0.0, 1.0);
-        let right_shadow_mix = (right_delay / itd_range_f32).clamp(0.0, 1.0);
         let left_int = left_delay.floor() as usize;
         let left_frac = left_delay - left_int as f32;
         let right_int = right_delay.floor() as usize;
         let right_frac = right_delay - right_int as f32;
 
         let combined_volume = self.volume * distance_attenuation;
+
+        let behind_lpf_mix = BACK_LPF_MAX * back_strength;
+        let left_itd_shadow = (left_delay / itd_range_f32).clamp(0.0, 1.0);
+        let right_itd_shadow = (right_delay / itd_range_f32).clamp(0.0, 1.0);
+        let left_shadow_mix =
+            (left_itd_shadow + (1.0 - left_itd_shadow) * behind_lpf_mix).clamp(0.0, 1.0);
+        let right_shadow_mix =
+            (right_itd_shadow + (1.0 - right_itd_shadow) * behind_lpf_mix).clamp(0.0, 1.0);
 
         for frame in 0..frames_to_fill {
             let sample_idx = self.cursor * self.source_channels;
@@ -184,9 +197,12 @@ impl Voice {
 
                     // Simulating head shadow effect with low pass filter.
                     // Blend continuously to avoid discontinuities when crossing center.
-                    let left_filtered = self.lpf_left.process(left_sample);
-                    let right_filtered = self.lpf_right.process(right_sample);
-                    left_sample = left_sample * (1.0 - left_shadow_mix) + left_filtered * left_shadow_mix;
+                    let left_filtered_stage1 = self.lpf_left.process(left_sample);
+                    let left_filtered = self.lpf_left.process(left_filtered_stage1);
+                    let right_filtered_stage1 = self.lpf_right.process(right_sample);
+                    let right_filtered = self.lpf_right.process(right_filtered_stage1);
+                    left_sample =
+                        left_sample * (1.0 - left_shadow_mix) + left_filtered * left_shadow_mix;
                     right_sample =
                         right_sample * (1.0 - right_shadow_mix) + right_filtered * right_shadow_mix;
 
@@ -232,6 +248,6 @@ impl Voice {
                 return false;
             }
         }
-        return self.looping || self.cursor < total_frames;
+        self.looping || self.cursor < total_frames
     }
 }

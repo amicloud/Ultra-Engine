@@ -107,3 +107,23 @@ pub fn spatial_audio_orbit_demo(
 
 #[derive(Component)]
 pub struct SpatialAudioDemoComponent;
+
+#[allow(unused)]
+pub fn spatial_audio_popping_demo(
+    time: Res<TimeResource>,
+    mut audio_command_queue: ResMut<AudioCommandQueue>,
+    sound_resource: Res<SoundResource>,
+) {
+    if time.frame_count().is_multiple_of(20) {
+        let (x, y, z) = rand::random::<(f32, f32, f32)>();
+        let random_dir = Vec3::new(x, y, z).normalize_or_zero();
+        let position = random_dir * 5.0;
+        audio_command_queue.push(AudioCommand::PlaySoundAtLocation {
+            track: 0,
+            sound: sound_resource.get_by_name("pop.wav").unwrap(),
+            volume: 1.0,
+            looping: false,
+            location: position,
+        });
+    }
+}

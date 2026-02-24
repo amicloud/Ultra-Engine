@@ -246,17 +246,6 @@ impl Engine {
                     );
                 }
 
-                self.audio_mixer.make_mixer_commands(
-                    &self
-                        .world
-                        .get_resource::<AudioCommandQueue>()
-                        .expect("AudioQueue resource not found")
-                        .queue,
-                    self.world
-                        .get_resource::<SoundResource>()
-                        .expect("SoundResource resource not found"),
-                );
-
                 let now = Instant::now();
                 let frame_time = now - last_frame;
                 last_frame = now;
@@ -294,6 +283,17 @@ impl Engine {
                 if steps == max_physics_steps {
                     accumulator = accumulator.min(fixed_dt);
                 }
+
+                self.audio_mixer.make_mixer_commands(
+                    &self
+                        .world
+                        .get_resource::<AudioCommandQueue>()
+                        .expect("AudioQueue resource not found")
+                        .queue,
+                    self.world
+                        .get_resource::<SoundResource>()
+                        .expect("SoundResource resource not found"),
+                );
             }
             self.cleanup_schedule.run(&mut self.world);
             let frame_time = frame_start.elapsed();

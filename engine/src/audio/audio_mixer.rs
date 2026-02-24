@@ -28,6 +28,7 @@ enum MixerCommand {
         looping: bool,
         source_channels: usize,
         source: Option<Entity>,
+        location: Option<Vec3>,
     },
     PauseMix,
     ResumeMix,
@@ -99,6 +100,7 @@ impl Default for AudioMixer {
 }
 
 impl AudioMixer {
+    #[allow(clippy::too_many_arguments)]
     fn build_stream(
         &mut self,
         device: &Device,
@@ -165,14 +167,14 @@ impl AudioMixer {
 
     fn process_mixer_commands(
         consumer: &mut Consumer<MixerCommand>,
-        tracks: &mut Vec<Track>,
+        tracks: &mut [Track],
         paused: &mut bool,
         muted: &mut bool,
         listener_info: &mut Option<ListenerInfo>,
         required_buffer_size_for_voices: usize,
         source_map: &mut HashMap<Entity, Vec3>,
     ) {
-        while let Some(command) = consumer.pop().ok() {
+        while let Ok(command) = consumer.pop() {
             match command {
                 MixerCommand::AddVoice {
                     track,
@@ -181,6 +183,7 @@ impl AudioMixer {
                     looping,
                     source_channels,
                     source,
+                    location,
                 } => {
                     if let Some(track) = tracks.get_mut(track) {
                         track.voices.push(Voice::new(
@@ -188,49 +191,35 @@ impl AudioMixer {
                             volume,
                             looping,
                             source,
+                            location,
                             source_channels,
                             required_buffer_size_for_voices,
                         ));
                         if let Some(source) = source {
-                            eprintln!("Adding voice for source {:?}", source);
                             source_map.insert(source, Vec3::ZERO); // Default location
-                        } else {
-                            eprintln!("Adding voice with no source");
                         }
-                    } else {
-                        eprintln!("Track {} does not exist", track);
                     }
                 }
                 MixerCommand::PauseMix => {
-                    eprintln!("Pausing mix");
                     *paused = true;
                 }
                 MixerCommand::ResumeMix => {
-                    eprintln!("Resuming mix");
                     *paused = false;
                 }
                 MixerCommand::MuteMix => {
-                    eprintln!("Muting mix");
                     *muted = true;
                 }
                 MixerCommand::UnmuteMix => {
-                    eprintln!("Unmuting mix");
                     *muted = false;
                 }
                 MixerCommand::MuteTrack { track } => {
                     if let Some(track) = tracks.get_mut(track) {
-                        eprintln!("Muting track {:?}", track);
                         track.muted = true;
-                    } else {
-                        eprintln!("Track {} does not exist", track);
                     }
                 }
                 MixerCommand::UnmuteTrack { track } => {
                     if let Some(track) = tracks.get_mut(track) {
-                        eprintln!("Unmuting track {:?}", track);
                         track.muted = false;
-                    } else {
-                        eprintln!("Track {} does not exist", track);
                     }
                 }
                 MixerCommand::UpdateListenerInfo { info: l } => {
@@ -253,7 +242,6 @@ impl AudioMixer {
     ) {
         const MIXER_FULL_ERROR_MESSAGE: &str = "Audio mixer command queue is full! Sorry.";
         for command in commands.iter() {
-            // dbg!(command);
             match command {
                 AudioCommand::PlaySound {
                     track,
@@ -271,6 +259,30 @@ impl AudioMixer {
                                 looping: *looping,
                                 source_channels: sound.channels,
                                 source: *source,
+                                location: None,
+                            })
+                            .expect(MIXER_FULL_ERROR_MESSAGE);
+                    } else {
+                        eprintln!("Sound ID {:?} not found", sound);
+                    }
+                }
+                AudioCommand::PlaySoundAtLocation {
+                    track,
+                    sound,
+                    volume,
+                    looping,
+                    location,
+                } => {
+                    if let Some(sound) = sound_resource.get_sound(*sound) {
+                        self.producer
+                            .push(MixerCommand::AddVoice {
+                                track: *track,
+                                samples: sound.data.clone(), // Cloning an Arc
+                                volume: *volume,
+                                looping: *looping,
+                                source_channels: sound.channels,
+                                source: None,
+                                location: Some(*location),
                             })
                             .expect(MIXER_FULL_ERROR_MESSAGE);
                     } else {

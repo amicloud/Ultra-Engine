@@ -16,7 +16,11 @@ use engine::components::{
 };
 
 use crate::game_controller::{
-    SpatialAudioDemoComponent, do_gameplay, sound_control, spatial_audio_orbit_demo,
+    SpatialAudioDemoComponent,
+    do_gameplay,
+    sound_control,
+    spatial_audio_orbit_demo,
+    // spatial_audio_popping_demo,
 };
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use engine::{
@@ -70,7 +74,7 @@ fn main() {
         ))
         .id();
 
-    let orbit_camera = engine
+    let _orbit_camera = engine
         .world
         .spawn((
             TransformComponent {
@@ -110,6 +114,7 @@ fn main() {
             apply_player_movement_impulses,
             do_gameplay,
             spatial_audio_orbit_demo,
+            // spatial_audio_popping_demo
             // update_bowl_float,
         )
             .chain(),
@@ -151,9 +156,12 @@ fn main() {
         .expect("Failed to load sound");
 
     // Mono sounds should be used for spatial audio since stereo sounds should have that baked in.
-    // Using stereo sounds with panning and distance attenuation can lead to weird results. 
+    // Using stereo sounds with panning and distance attenuation can lead to weird results.
     let _mono_shanty = engine
         .load_wav("resources/sounds/sea_shanty_2_mono.wav")
+        .expect("Failed to load sound");
+    engine
+        .load_wav("resources/sounds/pop.wav")
         .expect("Failed to load sound");
 
     engine.world.spawn((

@@ -44,7 +44,6 @@ impl Track {
             }
         }
         for &index in self.finished_indices_buffer.iter().rev() {
-            dbg!("Voice {} finished, removing from track", index);
             self.voices.swap_remove(index);
         }
     }
