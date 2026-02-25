@@ -8,7 +8,7 @@ use crate::audio::audio_mixer::ListenerInfo;
 const ITD_DELAY_BUFFER_SIZE: usize = 64; // Must be a power of two
 const DEFAULT_SAMPLE_RATE_HZ: f32 = 44_100.0;
 const PAN_SMOOTH_TIME_SECONDS: f32 = 0.05;
-const BACK_LPF_MAX: f32 = 0.8;
+const BACK_LPF_MIX_MULT: f32 = 0.8;
 const LPF_CUTOFF_HZ: f32 = 200.0;
 
 #[derive(Debug)]
@@ -68,8 +68,12 @@ impl Voice {
         let itd_max_time_seconds = 0.67 / 1000.0; //0.67 ms converted to seconds
 
         let sample_rate = 44100.0; // This should come in as an argument
-        let itd_range = (itd_max_time_seconds * sample_rate * itd_scale) as usize; // Max delay in samples
+        // Calculate the maximum ITD delay in samples based on the desired time and sample rate, scaled by the ITD effect strength
+        // We clamp it between 1 and the buffer size to avoid division by zero and ensure we do not overrun the buffer
+        let itd_max_samples = ((itd_max_time_seconds * sample_rate * itd_scale) as usize)
+            .clamp(1, ITD_DELAY_BUFFER_SIZE - 1); // Max delay in samples
 
+        // Low pass filter coefficient for head shadow effect
         let alpha = 1.0 - (-2.0 * PI * LPF_CUTOFF_HZ / sample_rate).exp();
 
         Self {
@@ -85,7 +89,7 @@ impl Voice {
                 buffer: [0.0; ITD_DELAY_BUFFER_SIZE],
                 write_idx: 0,
                 mask: ITD_DELAY_BUFFER_SIZE - 1, // buffer.len() - 1 (power-of-two size)
-                range: itd_range,
+                range: itd_max_samples,
             },
             lpf_left: LowPassFilter { z: 0.0, alpha },
             lpf_right: LowPassFilter { z: 0.0, alpha },
@@ -149,18 +153,23 @@ impl Voice {
         let left_gain = pan_rad.cos();
         let right_gain = pan_rad.sin();
 
+        // Interaural Time Difference
+        // Even though one side will always have a 0 sample delay let's just do the math for both sides to avoid
+        // doing a ton of if statement evaluations each frame.
         let delay_signed = self.pan_smoothed * self.itd_delay.range as f32;
         let left_delay = delay_signed.max(0.0);
         let right_delay = (-delay_signed).max(0.0);
-        let itd_range_f32 = self.itd_delay.range.max(1) as f32;
-        let left_int = left_delay.floor() as usize;
-        let left_frac = left_delay - left_int as f32;
-        let right_int = right_delay.floor() as usize;
-        let right_frac = right_delay - right_int as f32;
+        let itd_range_f32 = self.itd_delay.range as f32;
+        // The required delay can be fractional and we can achieve better quality with linear interpolation
+        let left_delay_samples = left_delay as usize;
+        let left_interpolation_factor = left_delay - left_delay_samples as f32;
+        let right_delay_samples = right_delay as usize;
+        let right_interpolation_factor = right_delay - right_delay_samples as f32;
 
         let combined_volume = self.volume * distance_attenuation;
 
-        let behind_lpf_mix = BACK_LPF_MAX * back_strength;
+        // Head shadow effect
+        let behind_lpf_mix = BACK_LPF_MIX_MULT * back_strength;
         let left_itd_shadow = (left_delay / itd_range_f32).clamp(0.0, 1.0);
         let right_itd_shadow = (right_delay / itd_range_f32).clamp(0.0, 1.0);
         let left_shadow_mix =
@@ -168,39 +177,48 @@ impl Voice {
         let right_shadow_mix =
             (right_itd_shadow + (1.0 - right_itd_shadow) * behind_lpf_mix).clamp(0.0, 1.0);
 
-        for frame in 0..frames_to_fill {
-            let sample_idx = self.cursor * self.source_channels;
-            match self.source_channels {
-                1 => {
+        // Match outside of the loop for a tiny performance boost
+        match self.source_channels {
+            1 => {
+                for frame in 0..frames_to_fill {
+                    let sample_idx = self.cursor * self.source_channels;
                     let mono = self.samples[sample_idx] * combined_volume;
+
+                    // +++ ITD +++
                     self.itd_delay.buffer[self.itd_delay.write_idx] = mono;
 
-                    let left_read_base =
-                        self.itd_delay.write_idx.wrapping_sub(left_int + 1) & self.itd_delay.mask;
-
+                    let left_read_base = self
+                        .itd_delay
+                        .write_idx
+                        .wrapping_sub(left_delay_samples + 1)
+                        & self.itd_delay.mask;
                     let left_read_next = (left_read_base + 1) & self.itd_delay.mask;
 
+                    // Linear interpolation for fractional delay
                     let left_s0 = self.itd_delay.buffer[left_read_base];
                     let left_s1 = self.itd_delay.buffer[left_read_next];
+                    let mut left_sample = left_s0 * (1.0 - left_interpolation_factor)
+                        + left_s1 * left_interpolation_factor;
 
-                    let mut left_sample = left_s0 * left_frac + left_s1 * (1.0 - left_frac);
-
-                    let right_read_base =
-                        self.itd_delay.write_idx.wrapping_sub(right_int + 1) & self.itd_delay.mask;
-
+                    let right_read_base = self
+                        .itd_delay
+                        .write_idx
+                        .wrapping_sub(right_delay_samples + 1)
+                        & self.itd_delay.mask;
                     let right_read_next = (right_read_base + 1) & self.itd_delay.mask;
 
+                    // Linear interpolation for fractional delay
                     let right_s0 = self.itd_delay.buffer[right_read_base];
                     let right_s1 = self.itd_delay.buffer[right_read_next];
-
-                    let mut right_sample = right_s0 * right_frac + right_s1 * (1.0 - right_frac);
+                    let mut right_sample = right_s0 * (1.0 - right_interpolation_factor)
+                        + right_s1 * right_interpolation_factor;
+                    // --- ITD ---
 
                     // Simulating head shadow effect with low pass filter.
+                    let left_filtered = self.lpf_left.process(left_sample);
+                    let right_filtered = self.lpf_right.process(right_sample);
+
                     // Blend continuously to avoid discontinuities when crossing center.
-                    let left_filtered_stage1 = self.lpf_left.process(left_sample);
-                    let left_filtered = self.lpf_left.process(left_filtered_stage1);
-                    let right_filtered_stage1 = self.lpf_right.process(right_sample);
-                    let right_filtered = self.lpf_right.process(right_filtered_stage1);
                     left_sample =
                         left_sample * (1.0 - left_shadow_mix) + left_filtered * left_shadow_mix;
                     right_sample =
@@ -210,29 +228,31 @@ impl Voice {
                     self.buffer[frame * 2 + 1] = right_sample * right_gain;
 
                     self.itd_delay.write_idx = (self.itd_delay.write_idx + 1) & self.itd_delay.mask;
+
+                    self.cursor += 1;
                 }
-                2 => {
+            }
+            2 => {
+                for frame in 0..frames_to_fill {
+                    let sample_idx = self.cursor * self.source_channels;
                     // Stereo source, apply panning and distance attenuation to each channel
                     // but not ITD since the source is already stereo and that would really mess things up
+                    // Stereo voices should ideally not be used with spatialization but we should still support it in some way?
                     let left_sample = self.samples[sample_idx] * combined_volume;
                     let right_sample = self.samples[sample_idx + 1] * combined_volume;
                     self.buffer[frame * 2] = left_sample * left_gain; // Left channel
                     self.buffer[frame * 2 + 1] = right_sample * right_gain; // Right channel
-                }
-                _ => {
-                    // Unsupported channel count, silence output
-                    if frame == 0 {
-                        // Log this only for the first frame to avoid spamming the console
-                        eprintln!(
-                            "Unsupported channel count: {}, expected 1 or 2",
-                            self.source_channels
-                        );
-                    }
-                    self.buffer[frame * 2] = 0.0;
-                    self.buffer[frame * 2 + 1] = 0.0;
+
+                    self.cursor += 1;
                 }
             }
-            self.cursor += 1;
+            _ => {
+                log::error!(
+                    "Unsupported channel count: {}, expected 1 or 2",
+                    self.source_channels
+                );
+                return false;
+            }
         }
 
         // Zero the rest of the block if we ran out of frames
