@@ -2,7 +2,7 @@ use bevy_ecs::prelude::*;
 
 use crate::{
     TransformComponent,
-    audio::command_queue::{self, AudioCommand},
+    audio::audio_command_queue::{self, AudioCommand},
     components::{
         audio_source_component::AudioSourceComponent,
         single_audio_listener_component::SingleAudioListenerComponent,
@@ -20,7 +20,7 @@ impl SpatialAudioSystem {
             (Entity, &TransformComponent, &SingleAudioListenerComponent),
             Changed<TransformComponent>,
         >,
-        mut audio_command_queue: ResMut<command_queue::AudioCommandQueue>,
+        mut audio_command_queue: ResMut<audio_command_queue::AudioCommandQueue>,
     ) {
         if query.iter().count() > 1 {
             log::error!(
@@ -39,7 +39,7 @@ impl SpatialAudioSystem {
             (Entity, &TransformComponent, &AudioSourceComponent),
             Changed<TransformComponent>,
         >,
-        mut audio_command_queue: ResMut<command_queue::AudioCommandQueue>,
+        mut audio_command_queue: ResMut<audio_command_queue::AudioCommandQueue>,
     ) {
         for (entity, transform, _) in query.iter() {
             audio_command_queue.push(AudioCommand::UpdateSourceInfo {

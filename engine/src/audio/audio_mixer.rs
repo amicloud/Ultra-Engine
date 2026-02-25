@@ -9,7 +9,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     assets::sound_resource::SoundResource,
-    audio::{command_queue::AudioCommand, track::Track, voice::Voice},
+    audio::{audio_command_queue::AudioCommand, track::Track, voice::Voice},
 };
 pub struct AudioMixer {
     stream: Option<Stream>,

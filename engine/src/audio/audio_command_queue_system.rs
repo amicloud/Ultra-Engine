@@ -2,13 +2,13 @@ use bevy_ecs::prelude::*;
 
 use crate::{
     TransformComponent,
-    audio::command_queue::{AudioCommand, AudioCommandQueue},
+    audio::audio_command_queue::{AudioCommand, AudioCommandQueue},
     components::audio_source_component::AudioSourceComponent,
 };
 
-pub struct AudioSystem;
+pub struct AudioCommandQueueSystem;
 
-impl AudioSystem {
+impl AudioCommandQueueSystem {
     pub fn build_command_queue(
         query: Query<
             (Entity, &AudioSourceComponent, Option<&TransformComponent>),

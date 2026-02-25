@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 use engine::assets::sound_resource::SoundResource;
-use engine::audio::command_queue::{AudioCommand, AudioCommandQueue};
+use engine::audio::audio_command_queue::{AudioCommand, AudioCommandQueue};
 use engine::components::audio_source_component::AudioSourceComponent;
 use engine::input::InputStateResource;
 use engine::{Gravity, TimeResource, TransformComponent, WorldBasis};

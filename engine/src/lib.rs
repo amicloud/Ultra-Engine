@@ -25,7 +25,7 @@ use glow::HasContext;
 use crate::{
     assets::{mesh_resource::MeshResource, sound_resource::SoundResource},
     audio::{
-        audio_mixer::AudioMixer, audio_system::AudioSystem, command_queue::AudioCommandQueue,
+        audio_mixer::AudioMixer, audio_command_queue_system::AudioCommandQueueSystem, audio_command_queue::AudioCommandQueue,
         spatial_audio_system::SpatialAudioSystem,
     },
     components::physics_component::PhysicsComponent,
@@ -120,7 +120,7 @@ impl Engine {
             (
                 RenderSystem::build_render_queue,
                 TimeResource::update_time_resource,
-                AudioSystem::build_command_queue,
+                AudioCommandQueueSystem::build_command_queue,
                 SpatialAudioSystem::update_listener_position,
                 SpatialAudioSystem::update_source_positions,
             )
@@ -133,7 +133,7 @@ impl Engine {
         cleanup_schedule.add_systems(
             (
                 // RenderSystem::cleanup_render_queue,
-                AudioSystem::clear_command_queue,
+                AudioCommandQueueSystem::clear_command_queue,
             )
                 .chain(),
         );
