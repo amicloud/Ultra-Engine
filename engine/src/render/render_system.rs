@@ -22,7 +22,7 @@ impl RenderSystem {
 
         for (transform, render_body) in &query {
             let body = render_resources
-                .render_body_manager
+                .render_body_resource
                 .get_render_body(render_body.render_body_id)
                 .expect("RenderBody not found");
 

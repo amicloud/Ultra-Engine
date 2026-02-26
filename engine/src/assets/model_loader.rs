@@ -8,7 +8,7 @@ use crate::{
         material::{Material, MaterialDesc},
         mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex},
         shader::UniformValue,
-        texture_resource_manager::TextureResource,
+        texture_resource::TextureResource,
     },
     render::{
         render_body::{RenderBody, RenderBodyPart},
@@ -62,7 +62,7 @@ impl Engine {
         ];
         let desc = MaterialDesc::new(shader_handle, params);
         render_resource_manager
-            .material_manager
+            .material_resource
             .add_material(Material::new(desc))
     }
 
@@ -113,7 +113,7 @@ impl Engine {
                 .get_resource_mut::<RenderResourceManager>()
                 .expect("RenderResourceManager resource not found");
 
-            let shader_handle = render_resource_manager.shader_manager.get_or_load(
+            let shader_handle = render_resource_manager.shader_resource.get_or_load(
                 gl,
                 OsStr::new("resources/shaders/pbr.vert"),
                 OsStr::new("resources/shaders/pbr.frag"),
@@ -127,20 +127,20 @@ impl Engine {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
                             render_resource_manager
-                                .texture_manager
+                                .texture_resource
                                 .load_from_file(gl, tex_path.as_os_str())
                         } else {
                             let diffuse = material.diffuse.unwrap_or([1.0, 1.0, 1.0]);
                             let rgba = Self::rgba_from_rgb(diffuse);
                             render_resource_manager
-                                .texture_manager
+                                .texture_resource
                                 .create_solid_rgba(gl, rgba)
                         }
                     } else {
                         let diffuse = material.diffuse.unwrap_or([1.0, 1.0, 1.0]);
                         let rgba = Self::rgba_from_rgb(diffuse);
                         render_resource_manager
-                            .texture_manager
+                            .texture_resource
                             .create_solid_rgba(gl, rgba)
                     };
 
@@ -148,13 +148,13 @@ impl Engine {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
                             render_resource_manager
-                                .texture_manager
+                                .texture_resource
                                 .load_from_file(gl, tex_path.as_os_str())
                         } else {
-                            render_resource_manager.texture_manager.default_normal_map
+                            render_resource_manager.texture_resource.default_normal_map
                         }
                     } else {
-                        render_resource_manager.texture_manager.default_normal_map
+                        render_resource_manager.texture_resource.default_normal_map
                     };
 
                     let roughness = if let Some(shininess) = material.shininess {
@@ -182,9 +182,9 @@ impl Engine {
                 material_handles[0]
             } else {
                 let albedo = render_resource_manager
-                    .texture_manager
+                    .texture_resource
                     .create_solid_rgba(gl, [255, 255, 255, 255]);
-                let default_normal = render_resource_manager.texture_manager.default_normal_map;
+                let default_normal = render_resource_manager.texture_resource.default_normal_map;
                 Self::create_pbr_material(
                     &mut render_resource_manager,
                     shader_handle,
@@ -259,7 +259,7 @@ impl Engine {
                 built_mesh.compute_bounding_sphere();
                 built_mesh.build_bvh(8);
 
-                let mesh_handle = render_resource_manager.mesh_manager.add_mesh(built_mesh);
+                let mesh_handle = render_resource_manager.mesh_resource.add_mesh(built_mesh);
                 let material_handle = mesh
                     .material_id
                     .and_then(|idx| material_handles.get(idx).copied())
@@ -273,7 +273,7 @@ impl Engine {
             }
             let render_body = RenderBody::new(parts);
             render_resource_manager
-                .render_body_manager
+                .render_body_resource
                 .add_render_body(render_body)
         }
     }
@@ -311,7 +311,7 @@ impl Engine {
 
             let mut parts = Vec::with_capacity(mesh_primitives.len());
             for prim in mesh_primitives {
-                let mesh_handle = render_resource_manager.mesh_manager.add_mesh(prim.mesh);
+                let mesh_handle = render_resource_manager.mesh_resource.add_mesh(prim.mesh);
 
                 let material_handle = prim
                     .material_index
@@ -327,7 +327,7 @@ impl Engine {
 
             let render_body = RenderBody::new(parts);
             render_resource_manager
-                .render_body_manager
+                .render_body_resource
                 .add_render_body(render_body)
         }
     }
@@ -343,7 +343,7 @@ impl Engine {
         let (gltf, _buffers, images) = gltf::import(path_str)?;
 
         let texture_map = Self::load_textures_from_gltf_data(
-            &mut render_resource_manager.texture_manager,
+            &mut render_resource_manager.texture_resource,
             gl,
             &gltf,
             &images,
@@ -352,7 +352,7 @@ impl Engine {
         let mut material_handles = Vec::new();
         let shader_handle =
             render_resource_manager
-                .shader_manager
+                .shader_resource
                 .get_or_load(gl, vertex_shader, fragment_shader);
         for material in gltf.materials() {
             let pbr = material.pbr_metallic_roughness();
@@ -365,14 +365,14 @@ impl Engine {
                     let base_color = pbr.base_color_factor();
                     let rgba = Self::rgba_from_rgba_f32(base_color);
                     render_resource_manager
-                        .texture_manager
+                        .texture_resource
                         .create_solid_rgba(gl, rgba)
                 });
 
             let normal_handle = material
                 .normal_texture()
                 .and_then(|info| texture_map.get(&info.texture().index()).copied())
-                .unwrap_or(render_resource_manager.texture_manager.default_normal_map);
+                .unwrap_or(render_resource_manager.texture_resource.default_normal_map);
 
             let handle = Self::create_pbr_material(
                 render_resource_manager,

@@ -3,18 +3,18 @@ use bevy_ecs::prelude::*;
 use crate::{
     assets::{
         material_resource::MaterialResource, mesh_resource::MeshResource,
-        shader_resource::ShaderResource, texture_resource_manager::TextureResource,
+        shader_resource::ShaderResource, texture_resource::TextureResource,
     },
     render::render_body_resource::RenderBodyResource,
 };
 
 #[derive(Resource)]
 pub struct RenderResourceManager {
-    pub mesh_manager: MeshResource,
-    pub render_body_manager: RenderBodyResource,
-    pub material_manager: MaterialResource,
-    pub texture_manager: TextureResource,
-    pub shader_manager: ShaderResource,
+    pub mesh_resource: MeshResource,
+    pub render_body_resource: RenderBodyResource,
+    pub material_resource: MaterialResource,
+    pub texture_resource: TextureResource,
+    pub shader_resource: ShaderResource,
 }
 
 impl Default for RenderResourceManager {
@@ -26,11 +26,11 @@ impl Default for RenderResourceManager {
 impl RenderResourceManager {
     pub fn new() -> Self {
         Self {
-            mesh_manager: MeshResource::default(),
-            render_body_manager: RenderBodyResource::default(),
-            material_manager: MaterialResource::default(),
-            texture_manager: TextureResource::default(),
-            shader_manager: ShaderResource::default(),
+            mesh_resource: MeshResource::default(),
+            render_body_resource: RenderBodyResource::default(),
+            material_resource: MaterialResource::default(),
+            texture_resource: TextureResource::default(),
+            shader_resource: ShaderResource::default(),
         }
     }
 }

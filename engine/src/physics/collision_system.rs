@@ -991,7 +991,7 @@ fn convex_mesh_contact(
     delta_t: Duration,
 ) -> Vec<Contact> {
     let Some(render_body) = render_resources
-        .render_body_manager
+        .render_body_resource
         .get_render_body(mesh_collider.render_body_id)
     else {
         return Vec::new();
@@ -1014,7 +1014,7 @@ fn convex_mesh_contact(
     let mut candidates: Vec<ContactCandidate> = Vec::new();
 
     for part in &render_body.parts {
-        let Some(mesh) = render_resources.mesh_manager.get_mesh(part.mesh_id) else {
+        let Some(mesh) = render_resources.mesh_resource.get_mesh(part.mesh_id) else {
             continue;
         };
         let Some(bvh) = mesh.bvh.as_ref() else {
@@ -1402,12 +1402,12 @@ fn render_body_local_aabb(
     render_resources: &RenderResourceManager,
 ) -> Option<Aabb> {
     let render_body = render_resources
-        .render_body_manager
+        .render_body_resource
         .get_render_body(render_body_id)?;
 
     let mut combined: Option<Aabb> = None;
     for part in &render_body.parts {
-        let mesh = render_resources.mesh_manager.get_mesh(part.mesh_id)?;
+        let mesh = render_resources.mesh_resource.get_mesh(part.mesh_id)?;
         let part_aabb = transform_aabb_with_mat4(mesh.aabb, &part.local_transform);
         combined = Some(match combined {
             Some(existing) => union_aabb(existing, part_aabb),

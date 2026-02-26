@@ -25,7 +25,8 @@ use glow::HasContext;
 use crate::{
     assets::{mesh_resource::MeshResource, sound_resource::SoundResource},
     audio::{
-        audio_mixer::AudioMixer, audio_command_queue_system::AudioCommandQueueSystem, audio_command_queue::AudioCommandQueue,
+        audio_command_queue::AudioCommandQueue,
+        audio_command_queue_system::AudioCommandQueueSystem, audio_mixer::AudioMixer,
         spatial_audio_system::SpatialAudioSystem,
     },
     components::physics_component::PhysicsComponent,
@@ -143,7 +144,7 @@ impl Engine {
             .expect("RenderResourceManager resource not found");
 
         render_data_manager
-            .texture_manager
+            .texture_resource
             .create_default_normal_map(&gl);
 
         let renderer = Renderer::new(gl.clone());
@@ -428,13 +429,13 @@ impl Engine {
     pub fn aabb_from_render_body(&self, render_body_id: RenderBodyHandle) -> Option<Aabb> {
         let render_resource_manager = self.world.get_resource::<RenderResourceManager>()?;
         let render_body = render_resource_manager
-            .render_body_manager
+            .render_body_resource
             .get_render_body(render_body_id)?;
 
         let mut combined: Option<Aabb> = None;
         for part in &render_body.parts {
             let mesh = render_resource_manager
-                .mesh_manager
+                .mesh_resource
                 .get_mesh(part.mesh_id)?;
             let part_aabb = transform_aabb_with_mat4(mesh.aabb, &part.local_transform);
             combined = Some(match combined {
@@ -453,7 +454,7 @@ impl Engine {
     ) -> Option<MeshCollider> {
         self.world
             .get_resource::<RenderResourceManager>()?
-            .render_body_manager
+            .render_body_resource
             .get_render_body(render_body_id)?;
 
         Some(MeshCollider::new(render_body_id, layer))

@@ -9,4 +9,4 @@ pub mod shader_resource;
 pub mod sound;
 pub mod sound_resource;
 pub mod texture;
-pub mod texture_resource_manager;
+pub mod texture_resource;

@@ -178,11 +178,11 @@ impl Renderer {
                 .clone();
 
             let material = render_data_manager
-                .material_manager
+                .material_resource
                 .get_material(material_id)
                 .expect("Material not found");
             let shader = render_data_manager
-                .shader_manager
+                .shader_resource
                 .get_shader(material.desc.shader)
                 .expect("Shader not found");
 
@@ -257,7 +257,7 @@ impl Renderer {
 
                 let index_count: i32 = {
                     render_data_manager
-                        .mesh_manager
+                        .mesh_resource
                         .get_mesh(mesh_id)
                         .unwrap_or_else(|| panic!("Couldn't find mesh: {:?}", mesh_id))
                         .indices
@@ -372,7 +372,7 @@ impl Renderer {
 
         for inst in instances {
             let mesh = render_data_manager
-                .mesh_manager
+                .mesh_resource
                 .get_mesh(inst.mesh_id)
                 .expect("Mesh not found");
 
@@ -499,7 +499,7 @@ impl Renderer {
 
         if !mesh_render_data.contains_key(mesh) {
             let mesh_data = render_data_manager
-                .mesh_manager
+                .mesh_resource
                 .get_mesh(mesh)
                 .expect("Mesh not found");
             Self::upload_mesh_to_gpu(gl, mesh_data, mesh, mesh_render_data);
@@ -526,7 +526,7 @@ impl Renderer {
             };
 
             for attrib in &render_data_manager
-                .shader_manager
+                .shader_resource
                 .get_shader(*shader)
                 .unwrap()
                 .attributes
@@ -646,7 +646,7 @@ impl Renderer {
                 }
                 UniformValue::Texture { handle, unit } => {
                     let tex = render_data_manager
-                        .texture_manager
+                        .texture_resource
                         .get_texture(*handle)
                         .expect("Texture missing");
 
