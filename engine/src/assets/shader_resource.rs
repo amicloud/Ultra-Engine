@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::Hash;
 
+use bevy_ecs::resource::Resource;
 use glow::Context;
 use slotmap::SlotMap;
 
 use crate::assets::{handles::ShaderHandle, shader::Shader};
 
-#[derive(Default)]
+#[derive(Resource, Default)]
 pub struct ShaderResource {
     shaders: SlotMap<ShaderHandle, Shader>,
     shader_cache: HashMap<ShaderKey, ShaderHandle>,

@@ -6,13 +6,16 @@ use crate::{
     assets::{
         handles::{MaterialHandle, RenderBodyHandle, ShaderHandle, TextureHandle},
         material::{Material, MaterialDesc},
+        material_resource::MaterialResource,
         mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex},
+        mesh_resource::MeshResource,
         shader::UniformValue,
+        shader_resource::ShaderResource,
         texture_resource::TextureResource,
     },
     render::{
         render_body::{RenderBody, RenderBodyPart},
-        render_resource_manager::RenderResourceManager,
+        render_body_resource::RenderBodyResource,
     },
 };
 
@@ -36,7 +39,7 @@ impl Engine {
     }
 
     fn create_pbr_material(
-        render_resource_manager: &mut RenderResourceManager,
+        material_resource: &mut MaterialResource,
         shader_handle: ShaderHandle,
         albedo_handle: TextureHandle,
         normal_handle: TextureHandle,
@@ -61,9 +64,7 @@ impl Engine {
             ),
         ];
         let desc = MaterialDesc::new(shader_handle, params);
-        render_resource_manager
-            .material_resource
-            .add_material(Material::new(desc))
+        material_resource.add_material(Material::new(desc))
     }
 
     /// Loads a model from the specified file path. Supports different model formats based on file extension.
@@ -107,54 +108,51 @@ impl Engine {
         )
         .expect("Failed to load OBJ file");
 
-        {
-            let mut render_resource_manager = self
+        let shader_handle = {
+            let mut shader_resource = self
                 .world
-                .get_resource_mut::<RenderResourceManager>()
-                .expect("RenderResourceManager resource not found");
-
-            let shader_handle = render_resource_manager.shader_resource.get_or_load(
+                .get_resource_mut::<ShaderResource>()
+                .expect("ShaderResource not found");
+            shader_resource.get_or_load(
                 gl,
                 OsStr::new("resources/shaders/pbr.vert"),
                 OsStr::new("resources/shaders/pbr.frag"),
-            );
+            )
+        };
 
-            let mut material_handles: Vec<MaterialHandle> = Vec::new();
+        let mut material_inputs: Vec<(TextureHandle, TextureHandle, f32)> = Vec::new();
+        {
+            let mut texture_resource = self
+                .world
+                .get_resource_mut::<TextureResource>()
+                .expect("TextureResource not found");
 
             if let Ok(obj_materials) = obj_materials.as_ref() {
                 for material in obj_materials {
                     let albedo_handle = if let Some(tex) = material.diffuse_texture.as_ref() {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
-                            render_resource_manager
-                                .texture_resource
-                                .load_from_file(gl, tex_path.as_os_str())
+                            texture_resource.load_from_file(gl, tex_path.as_os_str())
                         } else {
                             let diffuse = material.diffuse.unwrap_or([1.0, 1.0, 1.0]);
                             let rgba = Self::rgba_from_rgb(diffuse);
-                            render_resource_manager
-                                .texture_resource
-                                .create_solid_rgba(gl, rgba)
+                            texture_resource.create_solid_rgba(gl, rgba)
                         }
                     } else {
                         let diffuse = material.diffuse.unwrap_or([1.0, 1.0, 1.0]);
                         let rgba = Self::rgba_from_rgb(diffuse);
-                        render_resource_manager
-                            .texture_resource
-                            .create_solid_rgba(gl, rgba)
+                        texture_resource.create_solid_rgba(gl, rgba)
                     };
 
                     let normal_handle = if let Some(tex) = material.normal_texture.as_ref() {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
-                            render_resource_manager
-                                .texture_resource
-                                .load_from_file(gl, tex_path.as_os_str())
+                            texture_resource.load_from_file(gl, tex_path.as_os_str())
                         } else {
-                            render_resource_manager.texture_resource.default_normal_map
+                            texture_resource.default_normal_map
                         }
                     } else {
-                        render_resource_manager.texture_resource.default_normal_map
+                        texture_resource.default_normal_map
                     };
 
                     let roughness = if let Some(shininess) = material.shininess {
@@ -167,115 +165,131 @@ impl Engine {
                         1.0
                     };
 
-                    let handle = Self::create_pbr_material(
-                        &mut render_resource_manager,
-                        shader_handle,
-                        albedo_handle,
-                        normal_handle,
-                        roughness,
-                    );
-                    material_handles.push(handle);
+                    material_inputs.push((albedo_handle, normal_handle, roughness));
                 }
             }
 
-            let default_material = if !material_handles.is_empty() {
-                material_handles[0]
-            } else {
-                let albedo = render_resource_manager
-                    .texture_resource
-                    .create_solid_rgba(gl, [255, 255, 255, 255]);
-                let default_normal = render_resource_manager.texture_resource.default_normal_map;
-                Self::create_pbr_material(
-                    &mut render_resource_manager,
+            if material_inputs.is_empty() {
+                let albedo = texture_resource.create_solid_rgba(gl, [255, 255, 255, 255]);
+                let default_normal = texture_resource.default_normal_map;
+                material_inputs.push((albedo, default_normal, 1.0));
+            }
+        }
+
+        let mut material_handles: Vec<MaterialHandle> = Vec::with_capacity(material_inputs.len());
+        {
+            let mut material_resource = self
+                .world
+                .get_resource_mut::<MaterialResource>()
+                .expect("MaterialResource not found");
+            for (albedo_handle, normal_handle, roughness) in material_inputs {
+                let handle = Self::create_pbr_material(
+                    &mut material_resource,
                     shader_handle,
-                    albedo,
-                    default_normal,
-                    1.0,
-                )
-            };
+                    albedo_handle,
+                    normal_handle,
+                    roughness,
+                );
+                material_handles.push(handle);
+            }
+        }
 
-            let mut parts = Vec::with_capacity(models.len());
-            for model in models.iter() {
-                let mesh = &model.mesh;
-                let vertex_count = mesh.positions.len() / 3;
+        let default_material = material_handles[0];
 
-                let mut positions: Vec<[f32; 3]> = Vec::with_capacity(vertex_count);
+        let mut built_parts: Vec<(Mesh, MaterialHandle)> = Vec::with_capacity(models.len());
+        for model in models.iter() {
+            let mesh = &model.mesh;
+            let vertex_count = mesh.positions.len() / 3;
+
+            let mut positions: Vec<[f32; 3]> = Vec::with_capacity(vertex_count);
+            for i in 0..vertex_count {
+                positions.push([
+                    mesh.positions[i * 3],
+                    mesh.positions[i * 3 + 1],
+                    mesh.positions[i * 3 + 2],
+                ]);
+            }
+
+            let has_normals = !mesh.normals.is_empty();
+            let mut normals: Vec<[f32; 3]> = Vec::with_capacity(vertex_count);
+            if has_normals {
                 for i in 0..vertex_count {
-                    positions.push([
-                        mesh.positions[i * 3],
-                        mesh.positions[i * 3 + 1],
-                        mesh.positions[i * 3 + 2],
+                    normals.push([
+                        mesh.normals[i * 3],
+                        mesh.normals[i * 3 + 1],
+                        mesh.normals[i * 3 + 2],
                     ]);
                 }
+            } else {
+                normals.resize(vertex_count, [0.0, 0.0, 1.0]);
+            }
 
-                let has_normals = !mesh.normals.is_empty();
-                let mut normals: Vec<[f32; 3]> = Vec::with_capacity(vertex_count);
-                if has_normals {
-                    for i in 0..vertex_count {
-                        normals.push([
-                            mesh.normals[i * 3],
-                            mesh.normals[i * 3 + 1],
-                            mesh.normals[i * 3 + 2],
-                        ]);
-                    }
-                } else {
-                    normals.resize(vertex_count, [0.0, 0.0, 1.0]);
-                }
-
-                let has_uvs = !mesh.texcoords.is_empty();
-                let mut uvs: Vec<[f32; 2]> = Vec::with_capacity(vertex_count);
-                if has_uvs {
-                    for i in 0..vertex_count {
-                        let u = mesh.texcoords[i * 2];
-                        let v = mesh.texcoords[i * 2 + 1];
-                        uvs.push([u, 1.0 - v]);
-                    }
-                } else {
-                    uvs.resize(vertex_count, [0.0, 0.0]);
-                }
-
-                let indices: Vec<u32> = mesh.indices.to_vec();
-
-                let tangents = if has_uvs && has_normals {
-                    Mesh::compute_tangents(&positions, &normals, &uvs, &indices)
-                } else {
-                    vec![[1.0, 0.0, 0.0, 1.0]; vertex_count]
-                };
-
-                let mut built_mesh = Mesh::default();
+            let has_uvs = !mesh.texcoords.is_empty();
+            let mut uvs: Vec<[f32; 2]> = Vec::with_capacity(vertex_count);
+            if has_uvs {
                 for i in 0..vertex_count {
-                    built_mesh.vertices.push(Vertex {
-                        position: positions[i],
-                        normal: normals[i],
-                        barycentric: [0.0, 0.0, 0.0],
-                        uv_albedo: uvs[i],
-                        uv_normal: uvs[i],
-                        tangent: tangents[i],
-                    });
+                    let u = mesh.texcoords[i * 2];
+                    let v = mesh.texcoords[i * 2 + 1];
+                    uvs.push([u, 1.0 - v]);
                 }
-                built_mesh.indices.extend(indices.iter().copied());
+            } else {
+                uvs.resize(vertex_count, [0.0, 0.0]);
+            }
 
-                built_mesh.aabb = Aabb::from_vertices(&built_mesh.vertices);
-                built_mesh.compute_bounding_sphere();
-                built_mesh.build_bvh(8);
+            let indices: Vec<u32> = mesh.indices.to_vec();
 
-                let mesh_handle = render_resource_manager.mesh_resource.add_mesh(built_mesh);
-                let material_handle = mesh
-                    .material_id
-                    .and_then(|idx| material_handles.get(idx).copied())
-                    .unwrap_or(default_material);
+            let tangents = if has_uvs && has_normals {
+                Mesh::compute_tangents(&positions, &normals, &uvs, &indices)
+            } else {
+                vec![[1.0, 0.0, 0.0, 1.0]; vertex_count]
+            };
 
+            let mut built_mesh = Mesh::default();
+            for i in 0..vertex_count {
+                built_mesh.vertices.push(Vertex {
+                    position: positions[i],
+                    normal: normals[i],
+                    barycentric: [0.0, 0.0, 0.0],
+                    uv_albedo: uvs[i],
+                    uv_normal: uvs[i],
+                    tangent: tangents[i],
+                });
+            }
+            built_mesh.indices.extend(indices.iter().copied());
+
+            built_mesh.aabb = Aabb::from_vertices(&built_mesh.vertices);
+            built_mesh.compute_bounding_sphere();
+            built_mesh.build_bvh(8);
+
+            let material_handle = mesh
+                .material_id
+                .and_then(|idx| material_handles.get(idx).copied())
+                .unwrap_or(default_material);
+
+            built_parts.push((built_mesh, material_handle));
+        }
+
+        let mut parts = Vec::with_capacity(built_parts.len());
+        {
+            let mut mesh_resource = self
+                .world
+                .get_resource_mut::<MeshResource>()
+                .expect("MeshResource not found");
+            for (built_mesh, material_handle) in built_parts {
+                let mesh_handle = mesh_resource.add_mesh(built_mesh);
                 parts.push(RenderBodyPart {
                     mesh_id: mesh_handle,
                     material_id: material_handle,
                     local_transform: glam::Mat4::IDENTITY,
                 });
             }
-            let render_body = RenderBody::new(parts);
-            render_resource_manager
-                .render_body_resource
-                .add_render_body(render_body)
         }
+
+        let render_body = RenderBody::new(parts);
+        self.world
+            .get_resource_mut::<RenderBodyResource>()
+            .expect("RenderBodyResource not found")
+            .add_render_body(render_body)
     }
 
     /// Loads an FBX model from the specified file path and returns a `RenderBodyHandle`.
@@ -285,33 +299,31 @@ impl Engine {
 
     /// Loads a glTF model from the specified file path and returns a `RenderBodyHandle`.
     fn load_gltf(&mut self, gltf_path: &str) -> RenderBodyHandle {
-        let gl = &self.gl;
         let os_path = OsStr::new(gltf_path);
 
-        {
-            let mut render_resource_manager = self
-                .world
-                .get_resource_mut::<RenderResourceManager>()
-                .expect("RenderResourceManager resource not found");
+        let mesh_primitives = Self::mesh_primatives_from_gltf(os_path).unwrap();
 
-            let mesh_primitives = Self::mesh_primatives_from_gltf(os_path).unwrap();
-
-            let material_handles = Self::load_materials_from_gltf(
-                &mut render_resource_manager,
-                gl,
+        let material_handles = self
+            .load_materials_from_gltf(
                 os_path,
                 OsStr::new("resources/shaders/pbr.vert"),
                 OsStr::new("resources/shaders/pbr.frag"),
             )
             .expect("Failed to load glTF materials");
 
-            let default_material = *material_handles
-                .first()
-                .expect("No materials found in glTF");
+        let default_material = *material_handles
+            .first()
+            .expect("No materials found in glTF");
 
-            let mut parts = Vec::with_capacity(mesh_primitives.len());
+        let mut parts = Vec::with_capacity(mesh_primitives.len());
+        {
+            let mut mesh_resource = self
+                .world
+                .get_resource_mut::<MeshResource>()
+                .expect("MeshResource not found");
+
             for prim in mesh_primitives {
-                let mesh_handle = render_resource_manager.mesh_resource.add_mesh(prim.mesh);
+                let mesh_handle = mesh_resource.add_mesh(prim.mesh);
 
                 let material_handle = prim
                     .material_index
@@ -324,36 +336,49 @@ impl Engine {
                     local_transform: glam::Mat4::IDENTITY,
                 });
             }
-
-            let render_body = RenderBody::new(parts);
-            render_resource_manager
-                .render_body_resource
-                .add_render_body(render_body)
         }
+
+        let render_body = RenderBody::new(parts);
+        self.world
+            .get_resource_mut::<RenderBodyResource>()
+            .expect("RenderBodyResource not found")
+            .add_render_body(render_body)
     }
 
     fn load_materials_from_gltf(
-        render_resource_manager: &mut RenderResourceManager,
-        gl: &glow::Context,
+        &mut self,
         gltf_path: &OsStr,
         vertex_shader: &OsStr,
         fragment_shader: &OsStr,
     ) -> Result<Vec<MaterialHandle>, Box<dyn std::error::Error>> {
+        let gl = &self.gl;
         let path_str = gltf_path.to_str().ok_or("Invalid UTF-8 in glTF path")?;
         let (gltf, _buffers, images) = gltf::import(path_str)?;
 
-        let texture_map = Self::load_textures_from_gltf_data(
-            &mut render_resource_manager.texture_resource,
-            gl,
-            &gltf,
-            &images,
-        )?;
+        let shader_handle = {
+            let mut shader_resource = self
+                .world
+                .get_resource_mut::<ShaderResource>()
+                .expect("ShaderResource not found");
+            shader_resource.get_or_load(gl, vertex_shader, fragment_shader)
+        };
 
-        let mut material_handles = Vec::new();
-        let shader_handle =
-            render_resource_manager
-                .shader_resource
-                .get_or_load(gl, vertex_shader, fragment_shader);
+        let texture_map = {
+            let mut texture_resource = self
+                .world
+                .get_resource_mut::<TextureResource>()
+                .expect("TextureResource not found");
+            Self::load_textures_from_gltf_data(&mut texture_resource, gl, &gltf, &images)?
+        };
+
+        let mut material_inputs: Vec<(TextureHandle, TextureHandle, f32)> = Vec::new();
+
+        let mut texture_resource = self
+            .world
+            .get_resource_mut::<TextureResource>()
+            .expect("TextureResource not found");
+        let default_normal = texture_resource.default_normal_map;
+
         for material in gltf.materials() {
             let pbr = material.pbr_metallic_roughness();
             let roughness = pbr.roughness_factor();
@@ -364,18 +389,26 @@ impl Engine {
                 .unwrap_or_else(|| {
                     let base_color = pbr.base_color_factor();
                     let rgba = Self::rgba_from_rgba_f32(base_color);
-                    render_resource_manager
-                        .texture_resource
-                        .create_solid_rgba(gl, rgba)
+                    texture_resource.create_solid_rgba(gl, rgba)
                 });
 
             let normal_handle = material
                 .normal_texture()
                 .and_then(|info| texture_map.get(&info.texture().index()).copied())
-                .unwrap_or(render_resource_manager.texture_resource.default_normal_map);
+                .unwrap_or(default_normal);
 
+            material_inputs.push((albedo_handle, normal_handle, roughness));
+        }
+
+        let mut material_handles = Vec::with_capacity(material_inputs.len());
+        let mut material_resource = self
+            .world
+            .get_resource_mut::<MaterialResource>()
+            .expect("MaterialResource not found");
+
+        for (albedo_handle, normal_handle, roughness) in material_inputs {
             let handle = Self::create_pbr_material(
-                render_resource_manager,
+                &mut material_resource,
                 shader_handle,
                 albedo_handle,
                 normal_handle,

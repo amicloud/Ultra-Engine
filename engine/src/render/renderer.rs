@@ -7,16 +7,19 @@ use slotmap::SecondaryMap;
 use crate::{
     assets::{
         handles::{MaterialHandle, MeshHandle, ShaderHandle},
+        material_resource::MaterialResource,
         mesh::{Mesh, Vertex},
+        mesh_resource::MeshResource,
         shader::{
             InputRate::{PerInstance, PerVertex},
             UniformValue, VertexAttribType,
         },
+        shader_resource::ShaderResource,
         texture,
+        texture_resource::TextureResource,
     },
     render::{
-        frustum::Frustum, render_instance::RenderInstance,
-        render_resource_manager::RenderResourceManager,
+        frustum::Frustum, render_body_resource::RenderBodyResource, render_instance::RenderInstance,
     },
 };
 
@@ -100,10 +103,14 @@ impl Renderer {
         self.frame_data.input_instances.extend_from_slice(instances);
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn render(
         &mut self,
         render_params: RenderParams,
-        render_data_manager: &mut RenderResourceManager,
+        mesh_resource: &MeshResource,
+        material_resource: &MaterialResource,
+        texture_resource: &TextureResource,
+        shader_resource: &ShaderResource,
         camera: Option<CameraRenderData>,
     ) {
         let gl = self.gl.clone();
@@ -160,7 +167,7 @@ impl Renderer {
         Self::frustum_culling(
             &mut self.frame_data.visible_instances,
             &self.frame_data.input_instances,
-            render_data_manager,
+            mesh_resource,
             &view_proj,
         );
 
@@ -177,12 +184,10 @@ impl Renderer {
                 .mesh_batches
                 .clone();
 
-            let material = render_data_manager
-                .material_resource
+            let material = material_resource
                 .get_material(material_id)
                 .expect("Material not found");
-            let shader = render_data_manager
-                .shader_resource
+            let shader = shader_resource
                 .get_shader(material.desc.shader)
                 .expect("Shader not found");
 
@@ -197,7 +202,7 @@ impl Renderer {
                     &gl,
                     &loc,
                     &UniformValue::Mat4(self.frame_data.frame_uniforms.view_proj),
-                    render_data_manager,
+                    texture_resource,
                 );
             }
             if let Some(loc) = shader.get_uniform("u_camera_position") {
@@ -205,7 +210,7 @@ impl Renderer {
                     &gl,
                     &loc,
                     &UniformValue::Vec3(self.frame_data.frame_uniforms.camera_position),
-                    render_data_manager,
+                    texture_resource,
                 );
             }
             if let Some(loc) = shader.get_uniform("u_light_direction") {
@@ -213,7 +218,7 @@ impl Renderer {
                     &gl,
                     &loc,
                     &UniformValue::Vec3(self.frame_data.frame_uniforms.light_direction),
-                    render_data_manager,
+                    texture_resource,
                 );
             }
             if let Some(loc) = shader.get_uniform("u_light_color") {
@@ -221,7 +226,7 @@ impl Renderer {
                     &gl,
                     &loc,
                     &UniformValue::Vec3(self.frame_data.frame_uniforms.light_color),
-                    render_data_manager,
+                    texture_resource,
                 );
             }
 
@@ -230,7 +235,7 @@ impl Renderer {
             // 2. Bind material uniforms
             for (name, value) in &material.desc.params {
                 if let Some(loc) = shader.get_uniform(name) {
-                    textures_bound += Self::bind_uniform(&gl, &loc, value, render_data_manager);
+                    textures_bound += Self::bind_uniform(&gl, &loc, value, texture_resource);
                 }
             }
 
@@ -245,7 +250,8 @@ impl Renderer {
                     &gl,
                     mesh_id,
                     &material.desc.shader,
-                    render_data_manager,
+                    shader_resource,
+                    mesh_resource,
                     &mut self.mesh_render_data,
                 );
                 Self::update_instance_buffer(
@@ -256,8 +262,7 @@ impl Renderer {
                 );
 
                 let index_count: i32 = {
-                    render_data_manager
-                        .mesh_resource
+                    mesh_resource
                         .get_mesh(mesh_id)
                         .unwrap_or_else(|| panic!("Couldn't find mesh: {:?}", mesh_id))
                         .indices
@@ -364,15 +369,14 @@ impl Renderer {
     pub fn frustum_culling(
         visible_instances: &mut Vec<RenderInstance>,
         instances: &[RenderInstance],
-        render_data_manager: &RenderResourceManager,
+        mesh_resource: &MeshResource,
         view_proj: &Mat4,
     ) {
         visible_instances.clear();
         let frustum = Frustum::from_view_proj(view_proj);
 
         for inst in instances {
-            let mesh = render_data_manager
-                .mesh_resource
+            let mesh = mesh_resource
                 .get_mesh(inst.mesh_id)
                 .expect("Mesh not found");
 
@@ -485,7 +489,8 @@ impl Renderer {
         gl: &glow::Context,
         mesh: MeshHandle,
         shader: &ShaderHandle,
-        render_data_manager: &RenderResourceManager,
+        shader_resource: &ShaderResource,
+        mesh_resource: &MeshResource,
         mesh_render_data: &mut SecondaryMap<MeshHandle, MeshRenderData>,
     ) -> glow::VertexArray {
         let key = VaoKey {
@@ -498,8 +503,7 @@ impl Renderer {
         }
 
         if !mesh_render_data.contains_key(mesh) {
-            let mesh_data = render_data_manager
-                .mesh_resource
+            let mesh_data = mesh_resource
                 .get_mesh(mesh)
                 .expect("Mesh not found");
             Self::upload_mesh_to_gpu(gl, mesh_data, mesh, mesh_render_data);
@@ -525,8 +529,7 @@ impl Renderer {
                 None
             };
 
-            for attrib in &render_data_manager
-                .shader_resource
+            for attrib in &shader_resource
                 .get_shader(*shader)
                 .unwrap()
                 .attributes
@@ -624,7 +627,7 @@ impl Renderer {
         gl: &glow::Context,
         loc: &glow::UniformLocation,
         value: &UniformValue,
-        render_data_manager: &RenderResourceManager,
+        texture_resource: &TextureResource,
     ) -> u32 {
         unsafe {
             match value {
@@ -645,8 +648,7 @@ impl Renderer {
                     0
                 }
                 UniformValue::Texture { handle, unit } => {
-                    let tex = render_data_manager
-                        .texture_resource
+                    let tex = texture_resource
                         .get_texture(*handle)
                         .expect("Texture missing");
 

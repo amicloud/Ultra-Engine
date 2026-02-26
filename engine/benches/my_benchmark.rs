@@ -1,11 +1,13 @@
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::{IntoScheduleConfigs, Schedule};
 use criterion::{Criterion, criterion_group, criterion_main};
+use engine::assets::mesh_resource::MeshResource;
+use engine::render::render_body_resource::RenderBodyResource;
 use std::hint::black_box;
 
 use engine::physics::physics_resource::{CollisionFrameData, PhysicsResource};
 use engine::{
-    CollisionLayer, CollisionSystem, ConvexCollider, RenderResourceManager, TimeResource,
+    CollisionLayer, CollisionSystem, ConvexCollider, TimeResource,
     TransformComponent,
 };
 use glam::{Quat, Vec3};
@@ -48,8 +50,9 @@ fn jiggle_transforms(world: &mut World, delta: f32) {
 
 fn setup_world(count: usize, spacing: f32, radius: f32) -> World {
     let mut world = World::new();
-    world.insert_resource(RenderResourceManager::new());
     world.insert_resource(PhysicsResource::default());
+    world.insert_resource(RenderBodyResource::default());
+    world.insert_resource(MeshResource::default());
     world.insert_resource(CollisionFrameData::default());
     world.insert_resource(TimeResource::default());
     spawn_convex_grid(&mut world, count, spacing, radius);

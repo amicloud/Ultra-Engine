@@ -23,7 +23,7 @@ use glam::{Mat4, Vec3};
 use glow::HasContext;
 
 use crate::{
-    assets::{mesh_resource::MeshResource, sound_resource::SoundResource},
+    assets::{material_resource::MaterialResource, mesh_resource::MeshResource, shader_resource::ShaderResource, sound_resource::SoundResource, texture_resource::TextureResource},
     audio::{
         audio_command_queue::AudioCommandQueue,
         audio_command_queue_system::AudioCommandQueueSystem, audio_mixer::AudioMixer,
@@ -38,14 +38,11 @@ use crate::{
         physics_system::PhysicsSystem,
     },
     render::{
-        render_queue::RenderQueue,
-        render_system::RenderSystem,
-        renderer::{CameraRenderData, RenderParams, Renderer},
+        render_body_resource::RenderBodyResource, render_queue::RenderQueue, render_system::RenderSystem, renderer::{CameraRenderData, RenderParams, Renderer}
     },
     utils::scope_timer::ScopeTimer,
 };
 
-pub use crate::render::render_resource_manager::RenderResourceManager;
 pub use physics::collision_system::CollisionSystem;
 pub use physics::gravity_resource::Gravity;
 
@@ -86,9 +83,12 @@ impl Engine {
         let gl = Rc::new(gl);
 
         let mut world = World::new();
-        world.insert_resource(MeshResource::default());
         world.insert_resource(RenderQueue::default());
-        world.insert_resource(RenderResourceManager::new());
+        world.insert_resource(MeshResource::default());
+        world.insert_resource(RenderBodyResource::default());
+        world.insert_resource(MaterialResource::default());
+        world.insert_resource(TextureResource::default());
+        world.insert_resource(ShaderResource::default());
         world.insert_resource(ActiveCamera::default());
         world.insert_resource(InputStateResource::default());
         world.insert_resource(WorldBasis::canonical());
@@ -139,12 +139,9 @@ impl Engine {
                 .chain(),
         );
 
-        let mut render_data_manager = world
-            .get_resource_mut::<RenderResourceManager>()
-            .expect("RenderResourceManager resource not found");
-
-        render_data_manager
-            .texture_resource
+        world
+            .get_resource_mut::<TextureResource>()
+            .expect("TextureResource resource not found")
             .create_default_normal_map(&gl);
 
         let renderer = Renderer::new(gl.clone());
@@ -237,12 +234,29 @@ impl Engine {
                 );
                 {
                     let _timer = ScopeTimer::new("Render");
+                    let mesh_resource = self
+                        .world
+                        .get_resource::<MeshResource>()
+                        .expect("MeshResource resource not found");
+                    let material_resource = self
+                        .world
+                        .get_resource::<MaterialResource>()
+                        .expect("MaterialResource resource not found");
+                    let texture_resource = self
+                        .world
+                        .get_resource::<TextureResource>()
+                        .expect("TextureResource resource not found");
+                    let shader_resource = self
+                        .world
+                        .get_resource::<ShaderResource>()
+                        .expect("ShaderResource resource not found");
+
                     self.renderer.render(
                         render_params,
-                        &mut self
-                            .world
-                            .get_resource_mut::<RenderResourceManager>()
-                            .expect("RenderDataManager resource not found"),
+                        &mesh_resource,
+                        &material_resource,
+                        &texture_resource,
+                        &shader_resource,
                         camera_data,
                     );
                 }
@@ -427,16 +441,13 @@ impl Default for Engine {
 
 impl Engine {
     pub fn aabb_from_render_body(&self, render_body_id: RenderBodyHandle) -> Option<Aabb> {
-        let render_resource_manager = self.world.get_resource::<RenderResourceManager>()?;
-        let render_body = render_resource_manager
-            .render_body_resource
-            .get_render_body(render_body_id)?;
+        let render_body_resource = self.world.get_resource::<RenderBodyResource>()?;
+        let mesh_resource = self.world.get_resource::<MeshResource>()?;
+        let render_body = render_body_resource.get_render_body(render_body_id)?;
 
         let mut combined: Option<Aabb> = None;
         for part in &render_body.parts {
-            let mesh = render_resource_manager
-                .mesh_resource
-                .get_mesh(part.mesh_id)?;
+            let mesh = mesh_resource.get_mesh(part.mesh_id)?;
             let part_aabb = transform_aabb_with_mat4(mesh.aabb, &part.local_transform);
             combined = Some(match combined {
                 Some(existing) => union_aabb(existing, part_aabb),
@@ -453,8 +464,7 @@ impl Engine {
         layer: CollisionLayer,
     ) -> Option<MeshCollider> {
         self.world
-            .get_resource::<RenderResourceManager>()?
-            .render_body_resource
+            .get_resource::<RenderBodyResource>()?
             .get_render_body(render_body_id)?;
 
         Some(MeshCollider::new(render_body_id, layer))

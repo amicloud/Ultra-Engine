@@ -3,7 +3,6 @@ pub mod render_body;
 pub mod render_body_resource;
 pub mod render_instance;
 pub mod render_queue;
-pub mod render_resource_manager;
 pub mod render_system;
 pub mod renderer;
 pub mod renderer_backends;

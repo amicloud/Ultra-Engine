@@ -8,14 +8,14 @@ use std::{collections::HashMap, time::Duration};
 
 use crate::{
     TransformComponent,
-    assets::mesh::Aabb,
+    assets::{mesh::Aabb, mesh_resource::MeshResource},
     components::collider_component::{
         BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
         closest_point_on_triangle,
     },
     components::velocity_component::VelocityComponent,
     physics,
-    render::render_resource_manager::RenderResourceManager,
+    render::render_body_resource::RenderBodyResource,
     time_resource::TimeResource,
 };
 
@@ -40,14 +40,15 @@ impl CollisionSystem {
             ),
             Changed<TransformComponent>,
         >,
-        render_resources: Res<RenderResourceManager>,
+        render_body_resource: Res<RenderBodyResource>,
+        mesh_resource: Res<MeshResource>,
         mut phys: ResMut<PhysicsResource>,
     ) {
         for (entity, transform, convex_collider, mesh_collider) in &query {
             // --- 1. Compute world AABB ---
             let world_aabb = if let Some(mesh_collider) = mesh_collider {
                 if let Some(local_aabb) =
-                    render_body_local_aabb(mesh_collider.render_body_id, &render_resources)
+                    render_body_local_aabb(mesh_collider.render_body_id, &render_body_resource, &mesh_resource)
                 {
                     transform_aabb(local_aabb, transform)
                 } else {
@@ -105,13 +106,14 @@ impl CollisionSystem {
             ),
             Changed<TransformComponent>,
         >,
-        render_resources: Res<RenderResourceManager>,
+        render_body_resource: Res<RenderBodyResource>,
+        mesh_resource: Res<MeshResource>,
         mut phys: ResMut<PhysicsResource>,
     ) {
         for (entity, transform, convex_collider, mesh_collider) in &query {
             if let Some(mesh_collider) = mesh_collider
                 && let Some(local_aabb) =
-                    render_body_local_aabb(mesh_collider.render_body_id, &render_resources)
+                    render_body_local_aabb(mesh_collider.render_body_id, &render_body_resource, &mesh_resource)
             {
                 let world_aabb = transform_aabb(local_aabb, transform);
                 phys.world_aabbs.insert(entity, world_aabb);
@@ -155,7 +157,8 @@ impl CollisionSystem {
             Option<&ConvexCollider>,
             Option<&MeshCollider>,
         )>,
-        render_resources: Res<RenderResourceManager>,
+        render_body_resource: Res<RenderBodyResource>,
+        mesh_resource: Res<MeshResource>,
         physics_world: Res<PhysicsResource>,
         mut frame: ResMut<CollisionFrameData>,
         time: Res<TimeResource>,
@@ -230,7 +233,8 @@ impl CollisionSystem {
                         *entity_b,
                         mesh_b,
                         transform_b,
-                        &render_resources,
+                        &render_body_resource,
+                        &mesh_resource,
                         &physics_world.world_aabbs,
                         previous_manifold,
                         delta_t,
@@ -247,7 +251,8 @@ impl CollisionSystem {
                         *entity_a,
                         mesh_a,
                         transform_a,
-                        &render_resources,
+                        &render_body_resource,
+                        &mesh_resource,
                         &physics_world.world_aabbs,
                         previous_manifold,
                         delta_t,
@@ -348,7 +353,8 @@ fn convex_mesh_pair_manifold(
     mesh_entity: Entity,
     mesh_collider: &MeshCollider,
     mesh_transform: &TransformComponent,
-    render_resources: &RenderResourceManager,
+    render_body_resource: &RenderBodyResource,
+    mesh_resource: &MeshResource,
     world_aabbs: &HashMap<Entity, Aabb>,
     previous_manifold: Option<&ContactManifold>,
     delta_t: Duration,
@@ -362,7 +368,8 @@ fn convex_mesh_pair_manifold(
         mesh_entity,
         mesh_collider,
         mesh_transform,
-        render_resources,
+        render_body_resource,
+        mesh_resource,
         previous_manifold,
         delta_t,
     );
@@ -986,13 +993,12 @@ fn convex_mesh_contact(
     mesh_entity: Entity,
     mesh_collider: &MeshCollider,
     mesh_transform: &TransformComponent,
-    render_resources: &RenderResourceManager,
+    render_body_resource: &RenderBodyResource,
+    mesh_resource: &MeshResource,
     previous_manifold: Option<&ContactManifold>,
     delta_t: Duration,
 ) -> Vec<Contact> {
-    let Some(render_body) = render_resources
-        .render_body_resource
-        .get_render_body(mesh_collider.render_body_id)
+    let Some(render_body) = render_body_resource.get_render_body(mesh_collider.render_body_id)
     else {
         return Vec::new();
     };
@@ -1014,7 +1020,7 @@ fn convex_mesh_contact(
     let mut candidates: Vec<ContactCandidate> = Vec::new();
 
     for part in &render_body.parts {
-        let Some(mesh) = render_resources.mesh_resource.get_mesh(part.mesh_id) else {
+        let Some(mesh) = mesh_resource.get_mesh(part.mesh_id) else {
             continue;
         };
         let Some(bvh) = mesh.bvh.as_ref() else {
@@ -1399,15 +1405,14 @@ fn swept_aabb(aabb: &Aabb, delta: Vec3) -> Aabb {
 
 fn render_body_local_aabb(
     render_body_id: crate::assets::handles::RenderBodyHandle,
-    render_resources: &RenderResourceManager,
+    render_body_resource: &RenderBodyResource,
+    mesh_resource: &MeshResource,
 ) -> Option<Aabb> {
-    let render_body = render_resources
-        .render_body_resource
-        .get_render_body(render_body_id)?;
+    let render_body = render_body_resource.get_render_body(render_body_id)?;
 
     let mut combined: Option<Aabb> = None;
     for part in &render_body.parts {
-        let mesh = render_resources.mesh_resource.get_mesh(part.mesh_id)?;
+        let mesh = mesh_resource.get_mesh(part.mesh_id)?;
         let part_aabb = transform_aabb_with_mat4(mesh.aabb, &part.local_transform);
         combined = Some(match combined {
             Some(existing) => union_aabb(existing, part_aabb),

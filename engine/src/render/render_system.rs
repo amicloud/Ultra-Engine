@@ -5,8 +5,7 @@ use crate::{
         render_body_component::RenderBodyComponent, transform_component::TransformComponent,
     },
     render::{
-        render_instance::RenderInstance, render_queue::RenderQueue,
-        render_resource_manager::RenderResourceManager,
+        render_body_resource::RenderBodyResource, render_instance::RenderInstance, render_queue::RenderQueue
     },
 };
 
@@ -15,14 +14,13 @@ pub struct RenderSystem {}
 impl RenderSystem {
     pub fn build_render_queue(
         query: Query<(&TransformComponent, &RenderBodyComponent)>,
-        render_resources: Res<RenderResourceManager>,
+        render_body_resource: Res<RenderBodyResource>,
         mut queue: ResMut<RenderQueue>,
     ) {
         queue.instances.clear();
 
         for (transform, render_body) in &query {
-            let body = render_resources
-                .render_body_resource
+            let body = render_body_resource
                 .get_render_body(render_body.render_body_id)
                 .expect("RenderBody not found");
 

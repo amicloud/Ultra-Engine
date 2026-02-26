@@ -1,3 +1,4 @@
+use bevy_ecs::resource::Resource;
 use glow::Context;
 use image::GenericImageView;
 use slotmap::SlotMap;
@@ -6,7 +7,7 @@ use std::ffi::OsStr;
 use crate::assets::{handles::TextureHandle, texture::Texture};
 use crate::render::renderer;
 
-#[derive(Default)]
+#[derive(Resource, Default)]
 pub struct TextureResource {
     pub textures: SlotMap<TextureHandle, Texture>,
     pub default_normal_map: TextureHandle,
