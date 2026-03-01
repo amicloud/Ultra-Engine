@@ -26,10 +26,10 @@ pub(crate) enum AudioCommand {
         sound: SoundHandle,
         volume: f32,
     },
-    PauseTrack {
+    MuteTrack {
         track: usize,
     },
-    ResumeTrack {
+    UnmuteTrack {
         track: usize,
     },
     PauseMix,
@@ -112,12 +112,12 @@ impl AudioControl {
         });
     }
 
-    pub fn pause_track(&mut self, track: usize) {
-        self.push(AudioCommand::PauseTrack { track });
+    pub fn mute_track(&mut self, track: usize) {
+        self.push(AudioCommand::MuteTrack { track });
     }
 
-    pub fn resume_track(&mut self, track: usize) {
-        self.push(AudioCommand::ResumeTrack { track });
+    pub fn unmute_track(&mut self, track: usize) {
+        self.push(AudioCommand::UnmuteTrack { track });
     }
 
     pub fn pause_mix(&mut self) {

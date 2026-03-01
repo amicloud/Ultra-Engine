@@ -325,12 +325,12 @@ impl AudioMixer {
                         .push(MixerCommand::ResumeMix)
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
-                AudioCommand::PauseTrack { track } => {
+                AudioCommand::MuteTrack { track } => {
                     self.producer
                         .push(MixerCommand::MuteTrack { track: *track })
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
-                AudioCommand::ResumeTrack { track } => {
+                AudioCommand::UnmuteTrack { track } => {
                     self.producer
                         .push(MixerCommand::UnmuteTrack { track: *track })
                         .expect(MIXER_FULL_ERROR_MESSAGE);
