@@ -11,7 +11,7 @@ pub(crate) struct Track {
     pub(crate) playing: bool,
     pub(crate) voices: Vec<Voice>,
     pub(crate) buffer: Vec<f32>,
-    pub(crate) channels: usize,
+    pub(crate) channels: u16,
     pub(crate) finished_indices_buffer: Vec<usize>,
     pub(crate) muted: bool,
 }
@@ -33,8 +33,8 @@ impl Track {
                 for frame in 0..required_frames {
                     for ch in 0..self.channels {
                         let src_ch = if voice.channels() == 1 { 0 } else { ch };
-                        self.buffer[frame * self.channels + ch] += voice.buffer
-                            [frame * voice.channels() + src_ch]
+                        self.buffer[frame * self.channels as usize + ch as usize] += voice.buffer
+                            [frame * voice.channels() as usize + src_ch as usize]
                             * self.volume
                             * mute_gain;
                     }

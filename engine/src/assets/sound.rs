@@ -4,12 +4,12 @@ use crate::{Engine, SoundHandle, assets::sound_resource::SoundResource};
 
 pub struct Sound {
     pub sample_rate: u32,
-    pub channels: usize,
+    pub channels: u16,
     pub data: Arc<[f32]>,
 }
 
 impl Sound {
-    pub fn new(sample_rate: u32, channels: usize, data: Vec<f32>) -> Self {
+    pub fn new(sample_rate: u32, channels: u16, data: Vec<f32>) -> Self {
         Self {
             sample_rate,
             channels,
@@ -28,7 +28,7 @@ impl Sound {
             let data = Self::resample_mono(&samples, spec.sample_rate, sample_rate);
             Self {
                 sample_rate,
-                channels: spec.channels as usize,
+                channels: spec.channels,
                 data: Arc::from(data),
             }
         } else if spec.channels == 2 {
@@ -39,7 +39,7 @@ impl Sound {
             let data = Self::resample_stereo(&samples, spec.sample_rate, sample_rate);
             Self {
                 sample_rate,
-                channels: spec.channels as usize,
+                channels: spec.channels,
                 data: Arc::from(data),
             }
         } else {

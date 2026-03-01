@@ -9,28 +9,28 @@ use crate::{
 #[derive(Debug)]
 pub(crate) enum AudioCommand {
     SpawnSpatialEmitter {
-        track: usize,
+        track: u8,
         sound: SoundHandle,
         volume: f32,
         looping: bool,
         source: Entity,
     },
     PlayOneShotAtLocation {
-        track: usize,
+        track: u8,
         sound: SoundHandle,
         volume: f32,
         location: Vec3,
     },
     PlayOneShot {
-        track: usize,
+        track: u8,
         sound: SoundHandle,
         volume: f32,
     },
     MuteTrack {
-        track: usize,
+        track: u8,
     },
     UnmuteTrack {
-        track: usize,
+        track: u8,
     },
     PauseMix,
     ResumeMix,
@@ -74,7 +74,7 @@ impl AudioControl {
 
     pub(crate) fn spawn_spatial_emitter(
         &mut self,
-        track: usize,
+        track: u8,
         sound: SoundHandle,
         volume: f32,
         looping: bool,
@@ -89,7 +89,7 @@ impl AudioControl {
         });
     }
 
-    pub fn play_one_shot(&mut self, track: usize, sound: SoundHandle, volume: f32) {
+    pub fn play_one_shot(&mut self, track: u8, sound: SoundHandle, volume: f32) {
         self.push(AudioCommand::PlayOneShot {
             track,
             sound,
@@ -99,7 +99,7 @@ impl AudioControl {
 
     pub fn play_one_shot_at_location(
         &mut self,
-        track: usize,
+        track: u8,
         sound: SoundHandle,
         volume: f32,
         location: Vec3,
@@ -112,11 +112,11 @@ impl AudioControl {
         });
     }
 
-    pub fn mute_track(&mut self, track: usize) {
+    pub fn mute_track(&mut self, track: u8) {
         self.push(AudioCommand::MuteTrack { track });
     }
 
-    pub fn unmute_track(&mut self, track: usize) {
+    pub fn unmute_track(&mut self, track: u8) {
         self.push(AudioCommand::UnmuteTrack { track });
     }
 

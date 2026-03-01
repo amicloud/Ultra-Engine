@@ -17,10 +17,10 @@ pub(crate) struct Voice {
     cursor: usize,
     volume: f32,
     looping: bool,
-    pub(crate) channels: usize,
+    pub(crate) channels: u16,
     pub(crate) buffer: Vec<f32>,
     source: Option<Entity>,
-    source_channels: usize,
+    source_channels: u16,
     location: Option<Vec3>,
     itd_delay: ItdDelay,
     lpf_left: LowPassFilter,
@@ -51,7 +51,7 @@ impl LowPassFilter {
 }
 
 impl Voice {
-    pub(crate) fn channels(&self) -> usize {
+    pub(crate) fn channels(&self) -> u16 {
         self.channels
     }
 
@@ -62,7 +62,7 @@ impl Voice {
         looping: bool,
         source: Option<Entity>,
         location: Option<Vec3>,
-        source_channels: usize,
+        source_channels: u16,
         required_buffer_size: usize,
     ) -> Self {
         let itd_scale = 1.0; // Scale factor for ITD effect, for demonstration purposes
@@ -104,7 +104,7 @@ impl Voice {
         required_frames: usize,
         source_map: &HashMap<Entity, Vec3>,
     ) -> bool {
-        let total_frames = self.samples.len() / self.source_channels;
+        let total_frames = self.samples.len() / self.source_channels as usize;
         let frames_to_fill = (total_frames - self.cursor).min(required_frames);
 
         let mut location = self.location;
@@ -181,7 +181,7 @@ impl Voice {
         match self.source_channels {
             1 => {
                 for frame in 0..frames_to_fill {
-                    let sample_idx = self.cursor * self.source_channels;
+                    let sample_idx = self.cursor * self.source_channels as usize;
                     let mono = self.samples[sample_idx] * combined_volume;
 
                     // +++ ITD +++
@@ -234,7 +234,7 @@ impl Voice {
             }
             2 => {
                 for frame in 0..frames_to_fill {
-                    let sample_idx = self.cursor * self.source_channels;
+                    let sample_idx = self.cursor * self.source_channels as usize;
                     // Stereo source, apply panning and distance attenuation to each channel
                     // but not ITD since the source is already stereo and that would really mess things up
                     // Stereo voices should ideally not be used with spatialization but we should still support it in some way?
@@ -258,7 +258,7 @@ impl Voice {
         // Zero the rest of the block if we ran out of frames
         for frame in frames_to_fill..required_frames {
             for ch in 0..self.channels {
-                self.buffer[frame * self.channels + ch] = 0.0;
+                self.buffer[frame * ch as usize ] = 0.0;
             }
         }
         if self.cursor >= total_frames {

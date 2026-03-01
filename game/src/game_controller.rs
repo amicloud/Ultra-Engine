@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 use engine::assets::sound_resource::SoundResource;
-use engine::audio::audio_control::AudioControl;
+use engine::audio::audio_control::{AudioControl};
 use engine::input::InputStateResource;
 use engine::{Gravity, TimeResource, TransformComponent, WorldBasis};
 use glam::{Quat, Vec3};
@@ -66,7 +66,7 @@ pub fn sound_control(
 ) {
     if input_state.key_pressed(sdl2::keyboard::Keycode::N) {
         audio.play_one_shot(
-            0,
+            2,
             sound_resource.get_by_name("sea_shanty_2.wav").unwrap(),
             0.5,
         );

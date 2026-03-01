@@ -22,12 +22,12 @@ pub(crate) type SourceInfo = Vec3; // position
 
 enum MixerCommand {
     AddVoice {
-        track: usize,
+        track: u8,
         samples: Arc<[f32]>,
         sample_rate: f32,
         volume: f32,
         looping: bool,
-        source_channels: usize,
+        source_channels: u16,
         source: Option<Entity>,
         location: Option<Vec3>,
     },
@@ -36,10 +36,10 @@ enum MixerCommand {
     MuteMix,
     UnmuteMix,
     MuteTrack {
-        track: usize,
+        track: u8,
     },
     UnmuteTrack {
-        track: usize,
+        track: u8,
     },
     UpdateListenerInfo {
         info: ListenerInfo,
@@ -59,14 +59,14 @@ impl Default for AudioMixer {
         let sample_rate = device.default_output_config().unwrap().sample_rate();
         dbg!(sample_rate);
         let config = device.default_output_config().unwrap();
-        let channels = config.channels() as usize;
+        let channels = config.channels() as u16;
 
-        let mut tracks = Vec::with_capacity(32);
-        tracks.push(Track {
+
+        let tracks: [Track; 32] = core::array::from_fn(|_|Track {
             volume: 1.0,
             playing: true,
             voices: Vec::new(),
-            buffer: vec![0.0; 5096 * 2],
+            buffer: vec![0.0; 5096 * channels as usize],
             channels,
             finished_indices_buffer: Vec::new(),
             muted: false,
@@ -84,7 +84,7 @@ impl Default for AudioMixer {
         let listener_info = None; // position, rotation
 
         // Should probably not use a hashmap here but it works for now. We can optimize later if needed.
-        let source_map: HashMap<Entity, Vec3> = HashMap::new();
+        let source_map: HashMap<Entity, Vec3> = HashMap::with_capacity(256);
 
         s.stream = Some(s.build_stream(
             &device,
@@ -106,7 +106,7 @@ impl AudioMixer {
         &mut self,
         device: &Device,
         config: SupportedStreamConfig,
-        mut tracks: Vec<Track>,
+        mut tracks: [Track; 32],
         mut paused: bool,
         mut consumer: Consumer<MixerCommand>,
         mut muted: bool,
@@ -151,7 +151,7 @@ impl AudioMixer {
                             let mut sample = 0.0;
                             for track in tracks.iter() {
                                 let src_ch = if track.channels == 1 { 0 } else { ch };
-                                sample += track.buffer[frame * track.channels + src_ch];
+                                sample += track.buffer[frame * track.channels as usize + src_ch];
                             }
                             let mute_gain = if muted { 0.0 } else { 1.0 };
                             output[frame * channels + ch] = sample.clamp(-1.0, 1.0) * mute_gain;
@@ -187,7 +187,7 @@ impl AudioMixer {
                     source,
                     location,
                 } => {
-                    if let Some(track) = tracks.get_mut(track) {
+                    if let Some(track) = tracks.get_mut(track as usize) {
                         track.voices.push(Voice::new(
                             samples,
                             sample_rate,
@@ -216,12 +216,12 @@ impl AudioMixer {
                     *muted = false;
                 }
                 MixerCommand::MuteTrack { track } => {
-                    if let Some(track) = tracks.get_mut(track) {
+                    if let Some(track) = tracks.get_mut(track as usize) {
                         track.muted = true;
                     }
                 }
                 MixerCommand::UnmuteTrack { track } => {
-                    if let Some(track) = tracks.get_mut(track) {
+                    if let Some(track) = tracks.get_mut(track as usize) {
                         track.muted = false;
                     }
                 }
