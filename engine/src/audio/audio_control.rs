@@ -43,6 +43,9 @@ pub(crate) enum AudioCommand {
         entity: Entity,
         info: SourceInfo,
     },
+    RemoveSourceInfo {
+        entity: Entity,
+    }
 }
 
 #[derive(Resource, Default)]
@@ -86,6 +89,15 @@ impl AudioControl {
             volume,
             looping,
             source,
+        });
+    }
+
+    pub(crate) fn remove_spatial_emitter(
+        &mut self,
+        source: Entity,
+    ) {
+        self.push(AudioCommand::RemoveSourceInfo {
+            entity: source,
         });
     }
 

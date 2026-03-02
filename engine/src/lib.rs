@@ -130,7 +130,8 @@ impl Engine {
                 TimeResource::update_time_resource,
                 AudioCommandQueueSystem::build_command_queue,
                 SpatialAudioSystem::update_listener_position,
-                SpatialAudioSystem::update_source_positions,
+                SpatialAudioSystem::update_moved_sources,
+                SpatialAudioSystem::remove_deleted_sources,
                 SimplePhysAudioSystem::on_hit_audio_system,
             )
                 .chain(),
@@ -318,6 +319,8 @@ impl Engine {
                 );
             }
             self.cleanup_schedule.run(&mut self.world);
+            // Reset bevy_ecs change detection (Added/Changed/Removed) so the next frame starts with a fresh diff.
+            self.world.clear_trackers();
             let frame_time = frame_start.elapsed();
             if frame_time < frame_target {
                 sleep(frame_target - frame_time);

@@ -32,15 +32,24 @@ impl SpatialAudioSystem {
         }
     }
 
-    pub fn update_source_positions(
+    pub fn update_moved_sources(
         query: Query<
             (Entity, &TransformComponent, &AudioSourceComponent),
             Changed<TransformComponent>,
         >,
-        mut audio_command_queue: ResMut<AudioControl>,
+        mut audio_control: ResMut<AudioControl>,
     ) {
         for (entity, transform, _) in query.iter() {
-            audio_command_queue.update_source_info(entity, transform.position);
+            audio_control.update_source_info(entity, transform.position);
+        }
+    }
+
+    pub fn remove_deleted_sources(
+        mut removed: RemovedComponents<AudioSourceComponent>,
+        mut audio_control: ResMut<AudioControl>,
+    ) {
+        for entity in removed.read() {
+            audio_control.remove_spatial_emitter(entity);
         }
     }
 }

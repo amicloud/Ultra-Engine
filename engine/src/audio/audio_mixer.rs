@@ -48,6 +48,9 @@ enum MixerCommand {
         entity: Entity,
         info: SourceInfo,
     },
+    RemoveSourceInfo {
+        entity: Entity,
+    },
 }
 
 impl Default for AudioMixer {
@@ -65,16 +68,16 @@ impl Default for AudioMixer {
         let tracks: [Track; 32] = core::array::from_fn(|_|Track {
             volume: 1.0,
             playing: true,
-            voices: Vec::new(),
-            buffer: vec![0.0; 5096 * channels as usize],
+            voices: Vec::with_capacity(256),
+            buffer: vec![0.0; 4096 * channels as usize],
             channels,
-            finished_indices_buffer: Vec::new(),
+            finished_indices_buffer: Vec::with_capacity(256),
             muted: false,
         });
 
         let paused = false;
         let muted = false;
-        let (producer, consumer) = RingBuffer::<MixerCommand>::new(1024);
+        let (producer, consumer) = RingBuffer::<MixerCommand>::new(4096);
         let mut s = Self {
             stream: None,
             producer,
@@ -234,6 +237,9 @@ impl AudioMixer {
                 } => {
                     source_map.insert(entity, position);
                 }
+                MixerCommand::RemoveSourceInfo { entity } => {
+                    source_map.remove(&entity);
+                }
             }
         }
     }
@@ -363,6 +369,11 @@ impl AudioMixer {
                             entity: *entity,
                             info: *source_info,
                         })
+                        .expect(MIXER_FULL_ERROR_MESSAGE);
+                }
+                AudioCommand::RemoveSourceInfo { entity } => {
+                    self.producer
+                        .push(MixerCommand::RemoveSourceInfo { entity: *entity })
                         .expect(MIXER_FULL_ERROR_MESSAGE);
                 }
             }
