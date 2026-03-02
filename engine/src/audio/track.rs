@@ -14,6 +14,7 @@ pub(crate) struct Track {
     pub(crate) channels: u16,
     pub(crate) finished_indices_buffer: Vec<usize>,
     pub(crate) muted: bool,
+    pub(crate) has_active_voices: bool,
 }
 impl Track {
     pub fn fill_buffer_from_voices(
@@ -46,5 +47,6 @@ impl Track {
         for &index in self.finished_indices_buffer.iter().rev() {
             self.voices.swap_remove(index);
         }
+        self.has_active_voices = !self.voices.is_empty();
     }
 }

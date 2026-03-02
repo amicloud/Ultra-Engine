@@ -72,8 +72,10 @@ impl Default for AudioMixer {
             channels,
             finished_indices_buffer: Vec::with_capacity(256),
             muted: false,
+            has_active_voices: false,
         });
 
+        let active_tracks = Vec::with_capacity(32);
         let paused = false;
         let muted = false;
         let (producer, consumer) = RingBuffer::<MixerCommand>::new(4096);
@@ -97,6 +99,7 @@ impl Default for AudioMixer {
             muted,
             listener_info,
             source_map,
+            active_tracks,
         ));
         s
     }
@@ -114,6 +117,7 @@ impl AudioMixer {
         mut muted: bool,
         mut listener_info: Option<ListenerInfo>,
         mut source_map: HashMap<Entity, Vec3>,
+        mut active_tracks: Vec<usize>,
     ) -> Stream {
         let channels = config.channels() as usize;
         let stream = device
@@ -139,26 +143,41 @@ impl AudioMixer {
                     }
 
                     let required_frames = output.len() / channels;
-
-                    for track in tracks.iter_mut() {
+                    output.fill(0.0);
+                    active_tracks.clear();
+                    for (index, track) in tracks
+                        .iter_mut()
+                        .enumerate()
+                        .filter(|(_, track)| track.has_active_voices)
+                    {
                         track.fill_buffer_from_voices(
                             listener_info.as_ref(),
                             required_frames,
                             &source_map,
                         );
+                        active_tracks.push(index);
                     }
 
                     for frame in 0..required_frames {
                         for ch in 0..channels {
-                            let mut sample = 0.0;
-                            for track in tracks.iter() {
+                            let out_index = frame * channels + ch;
+
+                            for &track_index in &active_tracks {
+                                let track = &tracks[track_index];
                                 let src_ch = if track.channels == 1 { 0 } else { ch };
-                                sample += track.buffer[frame * track.channels as usize + src_ch];
+
+                                output[out_index] +=
+                                    track.buffer[frame * track.channels as usize + src_ch];
                             }
-                            let mute_gain = if muted { 0.0 } else { 1.0 };
-                            output[frame * channels + ch] = sample.clamp(-1.0, 1.0) * mute_gain;
                         }
                     }
+
+                    let mute_gain = if muted { 0.0 } else { 1.0 };
+
+                    for sample in output.iter_mut() {
+                        *sample = (*sample * mute_gain).clamp(-1.0, 1.0);
+                    }
+
                 },
                 move |err| eprintln!("Stream error: {}", err),
                 None, // None=blocking, Some(Duration)=timeout
@@ -201,8 +220,10 @@ impl AudioMixer {
                             required_buffer_size_for_voices,
                         ));
                         if let Some(source) = source {
+                            // This is going to lead to a 1 frame lag in position... Should fix
                             source_map.insert(source, Vec3::ZERO); // Default location
                         }
+                        track.has_active_voices = true;
                     }
                 }
                 MixerCommand::PauseMix => {
