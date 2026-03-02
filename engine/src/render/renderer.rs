@@ -37,7 +37,6 @@ pub struct MeshRenderData {
     pub instance_count: usize,
 }
 
-#[derive(Default)]
 struct FrameData {
     /// Instances copied from the render queue at the start of each frame.
     input_instances: Vec<RenderInstance>,
@@ -49,6 +48,19 @@ struct FrameData {
     mesh_batch_ranges: Vec<MeshBatchRange>,
     /// Ranges into `mesh_batch_ranges` for each material batch.
     material_batch_ranges: Vec<MaterialBatchRange>,
+}
+
+impl Default for FrameData {
+    fn default() -> Self {
+        Self {
+            input_instances: Vec::with_capacity(1024),
+            visible_instances: Vec::with_capacity(1024),
+            frame_uniforms: FrameUniforms::default(),
+            instance_matrices: Vec::with_capacity(1024),
+            mesh_batch_ranges: Vec::with_capacity(256),
+            material_batch_ranges: Vec::with_capacity(256),
+        }
+    }
 }
 
 struct MaterialBatchRange {
@@ -87,6 +99,22 @@ pub struct CameraRenderData {
 }
 
 impl Renderer {
+
+    pub fn new(gl: Rc<GlowContext>) -> Self {
+        unsafe {
+            gl.enable(glow::DEPTH_TEST);
+            gl.depth_func(glow::LESS);
+
+            Self {
+                gl,
+                frames_rendered: 0,
+                vao_cache: HashMap::with_capacity(256),
+                frame_data: FrameData::default(),
+                mesh_render_data: SecondaryMap::with_capacity(256),
+            }
+        }
+    }
+    
     fn max_scale(mat: Mat4) -> f32 {
         let x = mat.x_axis.truncate().length();
         let y = mat.y_axis.truncate().length();
@@ -384,21 +412,6 @@ impl Renderer {
 
             if frustum.intersects_sphere(world_center, world_radius) {
                 visible_instances.push(inst.clone());
-            }
-        }
-    }
-
-    pub fn new(gl: Rc<GlowContext>) -> Self {
-        unsafe {
-            gl.enable(glow::DEPTH_TEST);
-            gl.depth_func(glow::LESS);
-
-            Self {
-                gl,
-                frames_rendered: 0,
-                vao_cache: HashMap::new(),
-                frame_data: FrameData::default(),
-                mesh_render_data: SecondaryMap::new(),
             }
         }
     }
