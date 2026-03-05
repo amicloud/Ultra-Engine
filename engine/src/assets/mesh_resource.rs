@@ -18,11 +18,23 @@ pub struct MeshStorage {
 pub struct MeshResource(pub Arc<RwLock<MeshStorage>>);
 impl MeshResource {
     pub fn read(&self) -> std::sync::RwLockReadGuard<'_, MeshStorage> {
-        self.0.read().unwrap()
+        match self.0.read() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("MeshResource read lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
     }
 
     pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, MeshStorage> {
-        self.0.write().unwrap()
+        match self.0.write() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("MeshResource write lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
     }
 }
 impl MeshStorage {

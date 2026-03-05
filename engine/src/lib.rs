@@ -15,7 +15,6 @@ mod utils;
 pub mod world_basis;
 use std::{
     rc::Rc,
-    sync::Arc,
     thread::sleep,
     time::{Duration, Instant},
 };
@@ -70,6 +69,7 @@ pub use crate::world_basis::WorldBasis;
 
 pub struct Engine {
     pub scene: Scene,
+    _scene_services: SceneServices,
     physics_schedule: Schedule,
     frame_schedule: Schedule,
     cleanup_schedule: Schedule,
@@ -92,13 +92,12 @@ impl Engine {
 
         let scene_services = SceneServices {
             meshes: MeshResource::default(),
-            textures: Arc::new(TextureResource::default()),
-            shaders: Arc::new(ShaderResource::default()),
-            sounds: Arc::new(SoundResource::default()),
-            bodies: Arc::new(RenderBodyResource::default()),
-            materials: Arc::new(MaterialResource::default()),
+            textures: TextureResource::default(),
+            shaders: ShaderResource::default(),
+            sounds: SoundResource::default(),
+            bodies: RenderBodyResource::default(),
+            materials: MaterialResource::default(),
         };
-
         let scene = Scene::new(&scene_services);
 
         let mut physics_schedule = Schedule::default();
@@ -141,6 +140,7 @@ impl Engine {
         );
         Engine {
             scene,
+            _scene_services: scene_services,
             physics_schedule,
             frame_schedule,
             cleanup_schedule,
@@ -223,22 +223,26 @@ impl Engine {
                         .scene
                         .world
                         .get_resource::<MeshResource>()
-                        .expect("MeshResource resource not found").read();
-                    let material_resource = self
+                        .expect("MeshResource resource not found")
+                        .read();
+                    let material_resource = &self
                         .scene
                         .world
                         .get_resource::<MaterialResource>()
-                        .expect("MaterialResource resource not found");
-                    let texture_resource = self
+                        .expect("MaterialResource resource not found")
+                        .read();
+                    let texture_resource = &self
                         .scene
                         .world
                         .get_resource::<TextureResource>()
-                        .expect("TextureResource resource not found");
-                    let shader_resource = self
+                        .expect("TextureResource resource not found")
+                        .read();
+                    let shader_resource = &self
                         .scene
                         .world
                         .get_resource::<ShaderResource>()
-                        .expect("ShaderResource resource not found");
+                        .expect("ShaderResource resource not found")
+                        .read();
 
                     self.renderer.render(
                         render_params,
@@ -296,10 +300,12 @@ impl Engine {
                         .get_resource::<AudioControl>()
                         .expect("AudioQueue resource not found")
                         .queue(),
-                    self.scene
+                    &self
+                        .scene
                         .world
                         .get_resource::<SoundResource>()
-                        .expect("SoundResource resource not found"),
+                        .expect("SoundResource resource not found")
+                        .read(),
                 );
             }
             self.cleanup_schedule.run(&mut self.scene.world);
@@ -437,7 +443,11 @@ impl Default for Engine {
 
 impl Engine {
     pub fn aabb_from_render_body(&self, render_body_id: RenderBodyHandle) -> Option<Aabb> {
-        let render_body_resource = self.scene.world.get_resource::<RenderBodyResource>()?;
+        let render_body_resource = self
+            .scene
+            .world
+            .get_resource::<RenderBodyResource>()?
+            .read();
         let mesh_resource = self.scene.world.get_resource::<MeshResource>()?;
         let render_body = render_body_resource.get_render_body(render_body_id)?;
 
@@ -463,6 +473,7 @@ impl Engine {
         self.scene
             .world
             .get_resource::<RenderBodyResource>()?
+            .read()
             .get_render_body(render_body_id)?;
 
         Some(MeshCollider::new(render_body_id, layer))

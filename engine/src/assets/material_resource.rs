@@ -1,14 +1,40 @@
+use std::sync::{Arc, RwLock};
+
 use bevy_ecs::prelude::*;
 use slotmap::SlotMap;
 
 use crate::assets::{handles::MaterialHandle, material::Material};
 
-#[derive(Resource, Default)]
-pub struct MaterialResource {
+#[derive(Default)]
+pub struct MaterialStorage {
     pub materials: SlotMap<MaterialHandle, Material>,
 }
 
+#[derive(Resource, Default, Clone)]
+pub struct MaterialResource(pub Arc<RwLock<MaterialStorage>>);
 impl MaterialResource {
+    pub fn read(&self) -> std::sync::RwLockReadGuard<'_, MaterialStorage> {
+        match self.0.read() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("MaterialResource read lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+
+    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, MaterialStorage> {
+        match self.0.write() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("MaterialResource write lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+}
+
+impl MaterialStorage {
     pub fn add_material(&mut self, material: Material) -> MaterialHandle {
         self.materials.insert(material)
     }

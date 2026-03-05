@@ -8,11 +8,18 @@ use std::{collections::HashMap, time::Duration};
 
 use crate::{
     TransformComponent,
-    assets::{mesh::Aabb, mesh_resource::{MeshStorage, MeshResource}},
-    components::{collider_component::{
-        BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
-        closest_point_on_triangle,
-    }, physics_component::{PhysicsComponent, PhysicsType}, velocity_component::VelocityComponent},
+    assets::{
+        mesh::Aabb,
+        mesh_resource::{MeshResource, MeshStorage},
+    },
+    components::{
+        collider_component::{
+            BVHNode, Collider, ConvexCollider, ConvexShape, MeshCollider, Triangle,
+            closest_point_on_triangle,
+        },
+        physics_component::{PhysicsComponent, PhysicsType},
+        velocity_component::VelocityComponent,
+    },
     physics,
     render::render_body_resource::RenderBodyResource,
     time_resource::TimeResource,
@@ -1082,8 +1089,8 @@ fn convex_mesh_contact(
     previous_manifold: Option<&ContactManifold>,
     delta_t: Duration,
 ) -> Vec<Contact> {
-    let Some(render_body) = render_body_resource.get_render_body(mesh_collider.render_body_id)
-    else {
+    let binding = render_body_resource.read();
+    let Some(render_body) = binding.get_render_body(mesh_collider.render_body_id) else {
         return Vec::new();
     };
 
@@ -1493,7 +1500,8 @@ fn render_body_local_aabb(
     render_body_resource: &RenderBodyResource,
     mesh_resource: &MeshStorage,
 ) -> Option<Aabb> {
-    let render_body = render_body_resource.get_render_body(render_body_id)?;
+    let binding = render_body_resource.read();
+    let render_body = binding.get_render_body(render_body_id)?;
 
     let mut combined: Option<Aabb> = None;
     for part in &render_body.parts {

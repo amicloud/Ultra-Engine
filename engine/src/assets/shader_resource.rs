@@ -1,6 +1,7 @@
-use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::Hash;
+use std::sync::Arc;
+use std::{collections::HashMap, sync::RwLock};
 
 use bevy_ecs::resource::Resource;
 use glow::Context;
@@ -8,10 +9,34 @@ use slotmap::SlotMap;
 
 use crate::assets::{handles::ShaderHandle, shader::Shader};
 
-#[derive(Resource, Default)]
-pub struct ShaderResource {
+#[derive(Default)]
+pub struct ShaderStorage {
     shaders: SlotMap<ShaderHandle, Shader>,
     shader_cache: HashMap<ShaderKey, ShaderHandle>,
+}
+
+#[derive(Resource, Default, Clone)]
+pub struct ShaderResource(pub Arc<RwLock<ShaderStorage>>);
+impl ShaderResource {
+    pub fn read(&self) -> std::sync::RwLockReadGuard<'_, ShaderStorage> {
+        match self.0.read() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("ShaderResource read lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+
+    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, ShaderStorage> {
+        match self.0.write() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("ShaderResource write lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
 }
 
 #[derive(Hash, PartialEq, Eq)]
@@ -20,7 +45,7 @@ struct ShaderKey {
     fragment_path: String,
 }
 
-impl ShaderResource {
+impl ShaderStorage {
     pub fn get_or_load(
         &mut self,
         gl: &Context,

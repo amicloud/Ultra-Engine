@@ -6,7 +6,7 @@ use crate::{
     assets::{
         handles::{MaterialHandle, RenderBodyHandle, ShaderHandle, TextureHandle},
         material::{Material, MaterialDesc},
-        material_resource::MaterialResource,
+        material_resource::{MaterialResource, MaterialStorage},
         mesh::{Aabb, GltfPrimitiveMesh, Mesh, Vertex},
         mesh_resource::MeshResource,
         shader::UniformValue,
@@ -40,7 +40,7 @@ impl Engine {
     }
 
     fn create_pbr_material(
-        material_resource: &mut MaterialResource,
+        material_resource: &mut MaterialStorage,
         shader_handle: ShaderHandle,
         albedo_handle: TextureHandle,
         normal_handle: TextureHandle,
@@ -110,12 +110,12 @@ impl Engine {
         .expect("Failed to load OBJ file");
 
         let shader_handle = {
-            let mut shader_resource = self
+            let shader_resource = self
                 .scene
                 .world
                 .get_resource_mut::<ShaderResource>()
                 .expect("ShaderResource not found");
-            shader_resource.get_or_load(
+            shader_resource.write().get_or_load(
                 gl,
                 OsStr::new("resources/shaders/pbr.vert"),
                 OsStr::new("resources/shaders/pbr.frag"),
@@ -125,7 +125,7 @@ impl Engine {
         let mut material_inputs: Vec<(TextureHandle, TextureHandle, f32)> =
             Vec::with_capacity(DEFAULT_MATERIAL_CAPACITY);
         {
-            let mut texture_resource = self
+            let texture_resource = self
                 .scene
                 .world
                 .get_resource_mut::<TextureResource>()
@@ -136,27 +136,35 @@ impl Engine {
                     let albedo_handle = if let Some(tex) = material.diffuse_texture.as_ref() {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
-                            texture_resource.load_from_file(gl, tex_path.as_os_str())
+                            texture_resource
+                                .write()
+                                .load_from_file(gl, tex_path.as_os_str())
                         } else {
                             let diffuse = material.diffuse.unwrap_or([1.0, 1.0, 1.0]);
                             let rgba = Self::rgba_from_rgb(diffuse);
-                            texture_resource.create_solid_rgba(gl, rgba)
+                            texture_resource.write().create_solid_rgba(gl, rgba)
                         }
                     } else {
                         let diffuse = material.diffuse.unwrap_or([1.0, 1.0, 1.0]);
                         let rgba = Self::rgba_from_rgb(diffuse);
-                        texture_resource.create_solid_rgba(gl, rgba)
+                        texture_resource.write().create_solid_rgba(gl, rgba)
                     };
 
                     let normal_handle = if let Some(tex) = material.normal_texture.as_ref() {
                         if !tex.is_empty() {
                             let tex_path = base_dir.join(tex);
-                            texture_resource.load_from_file(gl, tex_path.as_os_str())
+                            texture_resource
+                                .write()
+                                .load_from_file(gl, tex_path.as_os_str())
                         } else {
-                            texture_resource.create_solid_rgba(gl, [128, 128, 255, 255])
+                            texture_resource
+                                .write()
+                                .create_solid_rgba(gl, [128, 128, 255, 255])
                         }
                     } else {
-                        texture_resource.create_solid_rgba(gl, [128, 128, 255, 255])
+                        texture_resource
+                            .write()
+                            .create_solid_rgba(gl, [128, 128, 255, 255])
                     };
 
                     let roughness = if let Some(shininess) = material.shininess {
@@ -174,22 +182,26 @@ impl Engine {
             }
 
             if material_inputs.is_empty() {
-                let albedo = texture_resource.create_solid_rgba(gl, [255, 255, 255, 255]);
-                let default_normal = texture_resource.create_solid_rgba(gl, [128, 128, 255, 255]);
+                let albedo = texture_resource
+                    .write()
+                    .create_solid_rgba(gl, [255, 255, 255, 255]);
+                let default_normal = texture_resource
+                    .write()
+                    .create_solid_rgba(gl, [128, 128, 255, 255]);
                 material_inputs.push((albedo, default_normal, 1.0));
             }
         }
 
         let mut material_handles: Vec<MaterialHandle> = Vec::with_capacity(material_inputs.len());
         {
-            let mut material_resource = self
+            let material_resource = self
                 .scene
                 .world
                 .get_resource_mut::<MaterialResource>()
                 .expect("MaterialResource not found");
             for (albedo_handle, normal_handle, roughness) in material_inputs {
                 let handle = Self::create_pbr_material(
-                    &mut material_resource,
+                    &mut material_resource.write(),
                     shader_handle,
                     albedo_handle,
                     normal_handle,
@@ -296,6 +308,7 @@ impl Engine {
             .world
             .get_resource_mut::<RenderBodyResource>()
             .expect("RenderBodyResource not found")
+            .write()
             .add_render_body(render_body)
     }
 
@@ -351,6 +364,7 @@ impl Engine {
             .world
             .get_resource_mut::<RenderBodyResource>()
             .expect("RenderBodyResource not found")
+            .write()
             .add_render_body(render_body)
     }
 
@@ -365,12 +379,14 @@ impl Engine {
         let (gltf, _buffers, images) = gltf::import(path_str)?;
 
         let shader_handle = {
-            let mut shader_resource = self
+            let shader_resource = self
                 .scene
                 .world
                 .get_resource_mut::<ShaderResource>()
                 .expect("ShaderResource not found");
-            shader_resource.get_or_load(gl, vertex_shader, fragment_shader)
+            shader_resource
+                .write()
+                .get_or_load(gl, vertex_shader, fragment_shader)
         };
 
         let texture_map = {
@@ -385,12 +401,14 @@ impl Engine {
         let mut material_inputs: Vec<(TextureHandle, TextureHandle, f32)> =
             Vec::with_capacity(DEFAULT_MATERIAL_CAPACITY);
 
-        let mut texture_resource = self
+        let texture_resource = self
             .scene
             .world
             .get_resource_mut::<TextureResource>()
             .expect("TextureResource not found");
-        let default_normal = texture_resource.create_solid_rgba(gl, [128, 128, 255, 255]);
+        let default_normal = texture_resource
+            .write()
+            .create_solid_rgba(gl, [128, 128, 255, 255]);
 
         for material in gltf.materials() {
             let pbr = material.pbr_metallic_roughness();
@@ -402,7 +420,7 @@ impl Engine {
                 .unwrap_or_else(|| {
                     let base_color = pbr.base_color_factor();
                     let rgba = Self::rgba_from_rgba_f32(base_color);
-                    texture_resource.create_solid_rgba(gl, rgba)
+                    texture_resource.write().create_solid_rgba(gl, rgba)
                 });
 
             let normal_handle = material
@@ -414,7 +432,7 @@ impl Engine {
         }
 
         let mut material_handles = Vec::with_capacity(material_inputs.len());
-        let mut material_resource = self
+        let material_resource = self
             .scene
             .world
             .get_resource_mut::<MaterialResource>()
@@ -422,7 +440,7 @@ impl Engine {
 
         for (albedo_handle, normal_handle, roughness) in material_inputs {
             let handle = Self::create_pbr_material(
-                &mut material_resource,
+                &mut material_resource.write(),
                 shader_handle,
                 albedo_handle,
                 normal_handle,
@@ -435,7 +453,7 @@ impl Engine {
     }
 
     fn load_textures_from_gltf_data(
-        texture_manager: &mut TextureResource,
+        texture_resource: &mut TextureResource,
         gl: &glow::Context,
         gltf: &gltf::Document,
         images: &[gltf::image::Data],
@@ -451,8 +469,12 @@ impl Engine {
             let rgba = Self::gltf_image_to_rgba(image)
                 .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidData, message))?;
 
-            let handle =
-                texture_manager.create_from_rgba_with_key(gl, image.width, image.height, &rgba);
+            let handle = texture_resource.write().create_from_rgba_with_key(
+                gl,
+                image.width,
+                image.height,
+                &rgba,
+            );
             texture_map.insert(texture_index, handle);
         }
 

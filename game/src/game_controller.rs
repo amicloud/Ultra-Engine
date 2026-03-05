@@ -67,7 +67,10 @@ pub fn sound_control(
     if input_state.key_pressed(sdl2::keyboard::Keycode::N) {
         audio.play_one_shot(
             2,
-            sound_resource.get_by_name("sea_shanty_2.wav").unwrap(),
+            sound_resource
+                .read()
+                .get_by_name("sea_shanty_2.wav")
+                .unwrap(),
             0.5,
         );
     } else if input_state.key_pressed(sdl2::keyboard::Keycode::P) {
@@ -111,7 +114,7 @@ pub struct SpatialAudioDemoComponent;
 //         let position = Vec3::new(5.0, 0.0, 2.0);
 //         audio_command_queue.push(AudioCommand::PlaySoundAtLocation {
 //             track: 0,
-//             sound: sound_resource.get_by_name("pop.wav").unwrap(),
+//             sound: sound_resource.read().get_by_name("pop.wav").unwrap(),
 //             volume: 2.0,
 //             looping: false,
 //             location: position,

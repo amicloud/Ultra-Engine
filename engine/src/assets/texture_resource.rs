@@ -3,16 +3,41 @@ use glow::Context;
 use image::GenericImageView;
 use slotmap::SlotMap;
 use std::ffi::OsStr;
+use std::sync::{Arc, RwLock};
 
 use crate::assets::{handles::TextureHandle, texture::Texture};
 use crate::render::renderer;
 
-#[derive(Resource, Default)]
-pub struct TextureResource {
+#[derive(Default)]
+pub struct TextureStorage {
     pub textures: SlotMap<TextureHandle, Texture>,
 }
 
+#[derive(Resource, Default, Clone)]
+pub struct TextureResource(pub Arc<RwLock<TextureStorage>>);
 impl TextureResource {
+    pub fn read(&self) -> std::sync::RwLockReadGuard<'_, TextureStorage> {
+        match self.0.read() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("TextureResource read lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+
+    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, TextureStorage> {
+        match self.0.write() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("TextureResource write lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+}
+
+impl TextureStorage {
     pub fn add_texture(&mut self, texture: Texture) -> TextureHandle {
         self.textures.insert(texture)
     }

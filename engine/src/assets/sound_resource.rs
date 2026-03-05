@@ -1,17 +1,43 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use bevy_ecs::prelude::*;
 use slotmap::SlotMap;
 
 use crate::assets::{handles::SoundHandle, sound::Sound};
 
-#[derive(Resource, Default)]
-pub struct SoundResource {
+#[derive(Default)]
+pub struct SoundStorage {
     pub sounds: SlotMap<SoundHandle, Sound>,
     pub name_map: HashMap<String, SoundHandle>,
 }
 
+#[derive(Resource, Default, Clone)]
+pub struct SoundResource(pub Arc<RwLock<SoundStorage>>);
 impl SoundResource {
+    pub fn read(&self) -> std::sync::RwLockReadGuard<'_, SoundStorage> {
+        match self.0.read() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("SoundResource read lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+
+    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, SoundStorage> {
+        match self.0.write() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("SoundResource write lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+}
+impl SoundStorage {
     pub fn add_sound(&mut self, sound: Sound, name: String) -> SoundHandle {
         let handle = self.sounds.insert(sound);
         dbg!("Added sound with ID: {:?} and name: {}", handle, &name);

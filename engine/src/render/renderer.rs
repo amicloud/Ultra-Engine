@@ -7,16 +7,16 @@ use slotmap::SecondaryMap;
 use crate::{
     assets::{
         handles::{MaterialHandle, MeshHandle, ShaderHandle},
-        material_resource::MaterialResource,
+        material_resource::MaterialStorage,
         mesh::{Mesh, Vertex},
         mesh_resource::MeshStorage,
         shader::{
             InputRate::{PerInstance, PerVertex},
             UniformValue, VertexAttribType,
         },
-        shader_resource::ShaderResource,
+        shader_resource::ShaderStorage,
         texture,
-        texture_resource::TextureResource,
+        texture_resource::TextureStorage,
     },
     render::{frustum::Frustum, render_instance::RenderInstance},
 };
@@ -133,9 +133,9 @@ impl Renderer {
         &mut self,
         render_params: RenderParams,
         mesh_resource: &MeshStorage,
-        material_resource: &MaterialResource,
-        texture_resource: &TextureResource,
-        shader_resource: &ShaderResource,
+        material_resource: &MaterialStorage,
+        texture_resource: &TextureStorage,
+        shader_resource: &ShaderStorage,
         camera: Option<CameraRenderData>,
     ) {
         let gl = self.gl.clone();
@@ -499,7 +499,7 @@ impl Renderer {
         gl: &glow::Context,
         mesh: MeshHandle,
         shader: &ShaderHandle,
-        shader_resource: &ShaderResource,
+        shader_resource: &ShaderStorage,
         mesh_resource: &MeshStorage,
         mesh_render_data: &mut SecondaryMap<MeshHandle, MeshRenderData>,
     ) -> glow::VertexArray {
@@ -631,7 +631,7 @@ impl Renderer {
         gl: &glow::Context,
         loc: &glow::UniformLocation,
         value: &UniformValue,
-        texture_resource: &TextureResource,
+        texture_resource: &TextureStorage,
     ) -> u32 {
         unsafe {
             match value {

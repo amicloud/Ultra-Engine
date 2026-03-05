@@ -1,14 +1,40 @@
+use std::sync::{Arc, RwLock};
+
 use bevy_ecs::prelude::*;
 use slotmap::SlotMap;
 
 use crate::{RenderBodyHandle, render::render_body::RenderBody};
 
-#[derive(Resource, Default)]
-pub struct RenderBodyResource {
+#[derive(Default)]
+pub struct RenderBodyStorage {
     pub render_bodies: SlotMap<RenderBodyHandle, RenderBody>,
 }
 
+#[derive(Resource, Default, Clone)]
+pub struct RenderBodyResource(pub Arc<RwLock<RenderBodyStorage>>);
 impl RenderBodyResource {
+    pub fn read(&self) -> std::sync::RwLockReadGuard<'_, RenderBodyStorage> {
+        match self.0.read() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("RenderBodyResource read lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+
+    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, RenderBodyStorage> {
+        match self.0.write() {
+            Ok(g) => g,
+            Err(e) => {
+                log::error!("RenderBodyResource write lock poisoned; recovering inner value");
+                e.into_inner()
+            }
+        }
+    }
+}
+
+impl RenderBodyStorage {
     pub fn add_render_body(&mut self, render_body: RenderBody) -> RenderBodyHandle {
         self.render_bodies.insert(render_body)
     }

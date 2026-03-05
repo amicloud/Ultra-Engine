@@ -8,7 +8,7 @@ use rtrb::{Consumer, Producer, RingBuffer};
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    assets::sound_resource::SoundResource,
+    assets::sound_resource::SoundStorage,
     audio::{audio_control::AudioCommand, track::Track, voice::Voice},
 };
 pub struct AudioMixer {
@@ -266,7 +266,7 @@ impl AudioMixer {
     pub fn make_mixer_commands(
         &mut self,
         commands: &[AudioCommand],
-        sound_resource: &SoundResource,
+        sound_resource: &SoundStorage,
     ) {
         const MIXER_FULL_ERROR_MESSAGE: &str = "Audio mixer command queue is full! Sorry.";
         for command in commands.iter() {

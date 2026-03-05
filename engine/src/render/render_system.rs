@@ -21,7 +21,8 @@ impl RenderSystem {
         queue.instances.clear();
 
         for (transform, render_body) in &query {
-            let body = render_body_resource
+            let guard = render_body_resource.read();
+            let body = guard
                 .get_render_body(render_body.render_body_id)
                 .expect("RenderBody not found");
 
