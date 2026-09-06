@@ -40,7 +40,8 @@ temp/
 *.tmp
 
 # 3d models
-resources/models
+# resources/models
+
 perf.data
 perf.data.old
 flamegraph.svg
