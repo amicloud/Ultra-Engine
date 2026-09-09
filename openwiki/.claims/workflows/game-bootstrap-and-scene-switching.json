@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:5a4445a85fa6f23a3230aed3705d62d272d21b837c4ea165ab354fceaac33efb",
+  "claims": [
+    {
+      "id": "claim_26bfb0996fb645728d0c4827dabc24af",
+      "statement": "`game/src/main.rs` is the `Game` binary’s composition root: it constructs `Engine`, mutates its exposed initial scene by registering game systems and spawning/loading demo content, then transfers control to `engine.run()`.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L71-L83",
+          "version": "repo-lines-v1:sha256:c9f6ca7e78831d16765a116b6a518df10b10dab05fed0ea2d2a6bb7405ee1520:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjMjhhNmYwMWVjNTQ4MGM0MThiNDA1MTM1NmI4OGU2ZjIxYTE5ZmUwZGEwMTY3ZTJkNjczZTg4Y2UyOWEyNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4NzI2Mjc4ZGEyMGFjZTU5YTFlZjIyNTU5ZjM0OGFjMDViN2ZlZjliMzg2MmJjOTQ5ZmEyYTRhYmM5Y2Q5OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmZDg5MGVjNzI5ZjczN2FmMjE2NjE1ODM1NjMyOTUzMTA0ZDdhZmU4ODNlZDI2NzljZmU5YjZkOWU0Yzk2ZjEifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L41-L359",
+          "version": "repo-lines-v1:sha256:1056ccc72a02a9961bff7984b52365872bc400db4986b6b811a20d51a208f75c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxMDM3NDFlMDQ2NWNmMjUxY2YwNmZiMjc1MmFhZmEyNTdlMjY4MTg1ZWMxNDBhMDYzNDRiNWFjZDIzMWU1OTRiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmOTY0YmVlMWIzODBlZDQ2OThiMTY1ZjZlYjMzMWQzODA4ZjU3ZWFiZTNhMzM0MzkwMjcwMGNkOTQ4YmZiZWQ5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjZTZmODA2ZjQ2YjU1YWIyNTU3OTI0OTVhYjIzYWQ0M2E4YzQ0NjhjODY1NGNkOGFkMGZlNTI4MzA4ZWIxZjhhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_1868b7466a584db28487360fe4b3b191",
+      "statement": "The initial demo configures a flying camera as both the active render camera and the sole marked audio listener, alongside an inactive orbit camera; controller systems operate only when `ActiveCamera` selects an entity carrying the relevant controller components.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/camera_controller.rs#L156-L222",
+          "version": "repo-lines-v1:sha256:4362e4f85390365e85ef4ba0798d833dfaa05b6fc2deb6dbab7fcfb6de08864e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZTkyNTA5OTYyN2YwNzM5MjE1NDVhZWIwNGQzM2Y5YjYwYWI2NDc0ZGJhNmQwZWE5ZTUzZmQ0YjdlODNmYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5MDhmM2FlMDI2ZWU0Njc5Y2I1YmJhNWZhOGRmOTY0ZDBkN2FlZTk5OGI0ZjIzMWU5NWU2ODZkMGQwYmNkOTEifQ"
+        },
+        {
+          "resource": "repo://game/src/camera_controller.rs#L237-L310",
+          "version": "repo-lines-v1:sha256:353f0c6bf3747ca4c936bcb7c61b02eadd7934616492ec4ab6481d88cf6530b7:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMTc1MmU2OGNiMWIxZDkzNjUxMWM0YjY5OWM1MGEwOTFmYzIxYWY5OWIzMjZkM2Q2NmQ0NDVkOGM1MjU3OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiOWYzMWVmMDJmODdhZGUzZGNmNGRkYjE1NDU5MzhhZGRmZTlmZmZmNjdkNzJiMGFmN2NlNmJmYjViZTYxZmQifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L48-L110",
+          "version": "repo-lines-v1:sha256:a528cbd7068bfd64d1b844635ca36da459dcadea215f485932c25cfd602632f8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNDI3MmI5MWNhZjZlOWY4MGVkMGM5MGZjOWExYzc1OGVjYjk1ZDhiNDZlNDYyNjI5ZmRjOGVmMzVmZmQxNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiM2JmNjkwYmNjOGU1ZDA2ODc5MDE5NGYwOTA0YTkzNDJhYzJjNDc3MjljMjEwYzU1NGM5YjRmNDNiOGJjNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2MDFiZDNkMmQyOGFmOGUwYWVmYzYxNzc1YTczY2JlMmMxNGEwNTAwYjUwM2JkNDU1NTM1M2NiMjhjMmI3OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlMGM3YmNlZmYzYzE4YzU3ZjBkNDk1YzkwNjBhODk3ZTYyYzMzZjBiNTUxNGNmNDQzMTc5YTE1MjdhZTE2NTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf1f342a516b46bcb436a9f1756161ee",
+      "statement": "Initial bootstrap synchronously loads model and WAV assets, derives player/platform collision from loaded render bodies, and uses `unwrap`/`expect` on these setup paths, so missing or invalid startup prerequisites fail fast rather than yielding a graceful empty scene.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L71-L93",
+          "version": "repo-lines-v1:sha256:f80abc7e30f015098b327f7d98f1d68fbf56a1ad0251c1381e9a5b84028bd801:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0YTVlNzdkMTM2MzNhNDdkMWM4MjViMTIzZTc4ZjYzOTU5YTMyNDI3MmQ2ZTIwY2RkMWJhMTZmYWY2NTk1MmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MDRhMWI3N2Y5NDc0Nzc0MWRkYWQzNzk2OWQ2MmE1ZWRhMTlmYjVmODViZTBlZmExNDg1MmExMWViOGEwYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlY2ZkYTJmNWQwOWJjNmY4NDFjYWY5NDM4MjNlMzg2ZjNjMjVmNWZkMTZlYzI4OWJmOTkzZGFkNGZiOWZkNmYifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/sound.rs#L102-L119",
+          "version": "repo-lines-v1:sha256:ed667b397e68415c7f4df06e123586fdb614d26e1e0bf365245070541d7d3997:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MWRhZjE2YjBhMDVlOGFmYmVkM2Y2NjYyZWE5Nzg0MjIxMGNhMTVkODk1NzdlOTQ5OTFjY2NkM2QxNmJiYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L135-L199",
+          "version": "repo-lines-v1:sha256:1fe055b39569c0c1a9601687829e66a2baeeca40e263fd4ccc9a351571871cb3:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2ODRmMWVlZGFhODg4MGI3YzhlNTdlMmVhZDNhNWZkYjA3ZmI5YjRiZGViNTY4MDgyMzMyZTBjZmNkMjkzOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNzhlYzQ3OTBlN2I5ZmVhM2VhYjAyZDUxZTg4NTlmZmFiOTI2YTM4MTQwMmFjMGViYzg5MDE3NWU0MGFlZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhYWFiZGFiNjIxOGI4M2Q1ZTYxZTlhMGRkNWU1ZTA1M2I4MmFmN2RkZTA5Y2QzNGEwM2I3NzFmYTA1ZDZlNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwZGY0NzliOTgwNDRjOGRkNmM4ZWFmZjUxYTgwNDcwNWJjYzdmMTM3Y2I4NDdlYjFiMGU2YzA2MTJlOTkxMzUifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L271-L358",
+          "version": "repo-lines-v1:sha256:7a7c519b33b1b7e36e59ccb8e71cf90dc3e9a6ef714184d847572e3ccc646389:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZjUyMmFhY2ZiNGUzMDUzYjNhODkzZDU1YjU2ZjU4ZjNmZWEwNWNkMWM3MGE5NGVjOWIwYWU0Yzg3Y2MxN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNzhlYzQ3OTBlN2I5ZmVhM2VhYjAyZDUxZTg4NTlmZmFiOTI2YTM4MTQwMmFjMGViYzg5MDE3NWU0MGFlZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiZWViMmNlZmRiOTIxYWVmZTg5ODBlNWU1NmQwZGVmMTFlMzk1YjEzMDZhN2M3NWZiZGMxOTY5MGI2ZDA0MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxNDc4ZGMyM2I2Y2E2Nzg1Yjk4YjdlY2VhOWE4YmZiODNmOWM2MzZlMzExZjI0Y2E4ODZlZWUzMDE0OTlmNWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cbdd329eb4694614b92e8fbf607972c5",
+      "statement": "The default demo world consists of a dynamic cube player, static mesh-collider platform, and randomized dynamic spheres with hit-audio components; the spatial-audio demo entity and bulk cube-spawn loop are commented out, so the registered spatial orbit system has no matching entity in the uncommented world.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/game_controller.rs#L191-L208",
+          "version": "repo-lines-v1:sha256:b7eaa0cbd19f16b4f23e2443ac04526cba77c72c9f3796671a2727711b765eae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwMjU4MWZmM2M1OTc0NDdkZDY1M2IxZGU1OGM1YTA3MWY2MWQyMmRkZDZmNWFmMzUyNWEwNjhiNDA3NmFmNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZmU3NjRlNzBmOTcyYmIzYmY4OTYxOTE0ZTg0Y2VjMDQyNzA3N2U3NmZkMzdlMzcyNWQzZDhlMWFiYzBiYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1MWI3NzVmZDNkYjUzOWEwY2Q1ZmI0ZGJjZTlkZjZlYzY1OGE1MTc3ODYxYjRkZjQzOGE0ZmU2YzcwN2MxNDkifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L173-L230",
+          "version": "repo-lines-v1:sha256:122b7b1dc73b9c67f9f560d6e8927edbac04c75b779ceb1aac939406c269df86:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiOWJhNDYwNzQ3NjYwODAzY2E4Y2M3M2QxMzdkOWRiMzRkMjlhZmVlNmRmMGU4ODY1NGZmNzcxMTQ0ODdlMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MzRlNDIzMDZkMWVhMDkzZDlmOWNlZTU2ZTUyYmVkOTk2OWM1ZWU2ZGZiMGJkMmJlMGNkM2MzYThkOGQ2NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzZmJiYjA3YWUxMGQzYjBlYzNjZWY4NzNhNTI4ZDllYTlkYmE0OTk4M2IzNjE5Yjg1NDNlYjhmNmFhZmQ3MDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiNDQyNTE5NTMwN2QwZTcwMTFiZDY2NTllZmZmNTRmYmMwNWNiZWY0Njk2OTkxNzcwMTM2YjEyMGFiYzQwNDAifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L238-L358",
+          "version": "repo-lines-v1:sha256:0be8f6c81de0a3af311f5a29abf7a040372ecdce1946a3775699bbb1c2b0427f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3MGE0ZWNiYWUwODk0MDc3NmJhNjI0Mjg5Mzk5OWFmMzBlMjZkZTRjMjk4MTE4NWM4YTU3NTM4ZDhlNjA1OTE1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMjc4ZWM0NzkwZTdiOWZlYTNlYWIwMmQ1MWU4ODU5ZmZhYjkyNmEzODE0MDJhYzBlYmM4OTAxNzVlNDBhZWRhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkOGIxYzI0NGJlMGZkZmFjNThmNTEwNjQ2NzE0NzExNmE4NzgwMWVmMmI3OTFlMDQ3NGNkMDczMmY0ZTM3NDVkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MiwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMTQ3OGRjMjNiNmNhNjc4NWI5OGI3ZWNlYTlhOGJmYjgzZjljNjM2ZTMxMWYyNGNhODg2ZWVlMzAxNDk5ZjVmIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_ca497e81696f4249bee012f9837fa7ba",
+      "statement": "The game chains camera/gameplay systems into `game_simulation_schedule`, which runs after each engine physics step and can execute zero to six times per rendered frame, while it places camera switching, direct sound control, and scene switching in the once-per-frame `game_frame_schedule`.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L204-L217",
+          "version": "repo-lines-v1:sha256:bd6ee7a7e4fda4ac8b7e2647e1f2b0cb6d31eeac93f942543bfb3c460b1ef061:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2NjZGVkYmMxYWU4MjFmZDI2MDVjNDBkYTc1Y2IwN2M2NWIwOTQ2MDVlN2E4ZDQwMWZmYzIxNzUwMmM1ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NDgzYzYxYWRkNGI3N2VmNjEzYmExNjgyYmI3YzM3M2VkYjU4OTA3ZTE2OWE0YmM1Y2Y2MWNlZjgzODMzNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmM2M2ZDlmMmQ0MDAwNTY3NTJjOGU4ZmQyZjMzYTUwOGQyNzg0MDA1ZGU3OWI5ZTcxYzlkMDhhYjJmYzgyMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyZDRmY2Y2ZWMyNjA5MzJmYjI0MjhhNTc5NDkxM2ZhYzIxM2M4ZDNkYTM3ZDVhODFhYWI2NmMxNTYyYTU5ZmEifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L284-L313",
+          "version": "repo-lines-v1:sha256:c8988ad3d2499dd3991d586766e52c9b267c817a591c3122564b76cbc4f102bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMTgzYTY2ZjRhNGE5ZWUyYzc1ZmYzOTg2M2YzMTcxZTYxNDUyYWZlNjZjYjk1ZjRhNmRmOGU5N2NjYWQ5OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2NzhiYWU3MjU2OGYzNTI0YmZmNmNlMTZiMjMzZjdjMTZlMDYwZDg3ZTY4YzYxYjYxMmYxNjY0YjkyZDZjNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlYTEyNTc3N2U1MTMyYjNhMDJiZTdkODhjYzhkODNkMjcxYjRiMmU0NDg2MzNhMDA0YTM5MjkyNWJkNjdlMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzM2YzYmRkZjFmOWZkNWMxZDljM2ZiZjhlMGZhN2VkZjRmZGQ1OWJlYzk0YWY5ZGRiYWUzY2VlNzg3ZWY3M2IifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L112-L133",
+          "version": "repo-lines-v1:sha256:5b2ff52adf8ca7f0cb822fcc13e121780dceeac1ad00413116837b39d4a8dff3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMmU4ZmI0NTg3Yzg1MTZkZjkwMGFlZjBhZTMyYmM2ODk3OWZlNDhjMjE5ZDFjYTYxMDdhNjkxNmVlZDY5MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNzhlYzQ3OTBlN2I5ZmVhM2VhYjAyZDUxZTg4NTlmZmFiOTI2YTM4MTQwMmFjMGViYzg5MDE3NWU0MGFlZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzOTlhYzc5MjVmODhlMzg0NGRiZWI0ZDUwOTcyMDFhODAwOWFiODlmOTAzYmNjODA1YTQwODI1YmRjZDY5MTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkYTI5M2VjY2NmN2Q2NjYzMTA5OTc0N2IzMTYwM2QwMjkwNmFmMzY2ZTBlOGY0YzY1NGY3MmY2YTkyYTYxZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_15a83ddb94824da6a0b10a3726ce1296",
+      "statement": "`InputStateResource` provides held, pressed, and released predicates by comparing current and previous key/button sets; the engine snapshots those sets and resets per-frame deltas before draining SDL events, with motion and wheel handling assigning the most recently polled relative delta.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/input.rs#L32-L68",
+          "version": "repo-lines-v1:sha256:f11d082198118ca16fce1bd4a4ebc9c48ee43430bea96ef4955f0e82db5fb291:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L358-L405",
+          "version": "repo-lines-v1:sha256:12998ea35aefa1bbe2b66da1df4c7fb87d689dcfea8b0e77b3df784733741109:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NjVhNjllZmYxMDMyOWYzMTRlNDE5YmQwYzYyMTMzOGUzNmNmZDFmZTNhNjlkZDhiZTkwZmQ3YjlmZDE4NzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhYjgxMzkzZTQ0ZGUyMDc0NWUzYjM5NDM4ZDMyZDM2Y2U0ZTg2MGFjOTcwM2EwNmVmMGFjNjdiZDE1ODJjYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiMWM0ZTcwZTk3ZGY5OTBkYjg3MjM1NTYwMDExNTc5Y2JiNDQ4OGEwNzdkNmUzNzc0MjM1Yjc5Y2I0Y2I4MGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e23827cb0b914816b0a6932dd4216b9a",
+      "statement": "The sample control layer maps active-camera mouse/keyboard input to orbit or flying camera state, maps `V` to the first queried non-active camera rather than a stable ordered pair, and maps player WASD/Space input to additions to angular—not translational—velocity.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/camera_controller.rs#L158-L186",
+          "version": "repo-lines-v1:sha256:36adb6feaae41c5042f308e3f06ed789de78a34af7a44aaa4b74fdd5495279d2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxOWQ5OGYwYzI1OGFjYzk4ODMzMmFhNzIyYTY2N2E0MjJmZGU0NzE2YjM0N2U1NDkyZGUxNTM0MzEwZTM3ODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MzVjM2JmODY4OWI5M2IzNmY1YzIzODI0ZjhjMmVjODM4MmMyMjEwNmViNjYxOGExMjI1YjBkN2M2ZDRlYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0MTI2ZjlkNzNjNWMwZjZlNzg0OWZmOGRlZWE4NWRjMTZjNDkxZGYxMDZhNWExNmQ0M2M0YzJlNzQ2NWJkZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwOGJjYzVhNzQzZDgxNzk3ZTFhODE3NTg5YzZjZDA5ZjZiMzMwMTcwZDdlNjRiN2Q5NDAyYWE0ZmE5Y2U3ODIifQ"
+        },
+        {
+          "resource": "repo://game/src/camera_controller.rs#L189-L293",
+          "version": "repo-lines-v1:sha256:4fc1da1bb7dbd35070372239b13c500d7e0a30e198088d260b381abb79c72932:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhMDRlMzEwNGJjOTI2ZTUzZDc2ZmNiMGVkZmZjOTNmMjg1ZjlhMTVlZWU0ODNjOGEwYTYzNzNlMmFmYzg4MTE5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwMTQ2OTk5MDQxODdmNmNmNWUwYjRjN2RiMTllNmZlNTNiMzZjNjRlMThkYjEzNzcyNWNkMzFmZTBiMzkzZWZkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwMGY5ODkzMjUxOWY3ZTYwOTgzYTM0YTZlMWZiOWRkNjAzN2NkY2U2NTk2NjE1M2ZiMjQzMDAyODIyNGQyZmUyIn0"
+        },
+        {
+          "resource": "repo://game/src/camera_controller.rs#L295-L365",
+          "version": "repo-lines-v1:sha256:57d2445aae27169638f31b5c1eaeb5b01f70d492d440f763970bbe9925eec523:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzMmJkMzZiMzIyMDhjZGJiZTM2ZGM1NDI1NWYzOGM0NjBkMDhmYjIxNzk4ODMwYmM5NjYzZTY3YmZjNGM1MDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNzIzZjUzODBiYTM0NmI3YTBmYmVlMWQwYWM5YWQ3NDY5ZTBiYzBlZGIyYzdlYjk3MmRmNzBkYjAxOWI0NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlZTc3MGU5NmE5MWY0MTE2YmE2ODBmOWU1NzhjOTliYWQxNzJmZjZjZDEyOTkxNzY5OTQ2YWJhYzkyMTk0OWYifQ"
+        },
+        {
+          "resource": "repo://game/src/camera_controller.rs#L368-L385",
+          "version": "repo-lines-v1:sha256:100e9e2cf8a111c8de9ca0763e36f9147c7200986d4c3770e88cf529235cc913:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwM2E1NDIwODMzOWI3MjE3ZWEwZjNlZTJjOWIyMTU2ZmE3ZTM2NDViODdkMGJhMjc1MTNiNGUzNTdlYTYwODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_514f10bd81c94a32a635319cf499b3e5",
+      "statement": "The demo’s gravity controls run in the fixed simulation schedule but scale their changes using frame delta time, while its direct audio keys enqueue `AudioControl` commands that the engine later hands off to the mixer rather than controlling the device directly.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L315-L327",
+          "version": "repo-lines-v1:sha256:2632611e6de2d6528e350782ce6399606021c9b85cd58a00b260904898e5a4ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzM2VlMTVjZDhhYjIyMWVlOTVmYjczZjIyMzIwZTRlZTBjOWZlNWMxYjk4NTlhZDc4NmE4ZDdmZTk1ZWY0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZDAwODlkY2Q4OThiMmQ5YTc1MzQ5Y2E5MTJmYjhjMjYzNzg4MDVlZjllOTlkZjI4ODY5ZGYzNmMwODIzZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwOGM3MjVkNTk4MWY0NzI3YmJjZTc2YWM1M2QyNjIxM2RiMGU0NGM4ZGI0NWVmYzNkYjY1YmY2ZDE2ZjcwMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjNTU2YzYzZWQwMTNiNjhmNzNlYWEyYzgxYTBhODZlMTViNTBjNzY1NDVjNWRkZjZhY2MyODNhNTFkMTVmNDcifQ"
+        },
+        {
+          "resource": "repo://engine/src/time_resource.rs#L61-L82",
+          "version": "repo-lines-v1:sha256:15acd1c7d8d66fd5f76334b07217b9f021f0a4c625397c492a2a264138f6f815:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmYjUwNWI3OTM0NmNkNTY4ZWVlMTNmMmM4ZWU1NDI0Njc4ZDZlNTczYjkzMmFkM2ZlMGU0MjAzY2YwZDc1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4YjA3OGVhYmNkNTJjOGFjZjEzODY3M2JiOTllNDZmNTA1MjJjOTI4ZmU0NmRhM2IyZDRkNTQ0YjYzNWY5NzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMzJhZjUzMTMyNjVjMmY5ZTkyYTM3OWVjYmI2ZjNlM2NhYjQ3YzNlMDc1NzFkNzY5ZDg3MjMwOGQzODFjMGIifQ"
+        },
+        {
+          "resource": "repo://game/src/game_controller.rs#L113-L188",
+          "version": "repo-lines-v1:sha256:ffa5cbb379f87dfa7eb625ced3956ec81ee52ee8477a8fc61c1348a5a406d89c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmZTVlZDQwM2YxZmJjYTNjMjAwMDFjOTBlODY1MzNkMGE3ZGU2Nzc1MzA2MGFiYzg4N2RiMTk4Nzc3MDljOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhZGI1OGI4MWY1YTI3NjAwZjNjOTI5ZmE2YWIwMmIzNzk3ZjM3ZDgxZTI0MGNhMTE1ZmY5NWNjMWQ4NTU5OTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5NWVhZjlkOTAxYjY4Y2RjZmY4NzFmNzg4MzFhNmNkMmQ2MmJiMDMzNDUyNmY2MDY5YjM4ZjRjNTlhZTFkOTcifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L112-L133",
+          "version": "repo-lines-v1:sha256:5b2ff52adf8ca7f0cb822fcc13e121780dceeac1ad00413116837b39d4a8dff3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMmU4ZmI0NTg3Yzg1MTZkZjkwMGFlZjBhZTMyYmM2ODk3OWZlNDhjMjE5ZDFjYTYxMDdhNjkxNmVlZDY5MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNzhlYzQ3OTBlN2I5ZmVhM2VhYjAyZDUxZTg4NTlmZmFiOTI2YTM4MTQwMmFjMGViYzg5MDE3NWU0MGFlZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzOTlhYzc5MjVmODhlMzg0NGRiZWI0ZDUwOTcyMDFhODAwOWFiODlmOTAzYmNjODA1YTQwODI1YmRjZDY5MTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkYTI5M2VjY2NmN2Q2NjYzMTA5OTc0N2IzMTYwM2QwMjkwNmFmMzY2ZTBlOGY0YzY1NGY3MmY2YTkyYTYxZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f6b30e62f6784c8e8a32a823e908ca94",
+      "statement": "A Tab rising edge in `scene_switcher` constructs and configures a new `Scene` using the current shared `SceneServices` and places it in the one-slot `SceneChangerResource`; a later request overwrites the pending scene with a warning.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L18-L52",
+          "version": "repo-lines-v1:sha256:b5e3fcd7e9417b14e01f6dba14605a251c96336a0f4ae45bd46a219a8e9390e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4YzkyNWNkMGJjYzAxNTFlODRjY2ZmZTNhOTM3ZGVlZTUxYWQ4Yjk5NmU0ZjM0OTg0N2NjZDExN2E2YmI4OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3OWI1N2M2MjY0Njg5Y2Q0NDc4ZGE5OTE1ODFmZTI5ZDc0OTRkM2VlZmIzODUwZGM4MGM3YzNiNzdiMjgwY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_changer_resource.rs#L5-L24",
+          "version": "repo-lines-v1:sha256:e8bad7756763e86f795f41b99b581faa0dbe88bf98d179db8222e5e01248f474:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkNjZiMGQ4ZGZmMGI5NGE0ZTI4Njk2ODZmOTU4YTViZTU0OTNjNmFlZGUxMTZjOTZlNTU3MzJhMWMyNzFlODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlM2NiNTUyZDdmZjk3YmYwM2FlNzc0NTQ0NDY2N2Y3YzZiMGRlMDdkMjdkOWYyODU2MzIyMjRjZjhiMDBlNDgifQ"
+        },
+        {
+          "resource": "repo://game/src/game_controller.rs#L16-L110",
+          "version": "repo-lines-v1:sha256:554b2a82d72cbef21d06b6da5e9f024c538f317f71768123e592a638f5cce2fb:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljODBiYjhjYWQzYjE5YTg4ZDE4Mjg4Y2M5M2NkMWVhMWJjZmE0MzQ1Zjc4NmViZDllYWQ5MTc2ZDZjM2ZlMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNzhlYzQ3OTBlN2I5ZmVhM2VhYjAyZDUxZTg4NTlmZmFiOTI2YTM4MTQwMmFjMGViYzg5MDE3NWU0MGFlZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2EwZWNkYzRmYTBkZWNjM2RlZjcxODU0MDJhZGI3M2MwNjdkNjE0OGRhMzY2NTA3ODY2MzM4MmExNTZhNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYTZjNzRmODNiZTAzNDUxMTI4NzRmMWIyM2I2YjU4MmQxODU5MGRlNjRlMzhmZmY3NWIyMmY0YTczMDI5MjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b36d0095924847d5be6f59a74c33f272",
+      "statement": "The engine commits a pending scene only at end of frame after cleanup and buffer swap, then replaces `Engine::scene` and rebuilds its engine frame, physics, and cleanup schedules because Bevy schedules are bound to their prior world; the replacement scene retains its own preconfigured game schedules.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L328-L352",
+          "version": "repo-lines-v1:sha256:771cc0e2648db56d02eda897c2d05026d75f4dcd0967cca3b4dc5c845190e3a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlZGM0OTUyYWZlMTJkYjI5NzNmMzMxZDc4MTBjNzA4MmU1MmYzM2I2OGM1NTI2NTliMmZmZjM0MDE1M2JiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExN2Y0NzMxNWNiZTliMWZiNjlhMjhlMjkyNTIxNDExMWQyOTJiZGYxZjAxZmRiNDQwZGEyZWFmYjI5MjgxMTEifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L12-L16",
+          "version": "repo-lines-v1:sha256:c16a5f28d024b633f97475c75c55a0f0ae144010ecc3e917cb3221e06eb28347:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY1ZTU0ZDgzYTU0YThhOGVlMDAzNzBiMDMyYzg4ODllNDUwOTA4MjUxNzg2MzkwMTljZDVjNDIzY2JiNzI2OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGYxMTAzMjZlN2NkYzJmMjQ2NmRlODUzMDMwOTJmM2I3NTkxYmU0YjIwMDBjMTMwNTM1MDFhNDg3MjhlOTNkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjA3YjkzMjgzM2ZiOTc0YTA3MjdiMjFiZGMzMDYxZmRmZmZkOWE4MGRmYjM4NjkxNTU4NzI2ZGRjYjI5MzM1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8143157ba22d4198a693ac9335346209",
+      "statement": "The Tab replacement is demo-only and does not recreate the initial playable content: `make_test_scene` creates two cameras and game schedules but no player, renderable, platform, randomized objects, or audio entity, although the new scene retains shared asset-service wrappers.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L18-L52",
+          "version": "repo-lines-v1:sha256:b5e3fcd7e9417b14e01f6dba14605a251c96336a0f4ae45bd46a219a8e9390e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4YzkyNWNkMGJjYzAxNTFlODRjY2ZmZTNhOTM3ZGVlZTUxYWQ4Yjk5NmU0ZjM0OTg0N2NjZDExN2E2YmI4OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3OWI1N2M2MjY0Njg5Y2Q0NDc4ZGE5OTE1ODFmZTI5ZDc0OTRkM2VlZmIzODUwZGM4MGM3YzNiNzdiMjgwY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_services.rs#L12-L20",
+          "version": "repo-lines-v1:sha256:29339c3c8bf5292007dc939f6face72146932540f86e595a06e32f89042aed33:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjllM2U2MmIyZGNjZmFkYjBkNTg0ZWM5ZmZjZjZhMGYyMzQ4ZWEzNmVlOWVhYTI2ZTg4ZTZkZmU1YTNhNmQxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDQyMzgwNTFlOWYxMDhmNjNmYTVjNjdkN2ZjZWM4NjIxNjUwYmJmNGI1MGRkMDQ2N2U2ZmRlZTBhMGM1ODVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://game/src/game_controller.rs#L29-L111",
+          "version": "repo-lines-v1:sha256:c9be76a83dfb703e7a9ae50c87440040c9e49666c5502eaa126a0f0e8fcfcc3d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZjMzOWNkZTVmZWI2ZmE5ZWZjNDJhNTJmYmE3NjFmOWI5MWIxOGEyNThjOTVlZmRkODI0MjY2YWYwOGJlOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZDI3YzY5ODhlMWY4YjdlYzE5ZWY5ZGRlMDg2YzMzMzg1YTEzNzJiMGEyMjFhNTc3YjliZGZmZGNjN2U0YWYifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L135-L358",
+          "version": "repo-lines-v1:sha256:40c979c5c4731b4d46ada128e90e5af1320ba48a4027573cb4e8070540ebdb98:eyJzZWxlY3RlZExpbmVDb3VudCI6MjI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1Njg0ZjFlZWRhYTg4ODBiN2M4ZTU3ZTJlYWQzYTVmZGIwN2ZiOWI0YmRlYjU2ODA4MjMzMmUwY2ZjZDI5MzhkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMjc4ZWM0NzkwZTdiOWZlYTNlYWIwMmQ1MWU4ODU5ZmZhYjkyNmEzODE0MDJhYzBlYmM4OTAxNzVlNDBhZWRhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyYWFhYmRhYjYyMThiODNkNWU2MWU5YTBkZDVlNWUwNTNiODJhZjdkZGUwOWNkMzRhMDNiNzcxZmEwNWQ2ZTc1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MiwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMTQ3OGRjMjNiNmNhNjc4NWI5OGI3ZWNlYTlhOGJmYjgzZjljNjM2ZTMxMWYyNGNhODg2ZWVlMzAxNDk5ZjVmIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_52a4f18ed751455091c5391eec2398c2",
+      "statement": "The `settings` module implements TOML-backed user/default settings initialization under the platform configuration directory, but current `main` only declares the module and does not invoke loading, saving, or apply settings to engine bootstrap.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/main.rs#L1-L4",
+          "version": "repo-lines-v1:sha256:a10acd167e343ad824566bfd4ee39e2e25a4a2b348cb8780529768f9946d001a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjcyNTJjOWJiNzEyYmRkZTUwYzRkOGE1YTNjOWY2OWYyMzM2MGNkOTM2OTE3MmRmNDMzOWQyYWI3ZDM0OTdhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGYxMDUxOTVkZmFmOTRmZTc0ODg0MTA2OTQ5MjMwOTk0NWVkZjQyZDRhYzcxYmZmZGU4MTczYTg2YTgyYTlhMyJ9"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L41-L359",
+          "version": "repo-lines-v1:sha256:1056ccc72a02a9961bff7984b52365872bc400db4986b6b811a20d51a208f75c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxMDM3NDFlMDQ2NWNmMjUxY2YwNmZiMjc1MmFhZmEyNTdlMjY4MTg1ZWMxNDBhMDYzNDRiNWFjZDIzMWU1OTRiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmOTY0YmVlMWIzODBlZDQ2OThiMTY1ZjZlYjMzMWQzODA4ZjU3ZWFiZTNhMzM0MzkwMjcwMGNkOTQ4YmZiZWQ5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjZTZmODA2ZjQ2YjU1YWIyNTU3OTI0OTVhYjIzYWQ0M2E4YzQ0NjhjODY1NGNkOGFkMGZlNTI4MzA4ZWIxZjhhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1In0"
+        },
+        {
+          "resource": "repo://game/src/settings.rs#L9-L173",
+          "version": "repo-lines-v1:sha256:8efaec2a14c68a1ef5ecb23c92ab3d8c7ca31d99d8cb238aca14281438eac06c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTY1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3Njk5YTU1MGViNjhjOWMyZTdlMWVlN2Q3YjAwNjc4MTJlOGVjNDQ1NDRjN2FkMGE0YzllOTc0MTllMjA4OWFjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzNzJjM2MzN2E4OTQ3YWJlMjg5MGYyNWFiMDY3ZmRiYjNiYjZkODIxYTdjYmE1MThhZGQzNzc2MmYwZjcyNzBlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1NTY0MzY3ZTk4NjNiNTlhMThiMGQ5NTg5NWY0NWRmMjZmODQ0NzFjZWQ4NGYxN2U0YzMwNzNlMWEzZTc2ZjMxIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_f6af0ee6b7d9457998f11479a28e473b",
+      "statement": "The game package’s concrete tests are settings tests: they serialize execution while changing configuration environment variables and cover settings paths, TOML loading/fallback, persistence, and error handling; there are no dedicated game controller or scene-switch tests in the source tree.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/settings.rs#L1013-L1042",
+          "version": "repo-lines-v1:sha256:0b7055b7ffe16145f9bb6b0c3ed9c3799149638901da341cef2e84becbbc2581:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4YzQyYTE5YWZiODgzOGZmMjYzM2UwMjI0MzM2NjMwZTNhZTBjYWM4MDZhYjVlMjQ5NjM1Zjk2YmNlZjk5ZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MGI2OWI3YzkwM2ZjMTg5YjRjODVlODlkZmMwN2ZhYjUxOTk1NzY4N2VhZjJhYWYxODI0OTExNzg2YTJlMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZWIyM2E1MzhhNGQyM2VhNWQ1Y2ZhYTg5NDc4Y2U0NzliMzA3Njg5YmM5NWI3ODY1NzBlNTNhNDYyODE3ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3YWIyNTU4MjE1ODhlMjVhMjYzZmY5OWE2MDkzNTA3MmUzNDgzNmU5MjRiMDg5YTBhNTlhZjA2N2MzMWRjYjUifQ"
+        },
+        {
+          "resource": "repo://game/src/settings.rs#L1104-L1189",
+          "version": "repo-lines-v1:sha256:b5d2956226a72463ab647cb0b684a494c2547de69297db811e65ad680e17901d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMjM3MDRiYWRhNDdjZjlhNjQ5MWU1NjU3MjM5NDBlNzAyZDJkNmMzZTUwZjE5MzY3MjE2YTQ5NjAyN2RiNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZWIyM2E1MzhhNGQyM2VhNWQ1Y2ZhYTg5NDc4Y2U0NzliMzA3Njg5YmM5NWI3ODY1NzBlNTNhNDYyODE3ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://game/src/settings.rs#L175-L230",
+          "version": "repo-lines-v1:sha256:353367ed15e3e6f118a50da48a030f497092c76f3b81190bc452c05c9d97b528:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNGU3YzlkMmYwYWYwOThkN2ZhMThlNjAzZTcwZmE5ZDUyMzBhMmZmZTM1ZjA0ZWEzZDEwZDljODBkMTdlNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4YjhjMGUyZDcyOWZmYTFlMDNiODVjYmZlNjIxNjMwNTM4ZjVjMTIzOWQwMTY3MTQ3MjJmYzJiMmY5NzA5ZTcifQ"
+        },
+        {
+          "resource": "repo://game/src/settings.rs#L281-L325",
+          "version": "repo-lines-v1:sha256:fd922909f69a871b12a20409cc01efbc298432f1f14c364be9dbd4e883f18a2f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYTk2NzgxYjhlZDI2MjRjMDgwMWE5OTZkMjU2YzhjZTdkOTM5NThkZDRmZmI4OTIxMzY1ZTdhODVmODk2OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MGI2OWI3YzkwM2ZjMTg5YjRjODVlODlkZmMwN2ZhYjUxOTk1NzY4N2VhZjJhYWYxODI0OTExNzg2YTJlMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZWIyM2E1MzhhNGQyM2VhNWQ1Y2ZhYTg5NDc4Y2U0NzliMzA3Njg5YmM5NWI3ODY1NzBlNTNhNDYyODE3ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZTFiYzcxYzhiNzkzZDNjNTlkZmU3OGZjYTk2NTI1NTM4MTJkYmE0ODE4MWFiOTJjMzlmODEyOGQ0MzA3MDMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T19:22:21.487Z"
+  }
+}

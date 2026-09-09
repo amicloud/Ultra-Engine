@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:fb4116327a932e8134eabe8ef7b65448809d792f38462018cfb8c51eafaf054b",
+  "claims": [
+    {
+      "id": "claim_1ab1de3938864c018d435946e74b9a77",
+      "statement": "Audio uses a two-stage ownership boundary: the scene-local `AudioControl` queues high-level commands during ECS execution, `Engine::run` translates them after its fixed-step loop using `SoundResource` and sends `MixerCommand`s through a 4096-entry ring buffer, and the CPAL callback owns the mutable tracks, voices, listener state, and source-position map.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L110-L135",
+          "version": "repo-lines-v1:sha256:53a389b052f64022c0e69cc789c2d543c7bfa4010171b7f158c41d097bdc2455:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxYTE0ZjIwMGZmYmFkMzUzMjVhMDFjOTQ5MjhhMDM4ZDc5ODc4OTIwMDgwZjMwODQ4ZDNhMTA3ODIwODZjNGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyZGJmNWE2ZGQ1MDg5MTQ3YzliNDIwMTc4OTAwYjJjNWY5MTU2M2ZjZmY2NjVkZDBlN2E0Y2UzOGUzNWZkZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2Yjg1MzIxNmZlMzJhMWVkYTY4OTlhY2UzMjE2OGE3NTA5ZWEyMDkyYjZmYTJmMDk0MTllZTMyZmM3ODNmMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNDQzN2MxNTk1YWFmNjQ3YmFjZGZkYzhhOWExZTllOGM1MGFhYTI2NzZhNzg0MzRkZjc0MjBlMTYwYzYzM2EifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L67-L103",
+          "version": "repo-lines-v1:sha256:8dfba25fb62c4665375c5a965334e4bb0a142b4e69c5a73ebd447a5ab14f9dba:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YzJlNWNmODBiZGJiNDdkN2NlMWRjNDE5OGQ3NjZlN2VkOGQ5MmNmNTYxOTA0NThhNmEwMGMwZTlmMjliOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5OTFmNzhjN2RlOTU5NTVlMTg0NjAxZmFkMWE3OTU4YjZkNDc3MjQ4ZTMyZWE5MmY3ZjM2MmYyMjAwMDg4NzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZDRlYTM0ZmViNzA5MDE3OTlhOGEwNmEwYzdjODQzZTVjYjY3Y2VmYTU2ODgzZWExOWRlZmYxYjk4OWVjN2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwYWM0N2U0MGU3MGE0Y2Q1NjYzNWRiYWYzN2RmODU0MzE0OWY3NTJlY2E1MTM0MGY2YTliOTI4MTJmYTNiZGQifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L315-L331",
+          "version": "repo-lines-v1:sha256:ee4e4b969c9f1e26b1f21b44e351ce60e0b2e131006d963d5e458089d1fa294d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzM2VlMTVjZDhhYjIyMWVlOTVmYjczZjIyMzIwZTRlZTBjOWZlNWMxYjk4NTlhZDc4NmE4ZDdmZTk1ZWY0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZTVjOTgyMTUxOTExYTVmYzE4YTFkODk0ZWQ5ZDI4NGUzZmIxMjE1N2NmYzZiZmNjNzJiZmE3YWZiZmE2YjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwOGM3MjVkNTk4MWY0NzI3YmJjZTc2YWM1M2QyNjIxM2RiMGU0NGM4ZGI0NWVmYzNkYjY1YmY2ZDE2ZjcwMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMGU0YjM5NzhiODUyOTRjMTVkNzBiYTViOTg4NGQ1MTRiMzZiZmE1MjUwOTg0NGJkNGUwYTY2M2FhMmU4NWEifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L19-L52",
+          "version": "repo-lines-v1:sha256:073e312f3ddc1556de94e24a331072fde4e9541f1e749da60ea13ab31a6f98d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNWRhNjg1MDlhMjQ5MjQ5OWYwMmI3ZGNhM2YzMzNiNjEyMmQ2NTdhNDJhMjliNzNlOTNkZmQ0MTU2NmYxMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwOGZjNjYwMGI1ODBhMDI2MTA1OWVjZGQ5ZDNhODNhZjY4ZjY3ZTkzOGM2ZjkxMzJhYWJlODUwODMwMDk0ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b3054b156778455cb3fc8caf95c77e55",
+      "statement": "The engine's chained frame schedule queues added audio emitters, listener/source transform updates, source removals, and collision sounds before game-frame work; cleanup clears `AudioControl` only after the end-of-frame mixer handoff, followed by `World::clear_trackers`.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L120-L128",
+          "version": "repo-lines-v1:sha256:b5a494f26806d45ff64543f68f7e4474088bf6dd520324809e112730cd7074a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc5ZTc2NGFiNzc1MDkxYWU5ODg0NzlmOTYwYzViODk4NTFkOWFhZGE0YWExMGE4OGZlNDAyOTQ4OGMxOTViMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWE5MGY4MDM4N2VmODdkMjViZTZjMDg0MTY5NzBiODI2YWQwMjdkYzAyNmFhZWIwMGQwODYwZTgyMGQ1ZDg3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjljZjk2ZGUzNzUwZTJhNTZiNzIxNDFkNjBiM2U1ZDk1OGFjMDg2NWYxZDZkMGNiNjRlNTBiZGFhYzU4ODRjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjZhMzA4ZGUxM2IxYmM3ZmZhM2ZlOGNmMmQxNzUzZTBlMjk4NjA3YzhhODY2ODUzOTNkYjExNDE4ODU3MWM0NiJ9"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L215-L217",
+          "version": "repo-lines-v1:sha256:447e4e5dd1e9c084d12a6f998444c8175f21db694d8d3d2561db1e82b5c9a2f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFhMTJhNDU4NjIyMzU5MTQ3MjI4ZDBkYWU5YzZmMmM0ODc1Mjg1MWU4ODEyNjMzOTFhNjc0NWFjYzFlM2NlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODk0ODNjNjFhZGQ0Yjc3ZWY2MTNiYTE2ODJiYjdjMzczZWRiNTg5MDdlMTY5YTRiYzVjZjYxY2VmODM4MzM2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzg1ZjBiN2E3NzgzY2I2NWUwYzE0MGNmNWE5OWIxNmM2Nzk0Njk4NjhkNDZjZjRhOGM2N2FlNGVjNmUxZjcxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzJkNGZjZjZlYzI2MDkzMmZiMjQyOGE1Nzk0OTEzZmFjMjEzYzhkM2RhMzdkNWE4MWFhYjY2YzE1NjJhNTlmYSJ9"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L315-L331",
+          "version": "repo-lines-v1:sha256:ee4e4b969c9f1e26b1f21b44e351ce60e0b2e131006d963d5e458089d1fa294d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzM2VlMTVjZDhhYjIyMWVlOTVmYjczZjIyMzIwZTRlZTBjOWZlNWMxYjk4NTlhZDc4NmE4ZDdmZTk1ZWY0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZTVjOTgyMTUxOTExYTVmYzE4YTFkODk0ZWQ5ZDI4NGUzZmIxMjE1N2NmYzZiZmNjNzJiZmE3YWZiZmE2YjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwOGM3MjVkNTk4MWY0NzI3YmJjZTc2YWM1M2QyNjIxM2RiMGU0NGM4ZGI0NWVmYzNkYjY1YmY2ZDE2ZjcwMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMGU0YjM5NzhiODUyOTRjMTVkNzBiYTViOTg4NGQ1MTRiMzZiZmE1MjUwOTg0NGJkNGUwYTY2M2FhMmU4NWEifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L90-L102",
+          "version": "repo-lines-v1:sha256:10afa83c4e2a678f20bc755a9e368bb202dd1f83682eb1e26273b18a2aac04e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNjE3MGY5NGMxNGVkMmQ4MDg1YjlhMWI4ZmU3ZWE1ZTM2NmNlN2ZlMDMxMjdjNjY0NGYxMmRjODc4MTUxNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhOTBmODAzODdlZjg3ZDI1YmU2YzA4NDE2OTcwYjgyNmFkMDI3ZGMwMjZhYWViMDBkMDg2MGU4MjBkNWQ4N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxN2UyZGFhMTI0ZjM3ZmFlMTE3NzEyN2M4OTQwNjg4MzYxOTgxYzRhN2E3MWQ2YjAwYzdhNGJkNWY0YjIzY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5MGYzZGM2YzIyMTI5YzEyNThlYmVjNTUyOWRiYWYwOTYwYTRmMTM2MDVhZTNlODI4MjliNjkyMzcxNmRjZGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c333680470e146ec8e809c9de5bbfe5e",
+      "statement": "`Engine::load_wav` decodes synchronously at the default output device sample rate and stores a `Sound` under a `SoundHandle`; WAV loading only supports one or two channels, reads i16 samples, linearly resamples mono or stereo data, and panics for unsupported channels or unwrapped I/O/decode failures.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/sound.rs#L102-L119",
+          "version": "repo-lines-v1:sha256:ed667b397e68415c7f4df06e123586fdb614d26e1e0bf365245070541d7d3997:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MWRhZjE2YjBhMDVlOGFmYmVkM2Y2NjYyZWE5Nzg0MjIxMGNhMTVkODk1NzdlOTQ5OTFjY2NkM2QxNmJiYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/sound.rs#L20-L99",
+          "version": "repo-lines-v1:sha256:3e3c637b5ddce304a6dbb2eec00165b7e8c5cc316ee89cd21112dab9f2d84b43:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3NjZkOTRmYTQxNTMzZDFhODVhYTNiNWRhMzkxMjE1YjdmMWIzZWM1YzgzZmVjZTRkZDVmZGY3NDc1ZTdjYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkYjZjNmEwYjM0ZDY1ODZhNjg0ZjhkMTNkNzFkMWExOWJkYTJkODFmNGM2MjM1N2YwYzlhNjMwNWEzMmVhMDcifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L56-L65",
+          "version": "repo-lines-v1:sha256:43fdf24e47ecf398bf1a7412710435a9aeb0f75013c6c4b96d2f008b3b1ef1c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwY2NiYzY1MWI4OWQ2ZGI0YzcxNjg0MGJiMjViMmQ3NTBlYjVjZjU1MTkzYjA4YWMzYmY1MTBlMmRkZDcyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYzZhN2I2YzkyZmE0ZmU2NzFhZmMyZTI0OTJiZWQ2YjdkZDI1ZWNjMDUxNTk3MzRhN2MwMWYwNzMxNTJjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1MTI2Njg1NTQ4OTZmYmVlN2ZkZWRlZjFmZjlhZjQ3Y2E3MGZkMTAyOWQ0YzdlM2Q0ZmM5NWQ2MzhjOTdmY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlZjc1ZjMwOWRhM2M1NWI4N2U4ZWJhYTRjNzJiZGNmYTU5OWYwYzgyNDE1Njg2NDg0MmVlY2ZhZWYzMWMzNTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_60f60ed613c54ffca587a62a691e2cbe",
+      "statement": "`SoundResource` is an `Arc<RwLock<SoundStorage>>` containing a SlotMap keyed by `SoundHandle` and a filename-to-handle map, and scenes receive clones of the shared sound service rather than independent sound stores.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/sound_resource.rs#L11-L18",
+          "version": "repo-lines-v1:sha256:b722231d7429b758034f451529266d891510116c9dd04d69aeab1fabf1f67960:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzgxZTNlMjQ1OTQzYWNlMGRiMmU1OTAwYzdmM2NmNWJlMGY5MTZkM2RjM2ZmNDllZjkwYTQwODI5MzU1OTQ4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjMwN2ZhYmIyNmRjZDQxMmIxMzA0YTU2OTA3YjA0N2JhODdkMGMzZmVkZDI4ZjdhMDE1NTEwNjI1MWRkY2ZlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTJiZTNmYjFlNjQ4MzQyNTc2MDY0MmNjYTgxMzY2ZGZkNjliMWIwYjJhMDFlYTQ2MTdjYjYzNGM5ODUyMjUxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmJiMjE5NzU1MWJiNWM5ODVhZjJkOThkNGZkMWUxNzA4NmIzMGI5MmZjNmJlMDAzMDM4ZjNkNDc5MmEyZjIwNyJ9"
+        },
+        {
+          "resource": "repo://engine/src/assets/sound_resource.rs#L40-L67",
+          "version": "repo-lines-v1:sha256:9b9c2eccbbeeabfb32cfedb0e5d319df97d9777aeab679fec43a17ae7c5a0046:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNjEyZTlkZGIyODBhMzVkYThiOTNkNmRjYWQzNTJhMzJkYmI3ZGQ2MjIwMTQ1NmY1YjI0MmVjZjZmNzFmMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L19-L30",
+          "version": "repo-lines-v1:sha256:a35ce497596b3d26b51307309630816502242ac8d6de685bff92fe6946d84ae5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNWRhNjg1MDlhMjQ5MjQ5OWYwMmI3ZGNhM2YzMzNiNjEyMmQ2NTdhNDJhMjliNzNlOTNkZmQ0MTU2NmYxMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmYzhmYTYwMTU0ZmFjZjI0ZDAzZDhlOGI5MThiZTZmMjdkZDg2ZDc1ZDI3OGJlY2MyYTVhYWM1ZDBhZGE5MWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwOGZjNjYwMGI1ODBhMDI2MTA1OWVjZGQ5ZDNhODNhZjY4ZjY3ZTkzOGM2ZjkxMzJhYWJlODUwODMwMDk0ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViZjkzYmMzZDdkMWYwZTNkZTRkODMyMjkxODE0ZmIzN2I2MGM1NzIxMjkyZDA3YjRkMjEzZjM4OWFmMDI0MGQifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_services.rs#L12-L20",
+          "version": "repo-lines-v1:sha256:29339c3c8bf5292007dc939f6face72146932540f86e595a06e32f89042aed33:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjllM2U2MmIyZGNjZmFkYjBkNTg0ZWM5ZmZjZjZhMGYyMzQ4ZWEzNmVlOWVhYTI2ZTg4ZTZkZmU1YTNhNmQxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDQyMzgwNTFlOWYxMDhmNjNmYTVjNjdkN2ZjZWM4NjIxNjUwYmJmNGI1MGRkMDQ2N2U2ZmRlZTBhMGM1ODVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2aecfdff071d4a09a9912f9e3d29fd93",
+      "statement": "Public `AudioControl` methods enqueue one-shots, located one-shots, per-track mute/unmute, and mix pause/resume/mute/unmute; translation logs and drops a missing sound, while any failed push to the bounded mixer ring panics rather than retrying or dropping gracefully.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_control.rs#L99-L147",
+          "version": "repo-lines-v1:sha256:e7ddd49663204bf727c2aea547d385a68dc83849226525c4e38a062e082c28a4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlODM0MzIzNDExN2JkYmJlMjBmZDAyNDIzNmYwOGYwODliYTQyYWNmMmNiNjRkNGUxMWRmZTkwMDI3MzQzMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3ZjVjOTE4NmEyZTA3YzQyZDJlZjJjMmI4ZGM1NGQxZWVlMTZhNjVlZDYzMjNjZDIwMjliMmRkYzE1ZGE4ZmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YmEyNWU2NDVlYjdmN2JmZjY2YWY3NmQyYjgzZDU2NDAzOGI2YWQ4NTk2N2FiNTY1ZDVjYWQ5MzRkMTczMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L266-L341",
+          "version": "repo-lines-v1:sha256:a84c4c29178a9f3b62097a476608d1ae12bcd1913002301dab7d1ea3b1a06384:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNTFkZTJjNjlhZTE1YWM2ODBjOWQ2NjNlODNhNDZhNTA5NmQxOTcwMTg3NTkzMDIxNDEyMWFjYTg5MDk0ZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYWMzMDcyMjk1Y2EzMTkwZWU5MjMyNjc5YjgzY2NiMTI4MTI5NGZiZGM1OWMyZGMyMzEwZmIwMTRmNjU4MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhZWU4MDk5NzdkNGM3NzdjNWE0ZDkzMWVkMzlhZDZjMTQwNDU0N2RhY2FhYTcxZTRiMjllODcyMDVhNmI0ODQifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L343-L397",
+          "version": "repo-lines-v1:sha256:efdddb0cf35e185f2343e4596053b09b031297e715292366cac349b41c79fb1a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjMmI4ZGVhMzA1ODc5M2ZjNWY3YTEzYTcwYThhN2QwYWRjMDM0Y2NjYzg1YjhhNDQ4NDc0Mjc5OGMzYzVjMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2NzhiYWU3MjU2OGYzNTI0YmZmNmNlMTZiMjMzZjdjMTZlMDYwZDg3ZTY4YzYxYjYxMmYxNjY0YjkyZDZjNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkNjgzNzg5ZTdkOTkxYTM5ODllOTU4NGMyYTNjYmRiMTAwYTg1ZjVmYWNhZDdmYzMxNDE2YjUxYjY3MzhkYWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiZThlYjc3NjY5Y2I1ZTAwMTEzMGRkNzMyYmYzMWZlYjgxMWYzM2EwZDhhNzkzZTQyMGVkYWZiYzNmOWRiNGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_92d6e03a69194c3c817e8714ff94fd84",
+      "statement": "The callback has 32 tracks and silently ignores AddVoice or track-mute commands whose supplied u8 index does not select a track; a track mixes its live voices and removes voices when `next_block` reports completion.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L198-L226",
+          "version": "repo-lines-v1:sha256:da12df1f6f39e4474f9475ab4940589bbb5d7e72a72bf8bfe93304b2962938e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmY2Y4ZGJlNGVmMDA2NmFhMGYxNzY1NjZmYjc2NTg5NGRjN2JhYzE2NGE1NGNlYTI5MTA3OTFhNmFlNTlkZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYWMzMDcyMjk1Y2EzMTkwZWU5MjMyNjc5YjgzY2NiMTI4MTI5NGZiZGM1OWMyZGMyMzEwZmIwMTRmNjU4MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0Y2NhZjM4ZjU0MjA1ZWVmZDdmY2MyZTExYzg1ZWUyOTljMDViNjM2ZWE5OGViZDkyODY2YTIzODg5NTA5NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjNWRjYjQyM2JiYzlkY2YzM2EyMmI5YzM4YjMxM2I1ZjY5YTNlZjhkOGRjZjBkMDBjOTgxODYyM2Y3NGU2NDkifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L240-L248",
+          "version": "repo-lines-v1:sha256:50a6a6e9d7e077015854b13dcc97137cf62cddb32ffa7fd17defb9f1813569fa:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWJmYzM2MTAxY2EyMjM1MmNiODM2NWQzMjgyNDlhMDcyZThmYjgwNzdkNjMwMTUyOTJlMTA5YTNhYzU4YWNmOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjJhYzMwNzIyOTVjYTMxOTBlZTkyMzI2NzliODNjY2IxMjgxMjk0ZmJkYzU5YzJkYzIzMTBmYjAxNGY2NTgwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQ2ZTBlYzMwOWMwOTk1MjUzMjM2ZGI2NmQ1MTQ4YWQzNmM3OWY4NDM4NWJhYzkzNmIzMmE0Y2YyNDMwMjFkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDIxYWIyZmQyNWNjZTEyMGI5ZjE5MDA0OGUyNmY4YjBiMGU0MjEzNjgxZTgwNjBjMGI1ZDczYWY0NTg4N2YzZCJ9"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L67-L76",
+          "version": "repo-lines-v1:sha256:a0211d0226038009d1375b8b8515eee8074ef185721d84cfbd426031b2407cbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YzJlNWNmODBiZGJiNDdkN2NlMWRjNDE5OGQ3NjZlN2VkOGQ5MmNmNTYxOTA0NThhNmEwMGMwZTlmMjliOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NDM5ODI3NWYxZDhjYzQxNDFiY2QwNzlkZWYzM2Q0YzU1MjA1ZmMwZGJlYTliNzM4NTQyZmVhYzFkYTZiOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZDRlYTM0ZmViNzA5MDE3OTlhOGEwNmEwYzdjODQzZTVjYjY3Y2VmYTU2ODgzZWExOWRlZmYxYjk4OWVjN2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1MTdjYzFkZDBkZmVlOGIxNDcxZGI1YmI5ZmFjMWU3M2JlNDhiZWMwZjliOWM1OWE5MDAwZTczY2U4MDg0YjQifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/track.rs#L20-L50",
+          "version": "repo-lines-v1:sha256:afb5889a73359efe6b41f630202f6489c82a25e55fbdf8a1ee635c99bc8e5dc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NjMyNjJkMTg2MWFjOGZiMzc3NDVkZjRkMDdmNDE0ZDk1N2VjOWJkMTE2NTMzNjY3ZTgyMjRjZjY1NDkzMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NGFhYjcwYTgwMmIwZDE5Nzg4OTBjYmZhYzRjOTkzOGJmZmJhYWEwMDk1NzNjMzQ3NGJhZDc0ZjY4YmM1NGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2YzkxZDI2ZTQyNjVjOTk4NWM4OWUwMGVmYWQyZWRiZGM2ODNkNmViNTNiY2Q0MTA3MTczNWI2YTZlODJhZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a83375d2f8a458088842f3ecb4217f4",
+      "statement": "`AudioSourceComponent` requires a transform and creates a track-0 spatial-emitter command only when the component is added; changed source transforms queue position updates, while removing the component queues only removal of its source-map entry and does not remove its voice.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_command_queue_system.rs#L10-L25",
+          "version": "repo-lines-v1:sha256:701e25a4a581538464a4bc4ea15bd4b52d80aa70337c5c5a765bdb1d4ff31749:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YTQxZjAzMjYwZDNiZDhiZjg0NjkxNDg1MTk3OTJhYjNjZDc1M2IzNmYzY2VlMTdmOTJhN2UyN2E4M2M4YjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2OGYyMWU2MDQ1Y2M1NWVkMDgxNTlmZDEzOTgxYzBkODZjNzliMmM3YTE2OGU2NDA4ZGNmZjI0N2YzMjUzMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L253-L261",
+          "version": "repo-lines-v1:sha256:51c1a0e121ffac95fce7da5e65262a4dd5b009aaba008c9170a2ce1b364df63c:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MxYTdjOTc2MzUxZTYwODQ3ODA1OTc0NjE5MGViYzhmNjYzNTEzZjcyN2JlMDU0NTk1MDk4YTcwMTQ0M2QzNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY3OGJhZTcyNTY4ZjM1MjRiZmY2Y2UxNmIyMzNmN2MxNmUwNjBkODdlNjhjNjFiNjEyZjE2NjRiOTJkNmM2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTg4M2MwZWFlOWVhMWQ2MmM5YTZjNjM4ODE1ZDQ5ZTU0YmI5MTVmYzFhZmNmNGViZWUwMmQzYjNjYmFhODZhYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2JlOGViNzc2NjljYjVlMDAxMTMwZGQ3MzJiZjMxZmViODExZjMzYTBkOGE3OTNlNDIwZWRhZmJjM2Y5ZGI0ZCJ9"
+        },
+        {
+          "resource": "repo://engine/src/audio/spatial_audio_system.rs#L35-L54",
+          "version": "repo-lines-v1:sha256:9ae19b23e65666f59ef22eb686577fd3339d371fb5959e0e8d63a4167548f112:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1Njc0ZWMxNzQ4ZjdjY2U3YmRmZTVlNzY4YjdlMjhjODI5MDFiY2NjNWViZjdkMTVmNzFhN2JjZmViODE0YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/audio_source_component.rs#L5-L12",
+          "version": "repo-lines-v1:sha256:7489d95061a376441f8848753fdcec252d98c6d698971011b0903b5914e068d2:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzYzNWYzZTFlYWVhMTY3YjIzYmNkNTQ3MWEzMGJlZDE5NDEwODZhZGNmMzRhYWJiMGViYzRiNmIxYTBhZjIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2RkY2JiOTI2M2JkNTJmM2FiNmQwNGVhZTY4NjVkNGMxYTMzMGRhYWRiNjkzNzk5ZGY4YWJkOTA5N2JiODcyOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f5c3b434a3fc403b9b71704c38a285d6",
+      "statement": "Listener updates are driven only by changed transforms carrying `SingleAudioListenerComponent`; when more than one matches in a frame, the spatial system logs an error and sends only its first iterator result.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/spatial_audio_system.rs#L14-L33",
+          "version": "repo-lines-v1:sha256:794a1af3948f788df597280489c424135b2b0033e4692e38efd95070724e1264:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOTcxZjc4YjQwOTFhOWMzMzJiMTA0ZjBkMzllYWUxNTZmYjJlNDEzMjM3MTcyODI0ZTU3ZWUyODI0ZTRhMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiODRkZTIwMGU0MTM3ZjY1ZjJiMmU5ZWViNWRlYjBhNWM3NTdjOTA1YjQwMjQzNzZhYzgwM2ZmNzFlY2EyNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkYWY4YmZmMjdjMjc0NjY2N2I1MTdiODJkMTU3YTBkNmIwZTI0NTEyNTUwOGY0MjE4MDhmNGU0MjgwNGJiNzIifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/single_audio_listener_component.rs#L1-L4",
+          "version": "repo-lines-v1:sha256:1c2f05911cb508454e9b646b19cd2ac80b867a167fdd6326a7e909f4b01ed30c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzE3MzgwNjEwZjI1MWRhNTM0NDZlY2RmMjI4MTFhYmU5NzZiMDIyNzZjMGMzY2Q2OTcxMjk5OTE0NDcwNGI3YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk1Y2EzMDg0N2RmNDY2YjQzZDcyMmE5MDk1OTdiYTNmYWZiYTg3NmIyZTQxOGYyNzczOGU1NjI4MWFhNTkxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4a200da69a8f449ba158b066d0d44ab3",
+      "statement": "Collision audio runs once per rendered frame before current-frame fixed physics, compares current collision manifolds with `previous_manifolds` to play only Hit pairs, and queues a separate located one-shot for each endpoint with `SimpleOnHitAudioComponent`, scaled by clamped impact energy and located at the mean contact point.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/simple_phys_audio_system.rs#L17-L75",
+          "version": "repo-lines-v1:sha256:ecb72f985a336b24eabc9952054c44b035bd80138641622f19fcee3da97b75b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNDQ3ZTNhZWFjZDhjOTU5NGE0YjY0OTEzMjliMTQxOTdmN2U0ZDFlNDMzZjFkZDI4MWE0YjczOTQ3OGM0NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2MWMyZjE5YzMxYWU1N2Q0ZTU2MGY3MmVlNjI4MGExMGViYzM2NjI5ODQ0MzZkMDYxMGRmMmRlZDQ3MGNmNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L215-L217",
+          "version": "repo-lines-v1:sha256:447e4e5dd1e9c084d12a6f998444c8175f21db694d8d3d2561db1e82b5c9a2f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFhMTJhNDU4NjIyMzU5MTQ3MjI4ZDBkYWU5YzZmMmM0ODc1Mjg1MWU4ODEyNjMzOTFhNjc0NWFjYzFlM2NlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODk0ODNjNjFhZGQ0Yjc3ZWY2MTNiYTE2ODJiYjdjMzczZWRiNTg5MDdlMTY5YTRiYzVjZjYxY2VmODM4MzM2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzg1ZjBiN2E3NzgzY2I2NWUwYzE0MGNmNWE5OWIxNmM2Nzk0Njk4NjhkNDZjZjRhOGM2N2FlNGVjNmUxZjcxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzJkNGZjZjZlYzI2MDkzMmZiMjQyOGE1Nzk0OTEzZmFjMjEzYzhkM2RhMzdkNWE4MWFhYjY2YzE1NjJhNTlmYSJ9"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L284-L327",
+          "version": "repo-lines-v1:sha256:e0b0f26ad21369ab4de889394a0eb5828729523a41cb432e2385b71944447104:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMTgzYTY2ZjRhNGE5ZWUyYzc1ZmYzOTg2M2YzMTcxZTYxNDUyYWZlNjZjYjk1ZjRhNmRmOGU5N2NjYWQ5OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZDAwODlkY2Q4OThiMmQ5YTc1MzQ5Y2E5MTJmYjhjMjYzNzg4MDVlZjllOTlkZjI4ODY5ZGYzNmMwODIzZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlYTEyNTc3N2U1MTMyYjNhMDJiZTdkODhjYzhkODNkMjcxYjRiMmU0NDg2MzNhMDA0YTM5MjkyNWJkNjdlMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjNTU2YzYzZWQwMTNiNjhmNzNlYWEyYzgxYTBhODZlMTViNTBjNzY1NDVjNWRkZjZhY2MyODNhNTFkMTVmNDcifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L90-L102",
+          "version": "repo-lines-v1:sha256:10afa83c4e2a678f20bc755a9e368bb202dd1f83682eb1e26273b18a2aac04e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNjE3MGY5NGMxNGVkMmQ4MDg1YjlhMWI4ZmU3ZWE1ZTM2NmNlN2ZlMDMxMjdjNjY0NGYxMmRjODc4MTUxNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhOTBmODAzODdlZjg3ZDI1YmU2YzA4NDE2OTcwYjgyNmFkMDI3ZGMwMjZhYWViMDBkMDg2MGU4MjBkNWQ4N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxN2UyZGFhMTI0ZjM3ZmFlMTE3NzEyN2M4OTQwNjg4MzYxOTgxYzRhN2E3MWQ2YjAwYzdhNGJkNWY0YjIzY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5MGYzZGM2YzIyMTI5YzEyNThlYmVjNTUyOWRiYWYwOTYwYTRmMTM2MDVhZTNlODI4MjliNjkyMzcxNmRjZGQifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L152-L179",
+          "version": "repo-lines-v1:sha256:9911031b9f6fadec80a4305e76633fc545019b91d947e215b77c1a1edaa18532:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NjRkYjc2NzNmNDMwZjM4MzM4OGZmYjEwZTU5YmQ0MzE1NjY4MWQ4MGEzZDRlOTczY2I4ODVlMjZkNjQzOGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwZmViNGY5ZjY5MzI4MjdmNzNiMmU5MDRjOTVjNDNmMzRkNzM5MWNiYzI4NzQ4NGE2YWJkM2QzODUwYmYzYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzZDBjZTE4ZmEwYjNhZDYwYmJhNjg2ZDJmZDM3NjQ2M2JlZGQ5ZTg0NjBiNjg2MzMyOGQ0YTE1OGNjZGNmYTAifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_resource.rs#L45-L57",
+          "version": "repo-lines-v1:sha256:4b5f6a8867a7035d245967b28848191f8e36b1e77be023b9d6a8379251e8c669:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiZGNkZDNiMGU3NzAzYzk1ZGJjYWU2NjI0YTdkNjkwMzA0ZDYwNDE0NzQ1OTFlY2RjZWFhZGU0ZGIxZjY4ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE4ZWFkNWE3NGIwYjJhYjMyNWMxYzZhN2E3M2NhNmI5NGI3ZWJhNDI5YTk5MTg0ZmIzYmNkNmQzNjMxZmJiNzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb0de12695bf478a8b01246594650fa1",
+      "statement": "The CPAL callback drains commands before rendering; pause writes silence and skips track rendering, freezing voice cursors, whereas global mute applies zero gain after mixing and track mute applies zero track gain while voices still advance.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L124-L179",
+          "version": "repo-lines-v1:sha256:c7db7348af39197798a0a2b9b8c67ad16c479dbd62d2a5e4b27a130e22feff02:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0OWE0NDU1YTFhNjM3MDQwMmI3Y2JiYTY4YmE4OGM2MDc1MGVlYTUwMGQzMGIwY2Q5NWI0ZjM1M2NhZDVlZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYWMzMDcyMjk1Y2EzMTkwZWU5MjMyNjc5YjgzY2NiMTI4MTI5NGZiZGM1OWMyZGMyMzEwZmIwMTRmNjU4MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYWNkMTM2ODAyZThmZDMwMjBkNWNjOWM5MDUzY2IyYTJjZTUwN2Y3ODc3Y2Q3ZTk3M2UxMGFiMTkxMDRjMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViZmVlNWNmOWQyNmI3OTBkNTc1NTM4NDg3MmI1OWQzNmU2YWE1NTgwMjBlMWNiZDMxY2ViYzBkZmI1NmM4OGUifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L189-L263",
+          "version": "repo-lines-v1:sha256:1e18fb080648081142af5a18376dcb4f7b4e948a7da8c68dae6811323f819ee3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhYzU1OTNiOWM2Yzk1Y2UxNmIxM2ExNzMwYTRiNmJhYTU5OWZhN2E1ZjQ4MmNiZDE1MGE4ZWVhOWQ1YTc4MDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MDU0Yjg0MWQzMWYzMGI1OTMwMzUzNTk3N2Q5M2E2ZGI1Y2NhMTk2ZTU1MDBkYWI4ZWM5YmI4NzA1YTdhOTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0OTdmNTI2NTQxYmI4MGQ2MDU5N2ZkOWEyYjJmZWNlODgyOTIyNDY5MDZkZGMxOTMwYjEyNTYzNTFjNTQ2MDgifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/track.rs#L20-L50",
+          "version": "repo-lines-v1:sha256:afb5889a73359efe6b41f630202f6489c82a25e55fbdf8a1ee635c99bc8e5dc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NjMyNjJkMTg2MWFjOGZiMzc3NDVkZjRkMDdmNDE0ZDk1N2VjOWJkMTE2NTMzNjY3ZTgyMjRjZjY1NDkzMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NGFhYjcwYTgwMmIwZDE5Nzg4OTBjYmZhYzRjOTkzOGJmZmJhYWEwMDk1NzNjMzQ3NGJhZDc0ZjY4YmM1NGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2YzkxZDI2ZTQyNjVjOTk4NWM4OWUwMGVmYWQyZWRiZGM2ODNkNmViNTNiY2Q0MTA3MTczNWI2YTZlODJhZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dcb6c800f914407dbb0e281122ae50e7",
+      "statement": "Every voice renders stereo. Located/entity-backed voices use inverse-square-like distance attenuation and right-axis panning when listener data exists; mono sources additionally receive ITD delay and low-pass directional filtering, while stereo sources receive attenuation/panning but deliberately omit that ITD/filter path.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/voice.rs#L101-L178",
+          "version": "repo-lines-v1:sha256:0ee9d80b0691947ee7db872b29e9edb85866a3a0aa006c3632cece48c3eb9b0d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0M2Y5Y2VjNTVhZDBlZjhiNDVlZjQwNmQxMmI1MDBkZGQ2ZjE0ZDJjZDkxOTlmMjhjNDgwOGU1MmZkZTgwZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyMDIyMjcyODRhMTU1YTRjMjc5NDEwZTc1ZDcyMjFlNWVlOWZhZDcxZTIwZjM5MDZlOTY5MzE0ZmY2MDUwMzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMmMyNzc4N2FiOWNkNWRiNDBmZWZiMDNlMGYxMzNhMGZkNzJhOWU0MzllODYyYzQ5ODExN2YyOGY4OWZmZmUifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/voice.rs#L181-L255",
+          "version": "repo-lines-v1:sha256:5ac8c0c2454150037009309f7e3dca2392361c8b18b89b673ace8fdc4c0b41c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjOGIwODcwMTU0ZTdhNmM3ZmZlZGE0MDRiNDBlMjkwN2ZiNmM1OGM5YTIzY2U1ZDk5NDE0YzBiYWY3MjE2NGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmZTk0ODU2ODI0NmNlN2I5NWUxOWNlMTEyNTc4NTA5ZTgxYmZlZTEyMTcyZGQwNDhhNTBiMDIwYjM4NmRkMzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmNjhjYjE4OGYyNzVkNjQyMjhhMjRiNjFmOTc5YzcyOWIxN2IzZTE2MGJlZDZmNDMxYmI1ZDRhNDU0MTYzMzQifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/voice.rs#L58-L99",
+          "version": "repo-lines-v1:sha256:e0146aff4d2a2d78cfcf43bbd3d7142cc76ed38c1d465a4ebec4c64a574e06fa:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjMjJmOTViOWQ1ZDBiNWM4NzAzYWZmODYyOTFhM2ZjMTA0ZmViMmEwZjhkYzZlMzQ3ZTY1NjYxMjhhMzNmYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2ZGFhOGQyMDllOGY1YzUyMmY2MzQ5NTM0NTc4OTJjNGM2YmM4M2Y3ZTUyNjEzOTY2YjgxMGFlOGVmYzZkNmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0N2Q5YTgxZjAwNzUzZWI5YWE5MTU1YjdmMjEwOGEzNjZlZDQ0MGVkNWI2MmE4YzI4Mjk1OGZkODYyY2ZjYWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2721f89c0674206bd7ccd1181b7adeb",
+      "statement": "`pitch` is stored on `AudioSourceComponent` and `SimpleOnHitAudioComponent` but is not represented in `AudioCommand`, `MixerCommand`, or `Voice`, so it currently cannot change playback pitch.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_control.rs#L9-L49",
+          "version": "repo-lines-v1:sha256:0b1274f2b4cd75cf42c67e587fd4f7421fef3bfb0461fe1396188ab8738c71e3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZjcwNzI0ZGFkZTg4OGMyN2NjMzU5OWQyZWFmZDM5NDMwMjdlY2NmNjQyNTc1ZDE3NTcxYzg1ZDRiMTcxZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhNDRjYzNiZmZkOGNiMTBiNzhkOTk2ZWI4NmFjZmZjZmUzY2U3YWZiNDc0MjIxNzg4ZDYxNDIwYTZjZmIwYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1ZGZjMGQxMzRkNjhjOTgxYTRlMTY4NWUyNWU3YWQ5ZDRhYjA3NDBkMGFhNmRiOGQ4NGE3YmM0YTVhN2NjYjgifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L23-L54",
+          "version": "repo-lines-v1:sha256:34a8319bd50be5fd3ef33b31e6906a148628a75a2af880f66e131adcb42cee3e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1ZWM3OGM3NjE0YjA0YjBlZGI1MGY4NzIyNDQ2YzgzOTRlNDk4YTUyMTg1NzNjMmYzN2RhMDY2ZDVkMTJlMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkOWYyYjhjMWNjYmI1ZGJjODIwZWZiZGViOWQ5ZTE3YTEyZDY3YjIyYjE1Mjg2Yjk0ZDNhNTNkYWUwNTBmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2MWEwOGM4NjYyOTZiYTYzNDYwMTRjOTE2YmMzNzVlZDk1NTI1MDgxNDU2ZDg0MjE3ODk1MDljYzUwYjgwYWMifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/voice.rs#L14-L29",
+          "version": "repo-lines-v1:sha256:e1f3164e070f0e7321cba7da49b45bbc30e8465609812f61624d4962aaee1a95:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZGQ5NWM1NjBmMjQzODEzMWExOTUyMDkyOWY3OTRjYjI4Njc3MDA4NzA2ZGI1ZWQzMWY4MWJmNzAwYWIzNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0YjE0ZjQxZjE1ZjAyOTI1YmU1NmNiZDA3Zjk2MzIzZDMxNTc4MmFkMWM0MDYyMjUxOTI5YjMyMWQxMjk2OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkZmY3YTlhY2EwYmJmNTM0MWQxNGQ3NDYwZmViZjkxZDQ0N2E3YjY1YzM5MGM3MjkwYWE1Yzc2MDQ0ZTU5MzgifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/audio_source_component.rs#L5-L12",
+          "version": "repo-lines-v1:sha256:7489d95061a376441f8848753fdcec252d98c6d698971011b0903b5914e068d2:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzYzNWYzZTFlYWVhMTY3YjIzYmNkNTQ3MWEzMGJlZDE5NDEwODZhZGNmMzRhYWJiMGViYzRiNmIxYTBhZjIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2RkY2JiOTI2M2JkNTJmM2FiNmQwNGVhZTY4NjVkNGMxYTMzMGRhYWRiNjkzNzk5ZGY4YWJkOTA5N2JiODcyOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://engine/src/components/simple_on_hit_audio_component.rs#L5-L11",
+          "version": "repo-lines-v1:sha256:5fb29c0cc8cf3400f25804e8940e0dcfacbb0b4db3c786393d118f7e7c6e22c1:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzYzNWYzZTFlYWVhMTY3YjIzYmNkNTQ3MWEzMGJlZDE5NDEwODZhZGNmMzRhYWJiMGViYzRiNmIxYTBhZjIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmM5MDg2YjE2OTMzNjk5NGI2MmIzZTUxM2M2MjhjNTM2OTkxYzk5ZmJmNjcwZDRjNWZmNjNjNTZkYzA2NTM4YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d0d85f7c37a47cc9ac2721b8b51cd40",
+      "statement": "The mixer preallocates fixed 4096-frame track scratch buffers and treats non-mono voice output as indexable by the device channel index even though `Voice` always outputs two channels; output configurations above stereo or callback blocks above 4096 frames are therefore not safely supported by this implementation.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L145-L179",
+          "version": "repo-lines-v1:sha256:4cc1d2dcde91d367943a9120b80e0740590055cab84d368f4cd60afe7078080d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMzhlNzYzNWZjZDYwOTJmNDRiNzgwNWUzNTkwYzFkMWZjNTZlYWE1N2RlNDcxMTc0NzAxYTE1MTkyMjUzMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYWMzMDcyMjk1Y2EzMTkwZWU5MjMyNjc5YjgzY2NiMTI4MTI5NGZiZGM1OWMyZGMyMzEwZmIwMTRmNjU4MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzYjdmZDNiOTMxMjI1YmYxMzAwYmNhMTAzODJhMjhkODRlNzc5NTkwOTcwYzRjYmMwNjZlOTIzNWVmNmE2MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViZmVlNWNmOWQyNmI3OTBkNTc1NTM4NDg3MmI1OWQzNmU2YWE1NTgwMjBlMWNiZDMxY2ViYzBkZmI1NmM4OGUifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/audio_mixer.rs#L64-L76",
+          "version": "repo-lines-v1:sha256:5c0672be71933a16be4f7f31d4f1b902a281c4588afcb9dc7fd3e4ad2360eb84:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjOWQ5MmY4NTIxYWQyMjQ0OTAwOTExNDg3YjcxOGNiMTFiNjNiOWE5NDQ3ODk0ZWY0NjI2MzM1MzRhNWYzYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NDM5ODI3NWYxZDhjYzQxNDFiY2QwNzlkZWYzM2Q0YzU1MjA1ZmMwZGJlYTliNzM4NTQyZmVhYzFkYTZiOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3ZjNiMGEwOGQ1YjExZGU0MWUwM2M5NDllOTM4MjQwNGZjNGNiMGZkMzdhYjUzNDUyMGMxZGEyYzBiNTcyODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1MTdjYzFkZDBkZmVlOGIxNDcxZGI1YmI5ZmFjMWU3M2JlNDhiZWMwZjliOWM1OWE5MDAwZTczY2U4MDg0YjQifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/track.rs#L32-L41",
+          "version": "repo-lines-v1:sha256:ef32028dd6823a32ae7dbeef4af190ec27bd2b41a4d31c6dabd504f561e29ae1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhZTYxOTlkYjIyYzI2MDYxYjQ2N2Q4MGM4ODQxOGU3NTNmZGJmNWQ3N2ZlOGNhYzcyZGM3ZDVmZTJlZWIyMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYWMzMDcyMjk1Y2EzMTkwZWU5MjMyNjc5YjgzY2NiMTI4MTI5NGZiZGM1OWMyZGMyMzEwZmIwMTRmNjU4MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyNTliZDQ1MDE2NDA2ODI0OGNjY2FkN2U2MWMxYjYzMWE0YmI2NjE5ZTQ3OTI1NjcwNDEyOTdiNjVlOTBlMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3NDNjM2I2Y2FjNjNlM2RmNGJhOGQ0MGVjYWFkZjM3YzI4NjlkMDMwOWRiNjhiMjY3Njk5ZTJhZjVjZTc5MDAifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/voice.rs#L78-L85",
+          "version": "repo-lines-v1:sha256:8e23941104b78106e35b36c6a58a884e6fdd8ceab4376466b1466e59057ba65a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDFkN2RmNzVmOWIzZjUyMGVmNWMyNDVhOTM1ZTUxZDJkNjkzNjEyMjU2OWE0ZDZiYzg2MGY5ZjVjODQwNWEwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI3YWZlOGEzZmEzZTQzZTUyZDI5YjQzYzZjNDA4YzcyZWYxMDMzYjE3MWI0YjY3YWExODY4NDc5M2RiYmEyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGRhZjNlNWJlZDU5MzMyNjJlMmRkNDQwNmJkNjRjNWEyYmIwNjA2YzhhYTk2NjkwOWRlM2I2Mjc5M2I1NTg5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzE0OTRkNmNmNjY0MjQyOTI2ZTc5NjgyNTBlMzFlNDE3Njc5MTg1NGUzZDk2ZjE4ZDg0Yjg0YWI5NDhjYjYwZCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T19:22:21.487Z"
+  }
+}

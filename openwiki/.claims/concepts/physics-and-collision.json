@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:abc1ac416e734a5a7ed12d43585d1c9a031b25e72ad1bffb772df8e85ea8ecd3",
+  "claims": [
+    {
+      "id": "claim_af630b0215cd4b4fae50f9395de7d403",
+      "statement": "Each Scene starts with independent PhysicsResource, CollisionFrameData, PhysicsFrameData, Gravity, and 120 Hz TimeResource state, so scene replacement does not carry physics broad-phase or manifold state into the new world.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L32-L42",
+          "version": "repo-lines-v1:sha256:954af8fde2b8bb1fe96c0b6beccc3069f9ac79aa23009a0fbe116c6b493ccd94:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzNzlkZmU3OTY2MWI2ZWNjMjcyYmU2NzhjYjYwZDBmNmMwN2Y3NzUwOGRjMDI3MjliNWM5MDAxNDJmNzRmOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MTQzZDAxZmQ0OWE4YzUxNmJjNjZjMGM2ZjNiNjllZDA0NGUwMTRiODYxNmM0MGJhYTQzNGY4NTAxN2I0NDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmOWJhNzkyNDJhMTk2ZDRkMDBmMGU1NjI3ZDA0MjIwODU5ZTE3NDYyYTBlZTQxY2M1NDY3YmY0MDg0NjYxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwMGZhMjg0YTIxNDM4MTcyNzczMjJkZWFjNDA1NzkwZDVkMDRkYTZkMmI1NmY3MzllNmI2NTkyNGY0NzRmZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9c6501d94ed84f4fa7cb69d3d97a0ac0",
+      "statement": "Every fixed physics step chains non-physics movement, changed-transform AABB cache and tree updates, manifold generation, PGS solving, dynamic-body integration, and physics-event dispatch before the game simulation schedule; the engine clamps frame contribution to 250 ms and limits catch-up to six steps.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L105-L117",
+          "version": "repo-lines-v1:sha256:0ae803abd6a94cc0535e7591e5b234c6133ddbd5c37d78ca5aa8208edf5c5711:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhMWY2MjY2OTBkYjcyZjI2MGFmOGI4ZTA3MTMxOGY4MTk5ZGYwODMyMzIxZWY1ZTFlMmZmZTExNDlkZGI1ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhOTBmODAzODdlZjg3ZDI1YmU2YzA4NDE2OTcwYjgyNmFkMDI3ZGMwMjZhYWViMDBkMDg2MGU4MjBkNWQ4N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5Y2Y5NmRlMzc1MGUyYTU2YjcyMTQxZDYwYjNlNWQ5NThhYzA4NjVmMWQ2ZDBjYjY0ZTUwYmRhYWM1ODg0YzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmOGM2OWZjMTRiYzRjZTVhN2M0ODIxZWI0OTQxOWY1OTllMGZlYjE5NjQzZWE2YzM0NGRlODgxMjc1YWE5NTIifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L275-L313",
+          "version": "repo-lines-v1:sha256:2e5919bcb01d7e001652f5245e65c68802d19780216ebc0f1a7dadb72ea6ab56:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3ZWNjOWE2MGEyNDczNWI3MGQ4ZGFlODUwMzI5ZDk1ODkxNzU1OWIyYzY4YzcxODZiNjFiNDNjOGY4ZTI4ODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2NzhiYWU3MjU2OGYzNTI0YmZmNmNlMTZiMjMzZjdjMTZlMDYwZDg3ZTY4YzYxYjYxMmYxNjY0YjkyZDZjNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQyYWYwNWIyYjJhMGU4MDIyNjAxOGZmNjJiNGY1NzAzZGVjODljZGU2OGM1NjgxOGRiYzg4NWNlMjQ0OGNlMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzM2YzYmRkZjFmOWZkNWMxZDljM2ZiZjhlMGZhN2VkZjRmZGQ1OWJlYzk0YWY5ZGRiYWUzY2VlNzg3ZWY3M2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8898cb9e6d964561b9933ab5160c3678",
+      "statement": "Collision cache, broadphase synchronization, and manifold generation are driven by Changed<TransformComponent>; cleanup removes cached AABBs and tree leaves only when a TransformComponent is removed.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L329-L331",
+          "version": "repo-lines-v1:sha256:74bfb52f0117b38b854b5a77e10614fdad5239763b35361b5e8fac0053fe2da2:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRmNjAxMjNhNGViMzZjNmU3ODAzNTYwM2EzMWI2NjI5MWM1NGM0YmFkYjEyODIwNzM1ZjE3Mzg5NjI1MzE0OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRlNWM5ODIxNTE5MTFhNWZjMThhMWQ4OTRlZDlkMjg0ZTNmYjEyMTU3Y2ZjNmJmY2M3MmJmYTdhZmJmYTZiMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDRlZjkwNjk0Zjc0ZmUwZTY3ZTFiZjQ3YWQ2N2UyODU4Yjc3MzMyOTk1NjdiZWNiMGQ3OTA5MzYzOWYxMzNhMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzEwZTRiMzk3OGI4NTI5NGMxNWQ3MGJhNWI5ODg0ZDUxNGIzNmJmYTUyNTA5ODQ0YmQ0ZTBhNjYzYWEyZTg1YSJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L106-L137",
+          "version": "repo-lines-v1:sha256:81eb04b7fe0b87d16c2982bca143fe68eb273b2d06d696633e9e4e55a5deeec4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NjRiNjI3YzRlNWJlYzE5MWJlYWM1NGU3ZTU5ZDExN2NlNTI2MjRkZjBjOGI4ODA1NjdiZDBjOTY2MTA4MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwZmViNGY5ZjY5MzI4MjdmNzNiMmU5MDRjOTVjNDNmMzRkNzM5MWNiYzI4NzQ4NGE2YWJkM2QzODUwYmYzYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkNjVkMjg4YWIxYWRlYjI5ZWIyMzA3YmRhZjg4NjExMjVhOWFhNTFkNDQ5MTY3MmQzYzdkMjY1YjFjY2Q0NmQifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L152-L207",
+          "version": "repo-lines-v1:sha256:02183dc84287aeddeebd9a4ba5521126b659448224a039f295f0ae0b33bd8590:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NjRkYjc2NzNmNDMwZjM4MzM4OGZmYjEwZTU5YmQ0MzE1NjY4MWQ4MGEzZDRlOTczY2I4ODVlMjZkNjQzOGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2NDgwY2RmZmFjODFiZGE1ZWIxOTdkODMzZjJhYzZjZGNiYzA0NDM0MGYzNWFkOWVlNjc5ZjUxNzI0Mjg4OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwZmViNGY5ZjY5MzI4MjdmNzNiMmU5MDRjOTVjNDNmMzRkNzM5MWNiYzI4NzQ4NGE2YWJkM2QzODUwYmYzYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlYTBlM2E4YTZjZDA4NzNmMDAyYjJlMzAyZWVlZDE3NjNmYzRkODY2OTcwMmUwM2UxMTVlZjMzYjJmNmYxYjYifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L39-L103",
+          "version": "repo-lines-v1:sha256:53ed80ae23ccae08ccbea4ea0de89760ea5cb9ab81ff0523b3b99f0b7c2b9efc:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjMDgxZGIzYmQxM2VkOGM3NDQ3ZDFhNzc0MTM3MzdkNTllNDQwZjQ5NjljZjU3N2I1MDg4M2U3MTc0MzA2YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMWE3NzE5MmQ1OWZmNGQxNzgxNGM4NDAxN2U1MWNmMWFmOWM3OTg0OTlkYjUxYzAxZjQ3Yzc3ODcyNDZhNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzYmUyZGVjMjE3NWIyZjcxMjkwODJlYTk0OTgxZTU0MTdmYmIyNjY0YjgwNjgyNzU3YThiYzFiMWFkYmVlMWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a0cc79f510b4626add02406b48801ad",
+      "statement": "ConvexCollider and MeshCollider both require TransformComponent; convex colliders provide local shapes and world AABBs/support points, while mesh colliders identify shared render bodies by RenderBodyHandle.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L203-L387",
+          "version": "repo-lines-v1:sha256:ef404453bbe8e844f199f37e5d6e456efdd1a7217d60e4833797eb705755c893:eyJzZWxlY3RlZExpbmVDb3VudCI6MTg1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhNzYyNmU4N2YxODkwNjg0MDlmM2M5NmE3NDkxN2Y2M2RmZjM5NDljMDhkMTZmN2NmYzI4NzFjNDFlZDhjMWRhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2OTNkZmYyZjA2OWMxMWZiN2JjMzYzZmFiZGFmYmI1ZDJmMTUyNWViNmYzNTgxOTNjNGY0YzQyZmRlOGI4ZTY5In0"
+        },
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L390-L403",
+          "version": "repo-lines-v1:sha256:1040c025e36086dded6103537012ed4e2c52f3d78de563806e22db4ad687ce07:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMmViZDZlYmFmMWQ3M2Y5NTUxMWUzZTM4MWVlMjllZGE1ZDM2OWZlZjM0OGE4YzA1N2FlM2E0ZWY0M2Q4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3OTA4NzRlMzY1NmU4NWNhMjI0MGVlNmFjNWYxNDM2MjFmNWQzNWIwNjZmMmQ4ZWVlNmFiOWQ4NjhmYzg4NDAifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L81-L117",
+          "version": "repo-lines-v1:sha256:aa50cf214c01dad398a8f99bf87d35ed50675066f974765f7e8de8ed1fed3def:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNDVjOGYzZjJmMTE4YWI3ZDU1ODRiYjU0ZDk3Y2VjZDhiOWQyZjA5OTYxZjVlM2E2OWZmNjc3ODA1NGM3OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMTcyZDRiN2YxNDVlMTY1MGZmZGMxMDM3ZGQyOWJlNGY4MTE4MWMwYmE0MjZkY2FhYWM1MjczMDg3NjA3YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e45f74cdf19040829a5617b44e5a921b",
+      "statement": "The collision system supports convex–convex and convex–mesh manifolds in either entity ordering but has no mesh–mesh narrow-phase branch; CollisionLayer is carried by collider data but is not read by this pipeline to filter pairs.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L112-L117",
+          "version": "repo-lines-v1:sha256:1e9c4569561d2c290ace6a41a64757b4c167f705892601e95c9ec28e0a03bc16:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgxN2ZkNDM1ODc1N2JmOWY4YWU1OTI0ZjcxMGVjZWI5MjZhZTg2YWU3NzZhODFkNWEyMDU0ZjVlNGYxMGIwMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjUxMjY2ODU1NDg5NmZiZWU3ZmRlZGVmMWZmOWFmNDdjYTcwZmQxMDI5ZDRjN2UzZDRmYzk1ZDYzOGM5N2ZjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWMxNzJkNGI3ZjE0NWUxNjUwZmZkYzEwMzdkZDI5YmU0ZjgxMTgxYzBiYTQyNmRjYWFhYzUyNzMwODc2MDdjMSJ9"
+        },
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L390-L403",
+          "version": "repo-lines-v1:sha256:1040c025e36086dded6103537012ed4e2c52f3d78de563806e22db4ad687ce07:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMmViZDZlYmFmMWQ3M2Y5NTUxMWUzZTM4MWVlMjllZGE1ZDM2OWZlZjM0OGE4YzA1N2FlM2E0ZWY0M2Q4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3OTA4NzRlMzY1NmU4NWNhMjI0MGVlNmFjNWYxNDM2MjFmNWQzNWIwNjZmMmQ4ZWVlNmFiOWQ4NjhmYzg4NDAifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L8-L13",
+          "version": "repo-lines-v1:sha256:faeced760e6a0c9fc280364367d1a13264b44bf869fb18195c59f93382748e62:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJhMmU0NjcyYjVmOTAyMzE5YzIzNTQyNzdmOGVmMzllOGJiNzNjOWMyYjNjY2MzMzgyODljYTU3ODBhNWI3ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTljYjU0ZDdhYTE3NzFlYzFhM2M5NmRhMGM5OTMwNjVmYzA5OWI5ZmRkODBmYzMzOTc5NTBiZTFlMWI4MDg5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjQwMWQyZmEyMTFjOThjZGIyZmIxZTVjZmI5NDBiMGYyMzIxZjE1MTk1YWUyYjU1MTEzYTYzYzhjMzMwM2RlNiJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L209-L301",
+          "version": "repo-lines-v1:sha256:8f546dad52ed4ef59603c74cd857db278dcfc130f0fde656c5bae3213afadb9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MzViNWJmN2Y0OGU0NDk1NmJmMzIzZjJlMGZkNDc0MTI1MGFlZDIxYjQ3MzY2NTE0ZGRiMDE1ZmM4Zjg5OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3OGRhOGE3ZmVmMWY4YmU0NzkzNjE3NzU0MTRmNTExZGUwMTUwYWFlNzkzOWNkMGJkOWUxYjhmMTljZjAzMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZWU0MjRmMmNkN2QwMzZmY2M2MGZlMzk5ZTgyNWNkZjYzMDExY2YxZDU4MmY1NjRlYWQxZGNkNDI5ODdmMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0YWNlNGUyMDg5Y2Q1M2YxZTFlNzU0MDk0YjA1NzMxYmYxZGJlZDM3NDU4NmM3Y2JiN2I4ZDllOWJjZDVjNTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_651a5de4498a4574817dfb5d29864e92",
+      "statement": "The broadphase stores leaves in a dynamically balanced AABB tree with a fixed 0.1 fat margin; updates avoid reinsertion while the newly expanded bound remains contained and otherwise remove/reinsert the leaf.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/dynamic_aabb_tree.rs#L125-L251",
+          "version": "repo-lines-v1:sha256:442e0927b9b398e2823ba0f605de37d5a1071a97767e7e9e2880d5f316e87ec9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmOWYwMDY0MWNjMmYzZWNiMGNkYjVkMmZlMWQ5ZjhlMDk5M2JmMDU2NDI2YzYyMDRmZTY5ODlkNjI3NmRmMjBhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4MjUxYmZhYmNmYjZkODlmZDlmNGUzYjdiYzRhMTc0ZmQ5MGM5OTgxODZlNGZkZTJjOGZhMzRlNmQ1YzI5M2FhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjYzYzN2Y1ZDIwYTEyYjM1ZDE1NmNiMjQ5NjM1YmIwYTA2ZWVhZTE3NTU2MGYyMjgyZWZkZmFhMDkzOGRlYTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5NDk5MWQwNWZjMDUxNjdmZjQ5OTg1ZmNkYzUyM2YzZjBmOTc1OTRkNDc0OTkwZDMzZGFlMjkwNzM5Y2I5MzA1In0"
+        },
+        {
+          "resource": "repo://engine/src/physics/dynamic_aabb_tree.rs#L346-L371",
+          "version": "repo-lines-v1:sha256:1ccb2de4ac7f44214b6989501091c6cc6fed45c4062f1b1840991e1caef780aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3Y2IwZDAzMTllNzBlMzlmOTFlZTkwOWI2ODM5ZjU1NjM4ZjVkNDVhNDA1YzBlNTAxNmY0ZWE3OGY4ODdkN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxYjc0ZDZlZTUyOTExMGE4YTQxYmFlMjNiZTE4Yzk1YzRhMmVhMTAzODc5YTJiNDJhODRiOThhZjc4ZDRhNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMzJhZjUzMTMyNjVjMmY5ZTkyYTM3OWVjYmI2ZjNlM2NhYjQ3YzNlMDc1NzFkNzY5ZDg3MjMwOGQzODFjMGIifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/dynamic_aabb_tree.rs#L45-L82",
+          "version": "repo-lines-v1:sha256:f3bc17419397463b3b07620f5404ee0d5106ec3a9ce86ccd8b057825a2cc9ffb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxZmQ4YzA2MDM1NTQyNmE3ZmIxOGUyY2I3YWZhNmMzNGM3YzY5MWNiYzk4YjIxYWE0NjkyNjQ4NDk5MmNmODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxMDRlMGNjYjYyYTI5ODA0N2UzOGY0NDllNDQ1NTdlNmM2MGRlZDFjNTYzNjAzMTY1YzA2ZDQ0YThmOTU0NmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6fa95e4aa9104010b4605d6642d70d46",
+      "statement": "Candidate generation sweeps each changed collider's cached AABB by translational velocity times fixed dt, queries the broadphase, then canonicalizes, sorts, and deduplicates entity pairs.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L140-L149",
+          "version": "repo-lines-v1:sha256:a7713a115b49079cec882e1f5b0ba25b9be03956ea5c333e6c3b8aab5ffe2206:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYjk3MjU0MjMwZGVhZjZjNDI0NTFjY2I4Y2Y4ZDNjMjNkMGFhMTllMzE4M2I2NjhmZmYzM2FkMzYzNTQzMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3ZjFjZTE3N2ZhYTAwOWEzMzA0MGE2NGUxM2JjYWY4OWYzMWRiNjk4ZjIzNTA3M2JhYWIwOTZmNzY1YjZmOTUifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L177-L207",
+          "version": "repo-lines-v1:sha256:79197cf38a81625745606a64fcbfd1ec00ca48a84c1478681b3d1ec3080a114f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxYTM4MzAzNzQ0ZWQxMTVkZWMzZWJlYzA0OWMwZWNjMDlmYjk3ODAxMzA4MGI1NjRhMzg4NTg5MjdmNTU1MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2NDgwY2RmZmFjODFiZGE1ZWIxOTdkODMzZjJhYzZjZGNiYzA0NDM0MGYzNWFkOWVlNjc5ZjUxNzI0Mjg4OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExN2VmODVmOWNhNmEwOWY1N2Y5Y2ZiZjY2YWMzNGQ1MjhhZDU4NTViYmI5NDM4ZDRmN2I5ZjVlNzgwMTZmNzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlYTBlM2E4YTZjZDA4NzNmMDAyYjJlMzAyZWVlZDE3NjNmYzRkODY2OTcwMmUwM2UxMTVlZjMzYjJmNmYxYjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dac8f9db332b4597b631009e26b503c9",
+      "statement": "Contacts and manifolds are keyed by entity-bit ordered pairs and maintain a normal direction from entity A to B; reversed generated contacts are swapped and negated to preserve this orientation.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L436-L453",
+          "version": "repo-lines-v1:sha256:22f43ea0f76c70bf585a5bc8ee1d7a904529950cd902927d197ae2c7e013ce52:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNzQ4MTVjMmMzNTUwYmI4OTM5YmZiMjhiNzFjNjg0M2JmMDNjYWU4ZGE0ZDA2OWRkNTIzMWYwZWU5NGE3M2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllOTQwMzQ0MzhjY2M5N2JjOWM4NDUwNWRlZjAyNTBiNDhlNTlmNDhhOWE5YjVlOTdjYmI2NTc0MDhlOTczN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxYzEwMGE4ZDE0N2FkMjYwMjhlNTVmMGFiNThlMjliM2FjMmViMTM1ZDQwNGQ0YzRkMjI3Y2FhMTNiYTEyMTEifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/epa.rs#L187-L201",
+          "version": "repo-lines-v1:sha256:038f1ad731db08ddc98ab3a625084ce40ac78e36c1ce5b5d6c5fdf95ba8e1705:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzM2IyZGEwMzQ3MTg0YWJjZGNhN2FjODI0OGU0Yjg4Y2YwOGJmMzQxYThmZDJmMDRlODgyNjYzM2ZlMzAyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0ZDZjNjVmMTllZjdlYTAyNTBkMTFkNDIzNGY1YjlkZmZlYzI5ZDQ1YTQwYmFlZmQ0MTVlM2VkNjA2ODVkY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1NGIyNzYxOTdhZGI2MmJjM2FmMmJlYTVlODBkNDA2ZTAxMjY2ZTJlYjgxYzQ4OGY1OTZhZDg5ZTcyYWRlYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2YWIzOTc3NDU4OTkwYzVjOTY5MzkyNGVkMWMxMGJiZjFkOGMyMmNmOTNjN2I1Mzk4NjNhMTAwNzMzZDdlNDMifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_resource.rs#L14-L30",
+          "version": "repo-lines-v1:sha256:58088afc0b0140791113f024208d89993ba2ec5f6853f52b65ea0a5b29d40694:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhOTczNjFiYjI0ZTM2NzhkMzJjZWJhMGRmNzU1NWNiODFkMDU4YTMzMDcwYWIxODg5MjZmZjkzMjgyYTNmYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkNjIyY2MyMzRmZTczODY0MDJmM2IzNzE5ZDg4MGY1ZjlkMjViMDU4MmRjOTVjYjcwZDA0NDdkM2EwYWY4NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2NGEyOTJhZWFlNTk1MzJhNDYzNTYwY2E2YzNhYjAzNTYyY2E2ODEyMWRkYTlkMzI5MmQ3ZTM4N2RmZTg2NWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a0d4a53b61f742508682e0de01f3abb1",
+      "statement": "Current manifolds become previous manifolds on each collision pass, and contact merging matches nearby similarly oriented points, favors deeper penetration, and caps convex–convex manifolds at four contacts versus an eight-contact convex–mesh merge limit.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L364-L381",
+          "version": "repo-lines-v1:sha256:7eacb88d985bb3911f1a550de30b24c4d5a651e60a270aebea542ff7a975cb13:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhODZlOTAwM2JjYjFiZjU1ZWRlZjU3NzcyNjA2ZGQ3ZjY0MTRkZTEwNzUwYzMzZDc5NzY4NDkzNzRkM2Q1OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiMGIxOTcwNjIyYzc3ZWNlMGU0NGVjZTliNDAyMzUzOGEzMjEzZDI1Njk0ZGZjNTdmM2MzYTg5NGYzZTI2ZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhOTllMTJiY2NiYTg5M2I5NjViMzE5ZDJlOTkyMmQ5ZTFlMDMxMTgwYmRhZGIyY2FmMTJiOGEyMGZmYjBiN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L415-L433",
+          "version": "repo-lines-v1:sha256:a43a01e462b69e9259ba7563b415a9285511ac1c24a5e3da3dd20b88d5add4df:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNTE5ZTc4MDkzNjg4YmRmYmU5YjRkMDI0NTNiNzI5Njk2ZTY1YjVkNTZmMDRkMjg1YThhZjZkY2NjMzVhODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3MThmOWU5OTY5MTZiMWZkMmY3MmNjYmI2ZTg2MWM2M2U5ZGE0MGVhNTkxYzhlYTI2YzYyN2FjMGM0NGRjM2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjOTQ2N2NlNmY0NmVjMGViZmI4ODQ1YjQ0OGU5MzNlNzNkMGI1ZTMxNWYzMTk0ODVlNTIxYjJiNjgzYmNhYmEifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L512-L624",
+          "version": "repo-lines-v1:sha256:55b61886644fa806c9f9b5c158ebb79c082025c24c400b0941c747b4895ccd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiNTgwNjEzMjBhZTI0ZWFjZDZhYzhiYmIwNzUxOWI0ZTc2ZWVjNTk0MmI5M2EzNGNlNWFlY2QzNDQxOGQyZDk2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlOWQwOGFkMmJiMGU2OWNmODMzYzM5MTljMWE5NDc3MjNhZDgyMDczOTM2ZDA3MWIwNmI3YThkMmI4YWNjYjFiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3YmYxYWJmZjVjYmQzN2I2NmUxZTBlOTg4YWI2OGVkNmI2NzIxNWI0OWVhMWU0NGU5MGM2MTliYjlmMTYyZjYyIn0"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_resource.rs#L45-L103",
+          "version": "repo-lines-v1:sha256:0198e932f7f3f5390143c03e6cfd45aec9811130987fbe891b7fe27d2346db2b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiZGNkZDNiMGU3NzAzYzk1ZGJjYWU2NjI0YTdkNjkwMzA0ZDYwNDE0NzQ1OTFlY2RjZWFhZGU0ZGIxZjY4ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZGVjYzU1NDM0OWZjMmY5ZmMzNWI5OTA0NTg5MzZkNjI5ODlhM2MyZTlmYzg2NzJjYWNjMDEwOGEyZWZkMzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c91f6a179d1b4ca6b232a5e7113aa40b",
+      "statement": "Generic convex collision uses GJK Minkowski support with a default 32-iteration cap and a tetrahedral intersection simplex for EPA; EPA uses a 64-iteration cap, 1e-4 tolerance, and an optional previous-manifold normal bias.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/epa.rs#L12-L15",
+          "version": "repo-lines-v1:sha256:8607cf821b2e86078c7ac44c019f6a789cf06d6fd27c650b2219b2834c1de593:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JhZjc1ZjQ4YTcxZWQ4ZGJlYWFmZDQ3ZTVkYjk4NTljMmFjZjU4NjM4NTE3Yjk0NWQ4Zjc0NjAyMjg4NjRmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzI0ZGY5MzU2MDQ4YmMwYjhmYzZkMzZlZDk3YmFmNmJjMDIwMDRlOWJhMDAxOWM1YjYyYTRhMTAzNmExZGFlYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAwOTkwZWU4Y2RkNTM5ZWU3MTlhNThmYzc1YWI2ODRkZTFhMmMwZjA2Y2IwOTgyNWEyMTA3MWVhNWJkY2VmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2FhMzNmYWZjMWFiNzFiMTdlZDBkNmMyYmMzNTM5NzY1MDlkNjdkMGIwY2RkYmNiOTU2NzU4NDc5NWVhNWQ1NyJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/epa.rs#L30-L105",
+          "version": "repo-lines-v1:sha256:f4bb4df9deaeb847e705b26bcaf4df59afd40be410c30626267337fa8f460648:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYjEzYWQxMTBiOGI0NTIxMDUxMzlhODc3Y2E2YWE3OTcwNDFjMWVhOGI0ZGZmNWY2OGQ3ZjUzZjA1MGIyNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5N2ZhZjNmZjJlYTU1MzVmNTYwYWJlY2I1MGYyYzQxZDU1MDg5MzhiN2FkMWJmNTA0ZWI4YjE0OTM4YWE5ZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5ZTRiYjNjZDhiZmVmZjY2N2U2ODk3ZmJjNjA1YWJkYzVjZDJkN2NiYjBhMGM0ZjQ1ZmQ2YTdhMzE0ZDA3NGMifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/gjk.rs#L39-L97",
+          "version": "repo-lines-v1:sha256:edee9187cc106cfe44157542d1f7a3facde7bb8a6d8a1fcc129d7990140fe8d9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZjE4ZGI3ZWMxYTNiZTZjZjhiMDliMDlmZDQ0ZTRjNGRhNDcyMWE4MGIwNGJmYTdmZGVhYjlkYzliYzk2YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNGFiYzY3ODQxMjZiOTdkOWUxOWFjZWQ1YWZjODFhNjA1NDY2YTE1YWQzMzc0NGVlNTY0MGZiODNkNWE1ZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyZDNmNDc1YjA0OTNkYWEzY2UzZjZhZmI3NDI2YmQyYjJjZjVmYWJmMWMzZjI1NDViOGMxZGVmZTA2MjZjODYifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/gjk.rs#L8-L15",
+          "version": "repo-lines-v1:sha256:66adf95fcaab66c3504f503ebcc55da5be62b6cda7015f29f5f319d18bf0a5e4:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQwNTU1MjdhNmQxMmU3MGZiOGZiZjIxZWRiYWJmZDQ0NDNjYWI3YTQ1ODI3ODRhNDE2Y2I2YTBhMWU1OWQ0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThiMjMzOWM3ZTk5YTI3OTQzMmI0ZTRjZDQ0MTI2YjhjNDBhMWRiMTJlN2IyOTZkYjE2NzZhZWVkNDEwMTQ2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2M3ZmJmMTVjYjU4MGY0Yzc1NTNmZjFkOGZiYTdhZjcwNGY5OTU3YzFlNjczZmE3YWZiNzg4NzQ5MjRmN2M1NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e6da6e91301143a0a9e52fd049c58887",
+      "statement": "The specialized sphere–sphere narrow phase uses unscaled collider radii even though ConvexCollider's sphere AABB applies the greatest transform-axis scale, so transform scale can make broad- and narrow-phase sphere size disagree.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L336-L343",
+          "version": "repo-lines-v1:sha256:9d06c3819b13fc48e270ab385ea46e95b6ea6d85bfac4deae514fa42a3094a79:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGI5MWIzODUzNjc0YmNjOWJlZDY0YTg5MzQ5OThkYzgxZjI4NWIwNTk4YmExYWIzNmFkMTI4Yjk3NzVjM2NmYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY3OGJhZTcyNTY4ZjM1MjRiZmY2Y2UxNmIyMzNmN2MxNmUwNjBkODdlNjhjNjFiNjEyZjE2NjRiOTJkNmM2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWIzNGI4YTk3MmI5OWQ2Y2ZkNWE1N2MyYWY0Yzg1NzIyNTBlNWI3ZGRmYzdjMDViYjUzOWYzMGNkOGUxNGZjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDQ4YTNiMDEwZGVmNTY4MmZlYzgwMTY5MTdjYjc1YTMyYjY2YTA4ZTZmM2E0M2RmNDViZjVhZGM5OGI0YWNkZSJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L1993-L2025",
+          "version": "repo-lines-v1:sha256:3b53cbdd5d8df32ad226834639d7868682138beb1f31b2de509fe0e59de9d781:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkZDhhMjJmMWRkNDYxZTQxZjI5M2MzYmVhM2RiM2U4NmIzN2FkM2JmZjc3MjQ4ZDM2ZmI3Y2Y4MjU3M2Q2YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYWFhZTllYzEzNWZmZWEzYmE5NmVhN2Y2ODYxNmFjZjZiNTE0YjEyZDNhZDg2NjcwYjU3YjA1ZTAxNjk2OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2MTVmMzRmYjI1MTRiM2MxN2RmYzg2NjFlMzNiNWI2ZWVjYzMzOGQyZmQ5ZDhmYzNlZTYyMTU2NTMwMTljYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5M2E3ODFiYjNjZWU5MjU5ODE0YWFkOTdhN2Q5MmVjMGU0ZWIzZGEzNWYxYWYyM2ZkM2U5YTc3OGVhNGJlZTgifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L668-L708",
+          "version": "repo-lines-v1:sha256:81221f95f0ca1a83e6cdd1fc25bb8b658d720411b159f072d6d45bc5b7a2dc60:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyMWY2YWY0MDNhMjQzMDFhNGVkMGVjODk2ZDk2MTEzMGZkMzkzZjI2NWRlZWE5MzdjZDIzMjIwZjMxMGVkMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhOWQ4ZDA3NGZjNzZkODk5NTRhOWY4MDMyZGQ2OWY0ZjYxZTFjZmUyMTI2OGNiMzgzY2JjMzVjMjc0ZTlmNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzZjVlYTQ2NzNjMThkOGMwMTUyNWIwYWU2NDVkY2QyNTRhZWE4ODJhODkzNzc2NDQ0NWQ1NDY3NTdiNDFhZjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_687028d8c9c94aceb4f7da4b8ab1d11a",
+      "statement": "The PGS solver creates fresh constraints from each manifold, uses fixed-dt whole milliseconds as its iteration count, and gives inverse mass/inertia only to positive-mass Dynamic physics bodies; static, kinematic, missing-physics, and nonpositive-mass bodies are immovable in solver response.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L100-L122",
+          "version": "repo-lines-v1:sha256:7ec9a2ada166b09b03dbd6277c081e0b9141d93a87cf21d7e829bcdf6ec3c5f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNWVmN2VlMTI1ZjhlOTc2MTE5NmIxNTRiODM3Y2E2ZjlmMWRkYTBiNDFmYjQwM2YzYTVjYzdhOTNmYTUwYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNDJlZWY4MDE4YTk0MWJjZTQwOTAyZjdmM2I5NmRjZDRhZjE1MDUwZWFhZmU1OThmNTU0YmI5OWU5NTU1ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NDg3YmNkODBjZjZkNTRmZWVhYzIyZGM5MzVlOWVlOTUyNTUwZGM4NTcxOGJhMTU0MmU3MWI3OTg4MjdmYzEifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L430-L465",
+          "version": "repo-lines-v1:sha256:9948c05c4a694f005260b1cc8f2daf56a0fae858e89289e125b6e0ed4b3c9812:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NTM4ODIzNzAxOTI4YjUwMjc1NzJjOGU2NjM1NWViODIyODNjM2ViNjQ3YzAyOGU0Y2ViMTJhMjEzMDBmYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyYzU3MDE5ODRjZTQ0NWE0YmE0OGQ4YmRiZTc5YWZiM2U5ZjhjYzQ3YTQ0Y2QzYjA4MTNkOGM0Njg2NjZhM2UifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L468-L500",
+          "version": "repo-lines-v1:sha256:3a47a062a8de49f4daec226fe578fb532c2c1034b8a3806463533dad7c112bcc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlYzNkNjY2MGU2ZWZhYmJhMmRiMDM5MmYwYmVkZmZjYTJhYTRmZTUyNDk4YWFiMWI1MzIxMjhkNmFmYjQzNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlZTg5MGQxODZhMDE5MmFmN2I5ZDkzOWJkMDBlOTBhNmJmNDc0MjRkZmJkODJkY2ZhNTlkM2M5ZDQ3ZmY3YWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f92129693a4b45e9982b1e4b0869a119",
+      "statement": "Constraint response applies nonnegative normal impulses, thresholded minimum restitution, and friction bounded by accumulated normal impulse, then applies slop/percentage/cap positional correction and support-aware resting stabilization.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L170-L259",
+          "version": "repo-lines-v1:sha256:1d40677a02280f03dc2a03fe80bbae90a6ed97b82a87edaa7bd280752e7e58b1:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4M2UyYTU0YzY5NjY3YjY1OWU4OTRiMWRlNzRmYmM2ODExZDQ3MmViZTdiNTg4NjVhMGJjZGE4NDk2MDVmYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzNTJhODNkMmUxN2FmZDVlMWNiNmEzMTVlMGJlOTJhOTlkY2RlZTJmNmY2YWM2MzNhN2Y2YmUwNWVmYmI5NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1ZTMyOGM4MTRmZDRhYTE3NmVkOGU2NmYxYTY2ZjhhZmJlNTNjMzRiZjY4YzM3ZDMwNDkxNzU4ODA4NDVlMTkifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L262-L324",
+          "version": "repo-lines-v1:sha256:32141418559b33e4bb83e9f578fb936e77b4c1b23d599c33270313dffb4ed0af:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2NzQwYTg2MDU5YWIyZWRhYTY2YWMwOWRiN2ZhOTM5ODUyOWY0NzM4MGQwODgwZjFhNjBmYjM1OGU5OTk3NjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYTQ2OWIwNmIwZmYwMGMzNzQ2NDc1ZmVkMzNiZjZjOTVjNGFjZTJhODRkZmU0OThmZTgxODQyZTA5M2ZkYjEifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L326-L428",
+          "version": "repo-lines-v1:sha256:85701ccaf8516ac3c1109bedf0c529ccc0aa71df34a4189070f4db944e266cc6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1OTIyZmE2YzRlNzZhYTQ3ZTBjNTA5NzIxOGE0YWVkMDg3MTE2NWIwMmYyMjFmMThhOGUyZjk0NDkzNTU0ZTFmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxYTI3NDZhYWYzMjY5Y2Q3NGNlMTliYzMwOGM1OGUyNGU0ZjRlZTdkNzc0YTQzNzBlMTJhNjRmZmM2M2JmMmE4In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_86fe298e8bb140f79b40631509c1c62b",
+      "statement": "Only Dynamic bodies are integrated; awake bodies receive gravity, transform integration, and drag divided by mass, while SleepComponent zeros velocity and sleeps a body after configured low linear and angular speed duration.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/sleep_component.rs#L3-L21",
+          "version": "repo-lines-v1:sha256:bde9df9e33e52881060ae55d13c3210dce9dd06bb5f6380a1db03f9cdaf753ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MTdmZDQzNTg3NTdiZjlmOGFlNTkyNGY3MTBlY2ViOTI2YWU4NmFlNzc2YTgxZDVhMjA1NGY1ZTRmMTBiMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxMGMzMTY4NmEzZDFlMmM4NTMwMTJlNTAwMDU4MmFjZDliYTU4YjE4NTdiNDNlMDk2NDNmOGQzMTdhNGUxYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/gravity_resource.rs#L12-L18",
+          "version": "repo-lines-v1:sha256:1e0617d568087ff11d8260409056210eaefbfda03cd850021b49e87a8e886a04:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTA2ZWIyZjU0ZDBmZTBhZWJmMTNlZmNiZTc0NDFlMjcxZjVhYjM3YWI1ZjFjYjdjMWU0Mzk0YTkzNGQ2OTUzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmYzNTA2ODhjMmIyOGZiZTM0NDRjYzZhYzZhNDFmYzE2MzU4ZGJmZjlhY2I1YmIwYjAwZGQ2MmZhY2EzMzY3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDRiNmVmMGExYjkzYWJlNjk2ZTRlNjFiMGYxZmQ4ZDgwNzYyYzM4MTVmMmI3NzkxOGI2ZGYwOWY2NzU1MjhmOCJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/gravity_resource.rs#L59-L65",
+          "version": "repo-lines-v1:sha256:b638ca68a55a53839ffd65a85bcc8438b912bb34d1be5a516aa6b02145100f3b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmY2NTA3MmVmMTViOWMxMTZiYWQyOTJmNDc3YTAyYWRkMzFjNTc0NjAwNDllY2VlNjY3YjFjNGMzNTkwOWE5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODA2MGVkZDlmNTU3MjBjNGU2ZmI3MTI4YzFkZTUyMzA1ZDQyYWU4ZDA0M2Y4OTk1MjkwNzNmZGRkMmJjYTZmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzEzMmFmNTMxMzI2NWMyZjllOTJhMzc5ZWNiYjZmM2UzY2FiNDdjM2UwNzU3MWQ3NjlkODcyMzA4ZDM4MWMwYiJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L29-L98",
+          "version": "repo-lines-v1:sha256:5f1c2404fa94ce3a832ea5dd39034f6f9b5b21a286c1ce0a21dded8a814238f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzNTM2ZDIyNGQ1YTFjMjUwMTk5N2E5ZjI5YTg4ODA0NTZhNTZiNzNlZDYwYWZkZDI3NDdlZTgxZTgwYjA4MzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjZDJjMGQxN2I5ZTNkZjU2OTA0NDliYWNlYThiMjc2MDAxMDJiZjg3Y2MyYjdiZDg4NTVjNjI5ZjgzNGJkYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhOTNjYzgzNDEyOWIwNmJhNTk0MDhjMmE5YjczYmZmZTdlMmFiOTk3MTEwZTYxNDUyYzM2NTI0M2RiZmM2ZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_31a60f458c6649dcad4a53e254132dc1",
+      "statement": "Physics-event dispatch emits Hit for a current ordered pair absent from the previous manifold set and Stay otherwise, triggers only endpoints carrying PhysicsEventListenerComponent, and negates the manifold normal for the B recipient.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/physics_event_listener_component.rs#L3-L7",
+          "version": "repo-lines-v1:sha256:040721c1dec2cd5049c94f373ef5ca6e4297612a5c2694a863c286fb24aba3cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJjOGQ3Zjk4ZTI3MTk2NjZlOWFkODIzZDM1NzlhMWY2Yjg2MjU3OTlkMGU3OGQ0ZjQ3NjEyNGI5ZjkyMmFlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc4NDJkNjVhNmIwZTNlMjE2ZjQ2N2FhMGUxMTlhMTU2YmRhNzRjYjk0ODMyM2M3N2YwYzk1ZDY3NTQ5YzU2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWQ1M2U4OWIwZGY1MDg4NjkyOWY3OGQ2MGVmM2U2ODUwZDkxZTgxZTY1MTM0NjE2NmNiMWQ1ODVjMDhhYTk1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_event.rs#L5-L25",
+          "version": "repo-lines-v1:sha256:e81e7cde5e27d3d4b0dc5a43fef369023f947b27fd3dcbfd600b8d3fd6c6bbdc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhNjA4NDQ4OWNiMWZiNDc2Mjg1NjhjZGFkM2E3YzRiZjk0ZjZlYjVmMTA4YmM4MzI5NWMzYWFjYzVjNTA2ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNzUxMTUzOTM3NmMxNTM4ZWQzZDM2Njk0ZDhlNDIxMWViZTVjN2I5YTBlZDQwMGUyZDQxNWM5ZTYzN2FiYWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmY2RhZTEwYzBiZGYzMjUzMjU3MTBjOTM4NDhlNTk1YWQxYmE3Yzc3N2Q0MDY0NTM4MTkzYzk0ZmM1OTRlMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_event_dispatcher.rs#L16-L63",
+          "version": "repo-lines-v1:sha256:69a3c5b69ef907bd0016ea35f965a46c2c6d6d5d1807caf4252bd1127a4385ce:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxOWJmYmY2MmQ3MjkzNTllZmI5ZmI3OTRlZjlmNDBlMTIzNmFhNzBjNGMyNzg2NjIwYWE2MTE5ZmExZjFiMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyNGExNjU0NjZkYWVlNDExODlkZWNmNzU3YjlhOTMzZjQzN2RjOTQ0ODMzMzZkOGU4NDBlYjRlYmY1ZTExYTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d043c1c70964f25860323e9fdd86d39",
+      "statement": "Impact metrics derive approach speed from relative translational velocity along the manifold normal and reduced mass; the once-per-frame SimplePhysAudioSystem consumes the same manifold history and queues one-shot audio only for Hit events.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/simple_phys_audio_system.rs#L17-L75",
+          "version": "repo-lines-v1:sha256:ecb72f985a336b24eabc9952054c44b035bd80138641622f19fcee3da97b75b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNDQ3ZTNhZWFjZDhjOTU5NGE0YjY0OTEzMjliMTQxOTdmN2U0ZDFlNDMzZjFkZDI4MWE0YjczOTQ3OGM0NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2MWMyZjE5YzMxYWU1N2Q0ZTU2MGY3MmVlNjI4MGExMGViYzM2NjI5ODQ0MzZkMDYxMGRmMmRlZDQ3MGNmNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L284-L306",
+          "version": "repo-lines-v1:sha256:98ad08b85abbe9585c6b8c9c4fd16aad53d7ab761a82c377b307daddec36bb14:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMTgzYTY2ZjRhNGE5ZWUyYzc1ZmYzOTg2M2YzMTcxZTYxNDUyYWZlNjZjYjk1ZjRhNmRmOGU5N2NjYWQ5OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5OTAwYTA3NDk2ZThmYjU5MTkyNTAzYjk1Y2ZmMDYwZDhjZjdjNjFkMmI1MzFiNGMyNjgzOTc0ZGNkZWI1ZTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlYTEyNTc3N2U1MTMyYjNhMDJiZTdkODhjYzhkODNkMjcxYjRiMmU0NDg2MzNhMDA0YTM5MjkyNWJkNjdlMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNTQzM2IzMGQzNTI3OGIyM2ZkNDE5ZDQyNzIwMjdmN2ZlMTg0MjgwNWFiMWU4YWMwMDBiYTQzY2YyOGMzMDAifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L90-L101",
+          "version": "repo-lines-v1:sha256:375012ef405226934e40702e4f885215178732f4bb7722400972aae26e79e737:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNjE3MGY5NGMxNGVkMmQ4MDg1YjlhMWI4ZmU3ZWE1ZTM2NmNlN2ZlMDMxMjdjNjY0NGYxMmRjODc4MTUxNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ZmUyY2RiNWFmOTI3ZGFkMzQzMzg5MWE4YmZiYzE5OWI0MTI4NWRmN2IxMmFlMjY5YzJmMjk2YjY0NjhjMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxN2UyZGFhMTI0ZjM3ZmFlMTE3NzEyN2M4OTQwNjg4MzYxOTgxYzRhN2E3MWQ2YjAwYzdhNGJkNWY0YjIzY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5Y2Y5NmRlMzc1MGUyYTU2YjcyMTQxZDYwYjNlNWQ5NThhYzA4NjVmMWQ2ZDBjYjY0ZTUwYmRhYWM1ODg0YzMifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L477-L509",
+          "version": "repo-lines-v1:sha256:8f4b9cd817479675296121f2a4beeff752d6c7cad9bb8c650d2ad03d8866f4c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxNDkxNmM0YWY2MTk0MWNmNTU5NWEwN2MyNDdkMTAwMmMxNDc0ZGIzYzFkMmQ5Y2Y3ZjcxZDZjNmZlYjY3MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmZGEyMjZjYmY1Y2VhZDYwYTVlZGE3NDM1YTUwOTU4ZDQzYTRiMzRjM2E1ZmUxMDU0ZTUyYTA3MjUxMDNjZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNGY3YTE5YzE3MmYzYjM0NDIzYzJkMmE3MzhkMmEyNTVjYTgwM2UyNjU2ZGFiZGQ3ZDA4YTZlNmVlMDcxYWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab655f178b174b1590ed0b38e5bc8c9a",
+      "statement": "The engine includes focused collision tests for manifold/contact behavior and dynamic-tree structural stress, plus dhat integration tests that assert no additional steady-state allocation for repeated tree updates/queries and EPA calls after warm-up.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L1645-L1866",
+          "version": "repo-lines-v1:sha256:4d6f05c74fa4ae0035b57b1e8a025fc6657920854d8957be6bce57b9d5813c0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZGQ4YTIyZjFkZDQ2MWU0MWYyOTNjM2JlYTNkYjNlODZiMzdhZDNiZmY3NzI0OGQzNmZiN2NmODI1NzNkNmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3ZGNiYTkzY2YyNjcyYTdhZjQyNjI3YjkzYzQwNDljNTY3MDI5ZmM4ZTZmZmU5ZjMwMWNjM2I1ZTU0MzQ2MGRlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0MGJjMzFiNzU5NjFmMzhmZDYwODY4Zjk5Zjk4OWJmMDVkYWZlMGViNTI1NjMzYjhkMmFmYjBmOTE2YWNmMzE1In0"
+        },
+        {
+          "resource": "repo://engine/src/physics/dynamic_aabb_tree.rs#L805-L918",
+          "version": "repo-lines-v1:sha256:5151886a2aae8e919f19c2525619da6de86ad00a492ae41fb9c8010a0075daa1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZGQ4YTIyZjFkZDQ2MWU0MWYyOTNjM2JlYTNkYjNlODZiMzdhZDNiZmY3NzI0OGQzNmZiN2NmODI1NzNkNmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxODFmYzZiMGY5MWNjYTc4MDhiYTQ5MTFlZDRjZWY2MDFjNTFmNDU3ZTIwN2IwOWQzNjM4ZTU4N2UwYWYzYmJlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjMTUyZWE1MWFkODBjNDA0NDkzZDc2OTJlYzdlOWNkYjcwZjBlOTg0MjYyYmRiOWFkYWJkMTZlOGJlZjg1YTBhIn0"
+        },
+        {
+          "resource": "repo://engine/tests/dynamic_aabb_tree_heap_test.rs#L15-L60",
+          "version": "repo-lines-v1:sha256:dce3d908c0c80590a177968e1a42c378922c62877c939f21452eecaa83018574:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NDJjOWUwYTU4ZTIyMmZkYWEzZGIzODdmNWQ3N2IyYjNmZGZhZTFjZGU3Y2JlZTFmZGM2NDM0MWYwODhhNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzFkOWZiODgwZWVjZGNiYTUzMjc1MmRhMjM3YTZlOGI2MzJlMWNlY2ZlNTM2ZDhmZTkyYjhmZDA5NzJiYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/tests/epa_heap_test.rs#L34-L74",
+          "version": "repo-lines-v1:sha256:04327c16ba6cb3e5452fb35e2287eaf0d8aeb31374cddadd86b88dfe5c2c7a6a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NDJjOWUwYTU4ZTIyMmZkYWEzZGIzODdmNWQ3N2IyYjNmZGZhZTFjZGU3Y2JlZTFmZGM2NDM0MWYwODhhNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzFkOWZiODgwZWVjZGNiYTUzMjc1MmRhMjM3YTZlOGI2MzJlMWNlY2ZlNTM2ZDhmZTkyYjhmZDA5NzJiYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiMGUxNzA1NTk1ZmZmZWFjN2M2MmVkNDM1ODI3MTBiZDc5ZmRmZmI4ZGM5MTIyYjYyNmMyNjFmOTg2NzJkMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T19:22:21.487Z"
+  }
+}

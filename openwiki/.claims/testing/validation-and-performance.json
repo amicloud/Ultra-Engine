@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:db8de4fa844d7b0f546ae26839b915afa3c5df417e658eaca1b410dce0a54c09",
+  "claims": [
+    {
+      "id": "claim_1f6808c6c49540cd9bdd2fb9bcd70616",
+      "statement": "The repository is a Cargo workspace with `engine` and `game` members, and its Rust GitHub Actions job runs on Ubuntu for pushes and pull requests targeting `master`, installs Linux SDL/windowing build dependencies, then executes `cargo build --verbose` and `cargo test --verbose`.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/rust.yml#L3-L30",
+          "version": "repo-lines-v1:sha256:8d1f027dc234b3e4940625334fc23c40f03dfab94150575351ae47802a22e3ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3OWZmYjI5NWM1ZjNjZjZiYmI4NTY3MWZlNDMxY2JjODE2OTI2ZWIwODc2MjdlMjU3MGRiMGUxMGU0ZjQ1YTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OGRmY2MzMjZjNjc0YjQ1OWU2NjMzODlhOTc2ZWZlYTkyODgzMGUwOWZjOWExYzYwMDhlNzE4NjNiNDQxZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzZTJkMWE1YzNkZTIzYTY3YjQ3NzYwNTJhOGY4MTJhYWQ2YjAxYWM5NTdkNDZiNjE4MzY3YmY1ZTExMGQxNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://Cargo.toml#L1-L6",
+          "version": "repo-lines-v1:sha256:af69ae4ac5c5f056f77f02899f321aeca83eccdbb15b342bffeaa629520752b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWEzYzIzOWRkMGYyMTU0ZDc5NWMzOTlhMjdlZGI5Y2MzNGM0YmQ0M2Q5Mzk5MTY3NmEyMWRiMWQwYWMyNjk4ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODc3NDc1N2E0NGQ1M2Y0Mjc0MWM1MTk2NTk0MmQ5MTU5ODdjODNjODQxMGNkYTIzNjA5NmQwY2M1OGNkNjlkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjMyM2U5OGMwZDBlYWEzYTI1NzBjNzBlODZmMTc5OWE1NmZiZTIzNjk4OGY0YWNlYjg4YzIyYzczZWE2YzNiYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_60d313a70fbc42fab14adc96fca48739",
+      "statement": "`TimeResource` has executable unit coverage for default and requested rates, fixed-dt setter/accessor consistency, frame-delta accumulation, and elapsed-time ECS updates; its default simulation and target frame intervals are both 1/60 second.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/time_resource.rs#L105-L216",
+          "version": "repo-lines-v1:sha256:885a2d3bee50c14acb01e83c3b9bf17db84fbb2d66b591a41ea10b42738425b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZGQ4YTIyZjFkZDQ2MWU0MWYyOTNjM2JlYTNkYjNlODZiMzdhZDNiZmY3NzI0OGQzNmZiN2NmODI1NzNkNmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyOWNmOTZkZTM3NTBlMmE1NmI3MjE0MWQ2MGIzZTVkOTU4YWMwODY1ZjFkNmQwY2I2NGU1MGJkYWFjNTg4NGMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1In0"
+        },
+        {
+          "resource": "repo://engine/src/time_resource.rs#L14-L24",
+          "version": "repo-lines-v1:sha256:18ae268b25dc0889b3140448616bf13dd858add51774598c1c84cfd28f53d7fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhNmI0NmQwNGNjMTBlYTUwYTY5ZjdmY2Q3Mjk3ZmYyYWMwYjZlZDkyNDg5ZjJiNjMzMzVhZjJlY2VjMTdiMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxZDMwYmU5ODgxNDE4MjljMzdkYTI1NDg2MDQ3M2FhYWJhY2FjNmI1ODBmODcxZWM0OTBkMWIxNjc0MzQ0YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjMDI4OThmZDAwN2MxMWZhMDcxNjY3OTgwOWI0NzdiZmVlMDhjNjAzMWUxNmM4ZTZiY2JiNGY0NmMzNWE4NGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6454a0e6b9ca48aabba9a6fe6d303938",
+      "statement": "GJK classifies exact coplanar cuboid faces as no intersection and returns a four-point tetrahedral simplex for intersections intended for EPA; EPA uses finite iteration/tolerance limits and returns the closest available face as a fallback at its iteration cap.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/epa.rs#L12-L14",
+          "version": "repo-lines-v1:sha256:4d94b44f807217be9134391b7cecf81e77af45dd02ec4cc11832e0eadfa47167:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JhZjc1ZjQ4YTcxZWQ4ZGJlYWFmZDQ3ZTVkYjk4NTljMmFjZjU4NjM4NTE3Yjk0NWQ4Zjc0NjAyMjg4NjRmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDE2NjIyMGE4OTA0N2UxMThmZTA4NjA3MTIwNmE0ZmViMzE4MDhkMTc2YWI2MGM3YmM3YTk0MzEwZDk2ZmViMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAwOTkwZWU4Y2RkNTM5ZWU3MTlhNThmYzc1YWI2ODRkZTFhMmMwZjA2Y2IwOTgyNWEyMTA3MWVhNWJkY2VmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY5MzE2ZTQ1MzhjZjlhMTg4YmYxZTEzOWExMTQ0NDU2Y2I4OGEzYTRlNDNkMjMyNzFkZjdkNjQzM2RiNWY2MiJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/epa.rs#L60-L105",
+          "version": "repo-lines-v1:sha256:43031d8bddb813b097d8977e0c725a94ce6b98573c8154474f25dff4be8bd4f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZDBhOWVkYWZlMjY5ODZjNzUxNGJiYTE0NzI2ZjBjMWQyODEyMWFmMzg5ZTlkM2I3ODdmMTFmZGM2YWJmZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5ZTRiYjNjZDhiZmVmZjY2N2U2ODk3ZmJjNjA1YWJkYzVjZDJkN2NiYjBhMGM0ZjQ1ZmQ2YTdhMzE0ZDA3NGMifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/gjk.rs#L11-L15",
+          "version": "repo-lines-v1:sha256:0432f018b0c72628389b1ee842377624dab56ccceb0c0cb547a870c974d4cf52:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U2ODNlMDgxMGVkZmUyNzg4ZTk5ZDdkMDQ0MzU2OTIxMjE4ZDYxNGZhOTlmZmZjY2QwYTYzNTYwZmU2MGRiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGY2OTM2MTAwMTQxMjlhMDY1NzEyN2Y2NjljMGNjNzYwMWJjNTMyZTUyYmRhM2M1NWE5NGRlZWM1MzI0OTYzMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2M3ZmJmMTVjYjU4MGY0Yzc1NTNmZjFkOGZiYTdhZjcwNGY5OTU3YzFlNjczZmE3YWZiNzg4NzQ5MjRmN2M1NiJ9"
+        },
+        {
+          "resource": "repo://engine/src/physics/gjk.rs#L39-L97",
+          "version": "repo-lines-v1:sha256:edee9187cc106cfe44157542d1f7a3facde7bb8a6d8a1fcc129d7990140fe8d9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZjE4ZGI3ZWMxYTNiZTZjZjhiMDliMDlmZDQ0ZTRjNGRhNDcyMWE4MGIwNGJmYTdmZGVhYjlkYzliYzk2YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNGFiYzY3ODQxMjZiOTdkOWUxOWFjZWQ1YWZjODFhNjA1NDY2YTE1YWQzMzc0NGVlNTY0MGZiODNkNWE1ZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyZDNmNDc1YjA0OTNkYWEzY2UzZjZhZmI3NDI2YmQyYjJjZjVmYWJmMWMzZjI1NDViOGMxZGVmZTA2MjZjODYifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/gjk.rs#L783-L839",
+          "version": "repo-lines-v1:sha256:1da6003420bdd934dc402daa44ad942175a95932aaaa86099a473fc19e81cca3:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkZDhhMjJmMWRkNDYxZTQxZjI5M2MzYmVhM2RiM2U4NmIzN2FkM2JmZjc3MjQ4ZDM2ZmI3Y2Y4MjU3M2Q2YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMGU3ZDQyYzFjYmYyNTNkZjZlNDg2MjliNjI0ZTViODNhMTFjOTM5MjZhMTU1MWI3ZGQxZTI1OTliYzdhYTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a5d9f8066093498a8562329747983b4f",
+      "statement": "Collision-system tests include recorded main-scene convex-versus-mesh reproductions that require nonempty reduced contacts and cap greatest penetration at 0.50 for two transforms, plus a manifold snapshot intended to retain four distinct contacts rather than collapse them.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L1595-L1643",
+          "version": "repo-lines-v1:sha256:6ddd673bbb814eaa839f1c28bf039e436686910ffb0262b1d76d5f8dd8e951d2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkMGYzMTk0YWFiNmI5Yjc2N2MwMzA2YmViNmNkMmZkZTIwZmNlMDk4ZTU4OWE1OWMyNzU2NjdlZjdkMGJhNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5NWY5OGMzNjM5YWI5Y2U2Mzg5NGRhYmMzYjg5YThhNjljMjIyZTA0NzQ4M2Q4MjgwMzJiNDQyMzJmNzZjNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjNzVhMjQ0Zjc1MWU1NjE1YTJmY2MxNTk5M2IxNWFhY2VlMDNkNmY1NDFjZmFlYjI1ZjIyYWMzZDRiZmQyOTQifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L2298-L2336",
+          "version": "repo-lines-v1:sha256:a614a6d2303a43bca44fd4a504a3433a519085605b9115911dfb9f5f1cf72882:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkZDhhMjJmMWRkNDYxZTQxZjI5M2MzYmVhM2RiM2U4NmIzN2FkM2JmZjc3MjQ4ZDM2ZmI3Y2Y4MjU3M2Q2YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NGJmY2IxZTRkY2U4NjNhNjAyNWQ5NmYxM2FkNTM3MGQxOWI3NWY5M2JiNjgzNTZmNTliOGU2YjdkMTZlMWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxMTZiNzYwMGZhNzRiYjJkMGY4ZTVkM2I2Yjc5MGY0YTRjMWIwNDVhNTIwMDg2M2VmMzhmOTJiNTI0ZWEwMWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_20119b00d8f54957a324a51eb528a0e6",
+      "statement": "Cuboid collision tests assert scale-sensitive overlap behavior, including non-uniform and rotated scale, whereas sphere-sphere narrow-phase tests assert that changing transform scale or rotation does not change overlap state; separately, a convex sphere's broad-phase AABB scales radius by the largest transform axis.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/collider_component.rs#L321-L344",
+          "version": "repo-lines-v1:sha256:acdbc7e4dcbcf23fe44ba9bb273bcf76f5fcd54b399c0016d335e93175ccafb2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4OTBiOTI1MTc4NTY3YjMwZDU4NTE0YWVjNDQ4NjE2OTc3ZTQzMzExZWEzNDRhYWJjNDg0Y2NjOGY4MjEzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhM2VkNzdiNmIwOTYwNGYwMWQyN2NkMTUzZjM0MWRlY2Y3NGRiYjNiZDNjYjY5M2Y1YmFiMDY2ZGU5YmMwNjUifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L1868-L2071",
+          "version": "repo-lines-v1:sha256:c267efccfdf59bdfdd1dc38bad199a9c67a7d6bc620c0498c6e51e147033f8b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZGQ4YTIyZjFkZDQ2MWU0MWYyOTNjM2JlYTNkYjNlODZiMzdhZDNiZmY3NzI0OGQzNmZiN2NmODI1NzNkNmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxOGYzZDZkZTg4ODc4MjRhOTY4OWU0ZThhZjdiMmJmYjcyYmRkZTZhMWQwMWJmNTAzZmQ5OTk0NmZmMTAzMDViIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5ZjBjZTZjOTljMDAzY2QwY2M2ZGFhMzEwNzllNjcxZTczOTg5MzcwNzMyYjY2MDQzNDFlYmZkZTU3MWQ2MTc2In0"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L2124-L2247",
+          "version": "repo-lines-v1:sha256:b862643b3168e1cae5a4eb4120031300df493190d2ea5c4d5e5981c591b195bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZGQ4YTIyZjFkZDQ2MWU0MWYyOTNjM2JlYTNkYjNlODZiMzdhZDNiZmY3NzI0OGQzNmZiN2NmODI1NzNkNmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2ZGRjNjA0ZTc2OGRkNTZmMmY2NDdhOGQxMDlmMzA1MjQ3NjEyNmRiNzVhZjcyOTVmOTIwODhmNmVkNGFjZjNhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyMzI4OTYwZjI1ZjczMWEzM2IzOGQ4MWEzZWE0MGYyNjkzNjFmZDY3ZGRjY2M5YmQ3NWY1YWI1ZmQ5ZjBiMDhhIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5df8851dfc542aeab96531519abf64b",
+      "statement": "The dynamic-AABB-tree `dhat` integration test warms up by allocating 64 leaves and forcing an out-of-fat-AABB update, then asserts that 100 repeated updates and queries add zero bytes to `HeapStats::total_bytes` after the warm-up checkpoint.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/dynamic_aabb_tree.rs#L31-L55",
+          "version": "repo-lines-v1:sha256:c6e5190790bfa57a0d7685e81a5510415f2700c35ba43b32f02cc24f9e8caaad:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ZjU0Njk2N2I3MWEzOGQxMTlhMTk0ZGIwMGQ1MzdkZGE5MGQ0NjZkN2E5OWNlN2NjZjU5NWFjZGU3MjlhNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjNTZiODIxZWU1Y2MzZTg5ZTk2ZGU5OTMzNGY1YjIyMDhmMzIxOTdiZGE2YWZiOGM1Y2VjMzgyYjJhZDY4NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYjJkNTdlYmY2OWY4ZDdkYWZiNTViNzFiZmEwOWZlN2U0YTdlODU2ZTg4MGM1MTViNzZmYTMzMWQ2OTM2ZmQifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/dynamic_aabb_tree.rs#L320-L370",
+          "version": "repo-lines-v1:sha256:9a02424dd710e182c50971f266f341e08f51c972d50a7bff6ec602aa71f3550f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3MmJjNjhkZDExNjg4NjEzNWEzMDE5NzUzNDU3ZDRhODE4YjJmYWYyZTNhMzU3MGVkNzg2MDQwNGNiMjgyNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MDZjNjM4OTdjNWViNWIyM2FlMjQwNzc5MmM0MzFlNmQxMjc3ZDA2YzIyMDdkN2IyY2VhMTljYzQ4MjBkZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMifQ"
+        },
+        {
+          "resource": "repo://engine/tests/dynamic_aabb_tree_heap_test.rs#L5-L60",
+          "version": "repo-lines-v1:sha256:3d89cf60c8eae33f8549cec9287c4e80fe85bfa12374e268514f63801c6cb705:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiOGJiODI2NzdhYTFjYTZlMzMwMTM5YjQ4MWY3ZGQ2Yzg3MjAyZmVhMmZmM2I5OWQzNTEwZWZhZjZiYTk5ODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzFkOWZiODgwZWVjZGNiYTUzMjc1MmRhMjM3YTZlOGI2MzJlMWNlY2ZlNTM2ZDhmZTkyYjhmZDA5NzJiYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1ZDE0NTM2ZjdhY2M1Y2IxM2YzODI5ZmE4YzBiOGFiN2I3OTAzMmFmYTM4YTBmZjc5Zjg5ZjYzMTAyZTY5ZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e69e348b25be4966bffaa8f85dd7fc3f",
+      "statement": "The EPA `dhat` integration test installs a test global allocator, establishes an intersecting-cube GJK/EPA operation with positive penetration and initial allocation, then asserts zero additional allocated bytes during 100 repeated operations.",
+      "evidence": [
+        {
+          "resource": "repo://engine/Cargo.toml#L41-L42",
+          "version": "repo-lines-v1:sha256:6108ae1e6335c73003798b55d7097053b767306c6edab96fe997c757287da80e:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTZkZWFmMDY4ZTNjYmQ1YjIwOGNmZWUwZWRiYTNmZDgxNWNjZjgzZjc4YTQ4ZDFlY2E5ZDEzNTNhOGZiYWEyMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjEyNjcyYjk3YmI3MjhlZjRhMGUyYTEwMDBjNjVmYmIzOTQ3OWRiYjBjZDAyYzFjMmExNmJlZWQ0MmExYjlmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWE3MmFmN2M2OWM5YWJlZGM5ODQ0OWU5YWEzMjE5NDg2MjBiZmI4M2JiNDJhZWYyY2U0NTg0NjVlNTdkOWE0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWY5NTU3MjgyM2JlZDg3OTQ4OGM5YTljYmZmNDc4ZjcwNjMyNjQ2ODJjMGJjMDllNDdkZjdmNDNkMzZhZmY3YiJ9"
+        },
+        {
+          "resource": "repo://engine/Cargo.toml#L53-L66",
+          "version": "repo-lines-v1:sha256:7fdefbbe5dd157516f6533d1f17ce0f00136c8390d11203a35aa9d187055cbb8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmNzFhMTk5NGU4MDY3YmU5ZjQ0MTVkNjc0OTE5ODA2M2M5MDQ3MTM1MjJmZWY1YTEyZjY0ZDIxMjcxZmJiYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYjViOTIwOTFjYTFhMWYzYzdjYWFlY2FmNmEyN2ZkZjJlNzkxODlhYzE3ZmM3ODI5MDYyZmZlZjdmNjhjYjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4OGM4NTk2ODNiNWU5OTFkM2ViOTAzNTRiNTE5ODVhZDk3YzFmNjVjMDk3ZmRmMjk2YmRkZWMwMWY0ZmVmZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/tests/epa_heap_test.rs#L9-L74",
+          "version": "repo-lines-v1:sha256:67ec3c077aaa12b3ad1839e8095d2f2fd0550fec364f1082c5ee6c33bac42462:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiOGJiODI2NzdhYTFjYTZlMzMwMTM5YjQ4MWY3ZGQ2Yzg3MjAyZmVhMmZmM2I5OWQzNTEwZWZhZjZiYTk5ODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzFkOWZiODgwZWVjZGNiYTUzMjc1MmRhMjM3YTZlOGI2MzJlMWNlY2ZlNTM2ZDhmZTkyYjhmZDA5NzJiYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYzVmODYxMjhlMTU1ZTA0Y2U3ZmNkYTgyNzA5MTlmNDViNTQyN2RiNzA4MmNmNGFhODI5ZGY5ZmFmM2Q2OTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b5ce1c4ae94343aba3ba7f69c3443f08",
+      "statement": "The Criterion benchmark target builds ECS worlds directly and benchmarks a 1,024-sphere broad-phase update plus 512-sphere convex contact generation for spaced and touching grids.",
+      "evidence": [
+        {
+          "resource": "repo://engine/Cargo.toml#L61-L63",
+          "version": "repo-lines-v1:sha256:00fc7856e6a8dd5f721a7a270bc97df7b14f4ea81650b2f8dc27c42edb83c77d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTNlMzlhMDkwYzc4Y2NjOGRmOTRiOTFjMjE2ODMzZWRmZTMxMDYwM2FkMDAyODNlMmYzMGFmYTYwNDk1OTEzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTU4NTNkNjk4NTU0ZmU5NGM0MmYwZmEyNjQ4ODRkMGM1NGZjZTg4ZDc5ZDUxZDJlNGI3YjgwZWU4NGUxNGU2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGRjMTk2NmI0NzdhNjg5MjIzMmUwMmY3ZjcxYzA2ZDM5OTcxYjllN2U2ZDdhNGE1MzgzNjdiZjFkYzg2ZWMzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODAwOTI1ZmVmMWY5NDMxMDhlY2JhNDZjZmVmNjBlZjMyYzk4MjhjMDdmOTZjZGNkNTBlODdlZWZjMmViYzk3YSJ9"
+        },
+        {
+          "resource": "repo://engine/benches/my_benchmark.rs#L108-L138",
+          "version": "repo-lines-v1:sha256:34701384fbcd34824f60fc547424f26f008284ddbc37051fd9a23ae24ac3a75b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNTBmNGE3ZTIxZGI5NjcyYzhhYmMwY2EzZjM3YThmYzA3ZWE4OTM0OGY1MTUyOGM3YzhjYmI1OTM5MTM5MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YWFiZTJjMDllMWQ0ZjcxN2IwNWRjMjQ0MmU1MTg3N2NlOTk0YmJlNmFmMzIzMmQ0NjFkZWFjOWJhNmQ4OTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3YzdkMGI5N2JiZDFkMmIyNDc1N2VjZTE1ZTg1YzM2OTRiZTA2MzE3NzJhOTQwM2Q0MTQwNGVhMDRlN2QzMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/benches/my_benchmark.rs#L48-L105",
+          "version": "repo-lines-v1:sha256:b702a267f13b17b1b98dcde5a47b8f24e02e7128e8e596e4c744182a1a76c161:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiNGI3NmU5Yjc4Y2ZiNTQzM2EyYjE5ZWE5ZTJkMmE2OWI0YzY0YjU4OWVlMTAyMjNjNmRhYzUzZWZkMTA3ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxMDU5YzhjZmI1YTA3MmM2ZjY0ZGQzZDFiZmRiYzM1NmZiZWM5M2FlZWM4ODc5MWRhN2VkYmE4OWMwODg1ZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkNWRiYjE5NDUwMDA0NmY1OGU2Mzg0ZTczMzZiMzJjNDY2ZDNlZTJmNTIwNGU2ZmJlMDIyNmIyNzk0ZmZkMzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_517901c2562447ba96d94e49c07a8bff",
+      "statement": "Settings tests isolate filesystem state with temporary directories and serialize environment-mutating cases because they override `HOME` and `XDG_CONFIG_HOME`; the configuration-directory-absence test is marked ignored due to `dirs-next` fallback complexity.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/settings.rs#L175-L230",
+          "version": "repo-lines-v1:sha256:353367ed15e3e6f118a50da48a030f497092c76f3b81190bc452c05c9d97b528:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNGU3YzlkMmYwYWYwOThkN2ZhMThlNjAzZTcwZmE5ZDUyMzBhMmZmZTM1ZjA0ZWEzZDEwZDljODBkMTdlNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4YjhjMGUyZDcyOWZmYTFlMDNiODVjYmZlNjIxNjMwNTM4ZjVjMTIzOWQwMTY3MTQ3MjJmYzJiMmY5NzA5ZTcifQ"
+        },
+        {
+          "resource": "repo://game/src/settings.rs#L254-L279",
+          "version": "repo-lines-v1:sha256:af9eae1e4bdedefb36df86e5709063c4838a34ddabf9a0672173cc22c4d0d449:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyZjkyMGZjNjU2ZTFhM2VmM2UyYWNjYjhkZTJlNWI2M2Q2NmY1ZGZmNmVhMjVmMDVkODI2MmU3MzlkYmMzMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZWIyM2E1MzhhNGQyM2VhNWQ1Y2ZhYTg5NDc4Y2U0NzliMzA3Njg5YmM5NWI3ODY1NzBlNTNhNDYyODE3ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNzVhMTVjOWMwZTM1YzJlYWY4ODQ3ZDg4OTI0Yjg1ZjZlYjE4Mzk5MDZmN2ExYWE2YTljMzg4MTMyZjUxNDYifQ"
+        },
+        {
+          "resource": "repo://game/src/settings.rs#L375-L464",
+          "version": "repo-lines-v1:sha256:9ea4c0aba1810b9107f253b967e174e5294a304e7ebeeb9157392b8bac2bd66a:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3NGI2ZmI0MWI0NDhkMmQ3NWVhZTM2YWY3NDNkYzg4YzlkODIwM2ViNjYxNjIxOGYwZTIzODk5YWJhOGFmNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZWIyM2E1MzhhNGQyM2VhNWQ1Y2ZhYTg5NDc4Y2U0NzliMzA3Njg5YmM5NWI3ODY1NzBlNTNhNDYyODE3ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNmU4OGNjYzc1NGJkYTE1OTAwN2MxYWM0NDVkNjEwZDFlZDRlMDcwMmY3Zjg1YzU0YjY1OGI3ZmU3ZWRkOTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a80ec0368cb24821926510daa4dca9bc",
+      "statement": "The existing `model_loader` tests exercise conversion of four accepted glTF image formats and rejection of `R16`, while model loading itself dispatches recognized extensions into loaders that access engine resources and the OpenGL context; the CI workflow does not launch the game binary.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/rust.yml#L17-L30",
+          "version": "repo-lines-v1:sha256:e42cf0b443b6dbf8caf0400607bac4cb77985637c9b67c5edc3e4f8916f9790f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNGUwYmUyNmVjODJiNDBlOTUwY2FmNDJmYzVjOWVjNzVmZjExMjY5OTA3ZDQwMmNiZWFkNDE2NDkyYjQ3ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OGRmY2MzMjZjNjc0YjQ1OWU2NjMzODlhOTc2ZWZlYTkyODgzMGUwOWZjOWExYzYwMDhlNzE4NjNiNDQxZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NDc3ZmZiZTQzNTlhYTlmOTM5MTBjNDI4YWNkYTJkYjg2ZWM4Yzg4ZWY0ZDcyMTYwZWQyMzExOTc2ZWY4ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L320-L369",
+          "version": "repo-lines-v1:sha256:7f5795939e45f6cdc3941eee429c63e5ac18642f83c790177dffe36f82723ac9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhNmFiNWRlM2QzOTg5NzlkM2IxNTJkMjM2ZjIwYmViZTdmODJhYzM5MGEzYmZhMmNlODQ3NTIyOWFiNTk0OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxOWYwNTczYjU3YzJjZDc4ZTI3YTM4MTJiODZlMTE5YjUyZmI1MTI4MGZiMWM1OGJhZTBlYjVlNjAyYTY4MGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzYmRmMjFmNGM5ZmI1NzI1NjY3ZDdlZjEyY2Y3ZGFkMGQ0NDU5MTBkZTZmYmNiNjVjZGYzMDI4ZGJkMjVlODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L600-L646",
+          "version": "repo-lines-v1:sha256:f08151f2d1d76404993cee933725978b918afc0424e4ee5123c2180307d90922:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L71-L93",
+          "version": "repo-lines-v1:sha256:f80abc7e30f015098b327f7d98f1d68fbf56a1ad0251c1381e9a5b84028bd801:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0YTVlNzdkMTM2MzNhNDdkMWM4MjViMTIzZTc4ZjYzOTU5YTMyNDI3MmQ2ZTIwY2RkMWJhMTZmYWY2NTk1MmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MDRhMWI3N2Y5NDc0Nzc0MWRkYWQzNzk2OWQ2MmE1ZWRhMTlmYjVmODViZTBlZmExNDg1MmExMWViOGEwYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlY2ZkYTJmNWQwOWJjNmY4NDFjYWY5NDM4MjNlMzg2ZjNjMjVmNWZkMTZlYzI4OWJmOTkzZGFkNGZiOWZkNmYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T19:22:21.487Z"
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:262b97aaf8e077390067474fee94dc40218c432c8af05afa4a3f3e2773480585",
+  "claims": [
+    {
+      "id": "claim_98d96bf647844109ad8715ece0a2fdf3",
+      "statement": "Engine initialization creates shared mesh, texture, shader, sound, render-body, and material resources, and each new Scene installs clones of those resources while creating its own RenderQueue; the Arc/RwLock-backed stores therefore survive scene replacement rather than belonging to one scene world.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L137-L169",
+          "version": "repo-lines-v1:sha256:e8ac2d471957f4502d2a51689111248f974272271994689b6f7e6ef6a91ff856:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTI1M2EyZjBiM2YzMzRkMjYzYmE5NzQwNzU5NTc2MTA0MTc4NWE1Y2ZhZGU5ODBiZDZjOTYwNDY0NmU4YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4NWRkMTRjZTRjZDY4NmJmNmRmOTY3YTg0NDM3MDIxMmU0M2YyZDA5NzhhNWE0MjdjNzI5MDRiZTIxNjc0M2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxZDI2MDQ3NjRkNjkyODhjNmVjZGI1YmUyNWRlNzlmZDZkM2VlZWRkZjc4ZGY0OTI1OGFhN2MyZjk3ODE5MmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L18-L42",
+          "version": "repo-lines-v1:sha256:8ae2ef079120ac5044a417ce2937c4374688d537686f0a2e9407f48e989b5031:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4YzkyNWNkMGJjYzAxNTFlODRjY2ZmZTNhOTM3ZGVlZTUxYWQ4Yjk5NmU0ZjM0OTg0N2NjZDExN2E2YmI4OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MTQzZDAxZmQ0OWE4YzUxNmJjNjZjMGM2ZjNiNjllZDA0NGUwMTRiODYxNmM0MGJhYTQzNGY4NTAxN2I0NDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3OWI1N2M2MjY0Njg5Y2Q0NDc4ZGE5OTE1ODFmZTI5ZDc0OTRkM2VlZmIzODUwZGM4MGM3YzNiNzdiMjgwY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwMGZhMjg0YTIxNDM4MTcyNzczMjJkZWFjNDA1NzkwZDVkMDRkYTZkMmI1NmY3MzllNmI2NTkyNGY0NzRmZTMifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_services.rs#L12-L20",
+          "version": "repo-lines-v1:sha256:29339c3c8bf5292007dc939f6face72146932540f86e595a06e32f89042aed33:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjllM2U2MmIyZGNjZmFkYjBkNTg0ZWM5ZmZjZjZhMGYyMzQ4ZWEzNmVlOWVhYTI2ZTg4ZTZkZmU1YTNhNmQxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDQyMzgwNTFlOWYxMDhmNjNmYTVjNjdkN2ZjZWM4NjIxNjUwYmJmNGI1MGRkMDQ2N2U2ZmRlZTBhMGM1ODVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ccedaa8b6c6140e6be1fa33b0ee0ca84",
+      "statement": "Engine::load_model dispatches case-insensitively by extension: glTF/GLB and OBJ take loaders, FBX reaches an unimplemented panic, and unknown, absent, or non-UTF-8 extensions log a warning and return None.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L315-L318",
+          "version": "repo-lines-v1:sha256:59ab34a25858ae3715b6e7cbb0ef69b13e4c0ab108e3a6b3f8fd51b8d107d884:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWNiZjg0YmEwMzEwMTEzOWI1MTA0NmM3NDRjMDE4YmU4ZmU3Yzk2YWY2N2I4ODI0YjVlZjhhMzAyZTljNTAyZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWQyOWMwM2U4MmMxZmY3NDYyOTMxM2U0ZmQ2ZmMxMWQ5NjEzODBhZWY4ZTYxMGE1ZGQzZTk1ZmRhYzQ5MGM5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGYyZGZhYjI4ZGE5ZmY5NGNiNDM4MjI1OTdlYTZjMDZkODk0MTgyNTVjMGExY2Y3N2UwZGE4OTEyYjkzMTVhZSJ9"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L71-L93",
+          "version": "repo-lines-v1:sha256:f80abc7e30f015098b327f7d98f1d68fbf56a1ad0251c1381e9a5b84028bd801:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0YTVlNzdkMTM2MzNhNDdkMWM4MjViMTIzZTc4ZjYzOTU5YTMyNDI3MmQ2ZTIwY2RkMWJhMTZmYWY2NTk1MmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MDRhMWI3N2Y5NDc0Nzc0MWRkYWQzNzk2OWQ2MmE1ZWRhMTlmYjVmODViZTBlZmExNDg1MmExMWViOGEwYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlY2ZkYTJmNWQwOWJjNmY4NDFjYWY5NDM4MjNlMzg2ZjNjMjVmNWZkMTZlYzI4OWJmOTkzZGFkNGZiOWZkNmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8edc15c67e9b47e8ae6ac6586a116bff",
+      "statement": "glTF primitive import requires positions, normals, TEXCOORD_0, and indices; it computes missing tangents, asserts aligned attribute lengths, then builds engine vertices, bounds, a bounding sphere, and a BVH with leaf size 8.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/mesh.rs#L180-L220",
+          "version": "repo-lines-v1:sha256:06b08330cb2537ea94b7b62544bd3f0618af2d0fbf8848046c2861c43469a64a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NWM5MDEyY2VlYThjNjc2YTcwYzJlNDU2ZWJkOGNhYTAyZDc3YWY0NjBlNjI4MTdiYjdkMTcyOWEzZWFlMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxNzA5ZWQ4NTYzZmE0ZTkwZTJlMWRiYzU5M2E0MzY4YWUxNWZmNDQ5MjNhODE5NGQ0Y2ZmYzJjM2VmNzM3MDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxOGUzODQyYWQxNDczZWY0NzY4MmRiMWE4M2ZlZjY4YTUyYzQyYWM4OGViNjE2ZDQ1NmJiNmU2NmZkYzVhM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ZjBhMGQ4MTc4MGE5MWU0NzBkNzU3ZTM1OWRlMDBlYzM0ZGQxMjU0ODhmZTg4N2E4OGU1ZTg2NTFlNTYyM2IifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L510-L596",
+          "version": "repo-lines-v1:sha256:19fa9dd09d3b87f05c24e63a01035ed2f53bfffd74bdc1b85d6732a651f15d37:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhOGVmNzkxMGRkNjYwNDdjMDIyZGRiYzkyN2YzMDM4YzBjODhlNzg3MGYzYmU5N2IyODYxYjlhZDM3NmQ2MzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODc1NjAyODdhMTM2YWEwOTVkMjAzOTNhNTY3MDRlOWI0MjM2YzE0NTM2NTk1NTMxODcyMTczOGQ5MDE0N2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyZmFlZTExZWU3MjYzMjlmODdjZGQ2ZDAyMjk3MjZjZjA3OTMxM2QxYWU1Yzc5ZjBiMjU5ODc4ZThkM2JmMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8388dd7d12614346a65e3989ded07b7c",
+      "statement": "The glTF importer flattens primitives from every glTF mesh into RenderBody parts with identity local transforms, so it does not apply glTF node or scene transforms.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L338-L369",
+          "version": "repo-lines-v1:sha256:e0906cd00265368d6542a5ca47ba7571b762d32dea9cd2a9f99302dbe8d3c143:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZGM0NWYzYjNmM2M5MjRjZmZlZWNhMTE5NjE4ODQxODIzYWJmNDAyZjFhNTFmMThkYzAxNDcwMDQyNGI0MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmNDkyOTY2ZTE0Nzg3YTk4MDhlNjQ1OWFhNjUwZWM3YWVjMTBhODVlNzhjZjBhN2Y5MTQ0ZjlhODVhNzNjODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzYmRmMjFmNGM5ZmI1NzI1NjY3ZDdlZjEyY2Y3ZGFkMGQ0NDU5MTBkZTZmYmNiNjVjZGYzMDI4ZGJkMjVlODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L516-L596",
+          "version": "repo-lines-v1:sha256:56e9040c8f8892cee151ce6ac2facb6d0ccc6cf1742a0cb504960da07c639183:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4NzIxMmIwNzU5MjFmNzRmMWYyZDg3OGIzZDY0NDEwZWNiZWIzYTQyMjc0YjRkOTI5OTVlNTIzODQ5NzU5NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODc1NjAyODdhMTM2YWEwOTVkMjAzOTNhNTY3MDRlOWI0MjM2YzE0NTM2NTk1NTMxODcyMTczOGQ5MDE0N2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzMzMGNiM2I0YTg1ZTM4M2VmZjkwOWIxNmRjMDhhN2ZlMjFiZDc0YzBlZDM0YzBjMWE0YTM1MzgyYWQ1NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0f4e2ff8a7df4d7dba2ebc691c5e8655",
+      "statement": "glTF material import maps roughness, base-color texture or factor fallback, and normal texture or flat-normal fallback into PBR materials; it requires at least one generated material and accepts only R8, R8G8, R8G8B8, and R8G8B8A8 decoded image formats.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L320-L336",
+          "version": "repo-lines-v1:sha256:0df23cefca7f790977703a3ddd6e76597ba9370ea8460b0d203079017044b28c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhNmFiNWRlM2QzOTg5NzlkM2IxNTJkMjM2ZjIwYmViZTdmODJhYzM5MGEzYmZhMmNlODQ3NTIyOWFiNTk0OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzNGU3MTMzYmVlYWYxNmIwYTAwMmRkNzUzNTdhN2FlNTVmZjI2NTIyNDMwY2U3MTMzMjIyY2JmMDU2ZGYwOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxOWYwNTczYjU3YzJjZDc4ZTI3YTM4MTJiODZlMTE5YjUyZmI1MTI4MGZiMWM1OGJhZTBlYjVlNjAyYTY4MGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjZmZiOTYzNWVlNTRiOTcxNzQxYzhjNTJlZjA4MzUxYjk3MDdjNmJiMTlkZmZiNGRiYjFjMzlhMDI3YjkyZDkifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L371-L452",
+          "version": "repo-lines-v1:sha256:3f740829dc39e9413ac9aa3c3557b92afb34995a208316c896855776d2f1bdb9:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3Mjk0OTAxYTBiZGFkNmY2ZTFiYmM1NWFmMGY3NWUxM2Q5NmQ5NGEzMGIzZTdjZTBhODk1NjI4N2ViM2MzMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4Y2ZiN2Y4N2RkZDFmZmM5NDJlZWNkNTJjNTc3ZWQ5NWIwZTZiMDliOTA0MWFiMzY1ZmFmZmNmY2I2NmM1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkMjljMDNlODJjMWZmNzQ2MjkzMTNlNGZkNmZjMTFkOTYxMzgwYWVmOGU2MTBhNWRkM2U5NWZkYWM0OTBjOTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3YmYwYTllNDZiZTIyZDQ0ZmZhY2U0YWMwZTQ4ZTAwYzAyYjE1ODBhNzczN2Q4ZDgwYWM4MmJiYTI0NmJkNjYifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L455-L508",
+          "version": "repo-lines-v1:sha256:e43be0bf9a6634783d5cccdf438d181cbb44ca16e3cae2eff106749fa3f1d004:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZGRkNWVkOWNkNjY4MDQ4NjI3YjE4ZTAzZjlkZTg0MDBjZGFmOWFmZDA3MjJhZDIyNzFiMzY5MWMwYTIyYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3NjM3NTE2YjU0MTlmOTFlMTRkZGVlMjg0OWM3NzJjNDA1YTAyZTU3ODNjZWEyMTA5MzExZDU1ZWFiYTM2YTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZWZjNWE5OTI4Y2YyMjAyZTY1MzM2MzQ0MjkzZDRiMWM1OTA2MWIwZjQ1NWE1Zjk5NTg2YzFlZGQ1YWQ2YzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4cd790c0432b45b5a2bcf28c773f828d",
+      "statement": "OBJ loading uses tobj single-index mode, supplies default normals and UVs when absent, computes tangents only when both are present, converts diffuse/normal material inputs to PBR-compatible textures and roughness, and creates a default white/flat-normal material input when none are available.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L216-L313",
+          "version": "repo-lines-v1:sha256:33e6a0f0ace0d6bfad0c0120b63f15a1a2b663704ccfc4c355b82497b1bd947e:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NTk5Y2NlOWQ0ODY2ZDZjODczMzU1ZGI1MDRmYzNjNGY3YzBmYWJlNzg1ZTY3ZTM5NTIxMmI5ZDBjZDg5ZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMTY2YTM1OTM3YzhlYjljOTY2MjBjZTUzYzNkMWRmM2UzYjQzYWMxZmJlOTg0ZWQwZjEyNzZiYjJiZDNiYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3OWE2YzFjZDIyNGQ3Nzg5ZDI2Y2VkYjg1MzFiMmNhMDc0NjM4ZWY5MjQwNjhlOGMyNDcxZjA3ODgyOGM2NzQifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L95-L192",
+          "version": "repo-lines-v1:sha256:75ff83b492c957c77116e47fa11b870882a24d85c3595a00d37d64cd2b8ed924:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OWUwYTA5YWI0NzU1YzU1YzkzOTRjMTgxNjIyNmRjYzZkM2Q3NWI1YzBmMDdjZjAyNGEyMWY0YWE4NTI4NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2YTJhNTc3YmZiM2Q0YjYyOWQzZWQ4NmM3OWYwYWQ5YWRhOGIxYTJmYTFhMzU5YTRlMzY1MzBjZWNiOGQ0OWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7fcd74ae228f489eb147e9f0c7a4a318",
+      "statement": "RenderSystem rebuilds the RenderQueue every frame by resolving each RenderBodyComponent, emitting one instance per body part, and multiplying the entity transform by the part local transform; a missing referenced body panics.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/render_body_component.rs#L5-L10",
+          "version": "repo-lines-v1:sha256:65f0d807a50f57bad51c47521c8c504e76cf32deed40f251fa303a37696f10e3:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgxN2ZkNDM1ODc1N2JmOWY4YWU1OTI0ZjcxMGVjZWI5MjZhZTg2YWU3NzZhODFkNWEyMDU0ZjVlNGYxMGIwMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzkzZjI5YjNmYzIyYmQyM2FhYTZhNmU0N2UxMGU3MDJkZDA0MjdjYTM3MDdlN2YxNzNhYzhjM2U2YTY3YzZhMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://engine/src/render/render_body.rs#L5-L20",
+          "version": "repo-lines-v1:sha256:344c6c71ec3a0f5173c6186951c070e9ed16a38af3e9a999abf6470a680009f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllNDIzODU4Yjc0MDZlZjJjNmNmNjFlOTMwNzA5Nzk5MzU2NTZjY2NlZWZkODEwMzY3ODJjNTgzMDJmMzg3NjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0YjcwYmYwMWUyYjBiNGMxYzY4NThlOGIyYTdmMTdiMjdmMjFhYjg5OTFkNjI2YTVjNjA4NjhlOTAwNWQ5MDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/render_system.rs#L16-L38",
+          "version": "repo-lines-v1:sha256:e5d2c29b5b0580d4ed3d73a499670aec98e68c83ff92613f20e7ae5bc18e0c84:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzNjBjZjA4ZTE3M2IxNTMyOTM0MjcyYzRiY2VhNzg4Mjg0ZGFlMzM4NmYxYTU5ZDUwZTQxYjA2Y2RkMTBjMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMzY5YjgyNTIzZjQ4NjU5YmI0OTU2YTMzYzA2Y2VjYzM2MTM4NzNkN2EzOTQzZWRkNWY4OTc4YWY2ZTBmNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_29451714c6a94bbdae0be5a83302a1b5",
+      "statement": "The engine runs render-queue construction in its chained frame schedule, stages the resulting instances, and invokes Renderer::render with read access to mesh, material, texture, and shader stores before fixed-step simulation.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L215-L272",
+          "version": "repo-lines-v1:sha256:dbcd4c321209d8c351324802c443a283ec64f401108c2b63dcf5cebe715993a4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhYTEyYTQ1ODYyMjM1OTE0NzIyOGQwZGFlOWM2ZjJjNDg3NTI4NTFlODgxMjYzMzkxYTY3NDVhY2MxZTNjZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyZGJmNWE2ZGQ1MDg5MTQ3YzliNDIwMTc4OTAwYjJjNWY5MTU2M2ZjZmY2NjVkZDBlN2E0Y2UzOGUzNWZkZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4NWYwYjdhNzc4M2NiNjVlMGMxNDBjZjVhOTliMTZjNjc5NDY5ODY4ZDQ2Y2Y0YThjNjdhZTRlYzZlMWY3MWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2OTk2N2RiZmEwNDdiNzAzNjdiMWI0MDA0Yzc2ZWZiMWRjNTM3ZDQ3NGI4NmE5MDdhNTAxNGZlMTA4MjE4ZDMifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L90-L102",
+          "version": "repo-lines-v1:sha256:10afa83c4e2a678f20bc755a9e368bb202dd1f83682eb1e26273b18a2aac04e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNjE3MGY5NGMxNGVkMmQ4MDg1YjlhMWI4ZmU3ZWE1ZTM2NmNlN2ZlMDMxMjdjNjY0NGYxMmRjODc4MTUxNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhOTBmODAzODdlZjg3ZDI1YmU2YzA4NDE2OTcwYjgyNmFkMDI3ZGMwMjZhYWViMDBkMDg2MGU4MjBkNWQ4N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxN2UyZGFhMTI0ZjM3ZmFlMTE3NzEyN2M4OTQwNjg4MzYxOTgxYzRhN2E3MWQ2YjAwYzdhNGJkNWY0YjIzY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5MGYzZGM2YzIyMTI5YzEyNThlYmVjNTUyOWRiYWYwOTYwYTRmMTM2MDVhZTNlODI4MjliNjkyMzcxNmRjZGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64bd6a4b481f4275b07d44ec528a1bc0",
+      "statement": "Renderer culls staged instances with a transformed mesh bounding sphere, sorts surviving instances by material then mesh into reusable batch ranges and matrix storage, binds each material once, and issues indexed instanced triangle draws for mesh batches.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L192-L317",
+          "version": "repo-lines-v1:sha256:3460ec54373ec78c64e03bd8e4ec2271b8653c0c1962db28092841f8af39e59b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjZDQyOTQxNzE4N2U0OTk4MmY5OTVkZTU0ODU1MDIyNjJhYTVlNjhhNDk5MzNkMTFhMWU3NjE3MzhiNzc5MTEwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4MjUxYmZhYmNmYjZkODlmZDlmNGUzYjdiYzRhMTc0ZmQ5MGM5OTgxODZlNGZkZTJjOGZhMzRlNmQ1YzI5M2FhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzYjdmODBjNjdmZWEwYTE4MWJjMDlkYTk5MWRiZTRlMGJmMmRmOWZhZDBjYjMzN2NhZDI4ZGMyMmYxZGI3ZDA1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzNjk0MjlkYjY1YzI2MGI4ZjEyOWU3NDc3N2Y0ZjJlZWNiMzJlYzcwNDdiY2M2N2IzYzA2YzZlOTYzNTY5OGQ3In0"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L341-L416",
+          "version": "repo-lines-v1:sha256:be27e6f8da20a3a36425a755d21c6c1ad6ad24fb05a2d6be3c34c1924d9919c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkZjMwYzA1MDJjMzUwMjVhZTNhZTlhZjdlYzIwNDFkZGNmNjI2ZWNiNDc2MDJiNDQyZTZjMDFkOWVmMTYxM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5N2ZiOTFmNjczMzljYWY2MWIxNmJlYjc1ODhiNTNkZGI0YmYzNDRiYjI2MmNmMWUzYTJhZDRmMzdjYjI0NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYWQ2YTVmOTg3NzM1ZmUyNjE0MGNjODhjMDkyZDQ5ZmRlMmQ2MGI3NGJhMTk5N2U1M2FhMDA1MzBmZDdhY2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4a0e941d41e849338aae7bae1cec2fb4",
+      "statement": "Mesh GPU allocation is lazy: the renderer caches VAOs by mesh and shader, uploads vertex/index/instance buffers only when a mesh has no render data during VAO creation, and replaces the dynamic instance-buffer data for each draw batch.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L418-L495",
+          "version": "repo-lines-v1:sha256:1833a8268ebfbffeb1de56f6fbfc3ed76783e03e12695d65a4c3050fcbb0b94c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNjg2ZDc4Y2JmOGU1NzZkZGQzMmQ5YzE5NzhkMWQyODRhNGFkYjkwYTZhYTRlMGVlNDUyYWI0MmNhMDYyZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwYzMzZmFhOTNiZjJkMGZlOWNjYTc3OTc3ZDNjODQ3ZjQwOWRkMWIzNjQwYjY5MTYxZWQ1YWI2YmNjNDQ1MTcifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L497-L604",
+          "version": "repo-lines-v1:sha256:d1ad5f79b0e1ecb3ce4cbb901e0ebb128430800218e15252792e9c39b7fad8b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyNzc3MDdhNTM2YTZjNjk0ZmU5Yjk0M2YwNzVmOWY2ZTUxYTk0N2FiMGFiNDhhODZlYTIyMDFjMDAxM2Y2MGRkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4MjUxYmZhYmNmYjZkODlmZDlmNGUzYjdiYzRhMTc0ZmQ5MGM5OTgxODZlNGZkZTJjOGZhMzRlNmQ1YzI5M2FhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3NDcyMDViNTg4NmIxNmI3YTQ0MWZhMzFjMjczNDk1ZDUxYTZjMDE3MzY2ZmJmZWNiYTgyMWU2YTM5ODQ0ZjU4In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_48bc7fc6344348c2a769fb992fd3ca76",
+      "statement": "Shader programs are cached by vertex/fragment path pair, but first creation reads files, compiles and links with panic-based failures; active attribute reflection classifies names prefixed instance_ as per-instance, and the VAO builder binds only recognized Vertex fields and instance_model_col0 through instance_model_col3.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/shader.rs#L45-L170",
+          "version": "repo-lines-v1:sha256:be1303ce05bc2cbd840f31712f7af7886e4a5824a8656ef8a4e3a91174a1c4d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjN2EyM2M5YTE3NjhkOGYxOTA4NWY0NmVmZDEzOGIyZDIwY2Y2ZGNlMzhiZTliOWMyOGVhNTdiZTcxYWYxNWNlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMTI1MDZjNjg1MmE3ZDVhZDcyOGQwNzI4ZjhiMWFjZmU2OGNjNWI5ZTE0YmNhNWIzNjE0ZGQ5ZWUzZmVjMTIwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwNmJkZmY2MjJiYmMyYzRkODQ0MzMxZGJlOTgwY2IzMDRhZjI5OWE2OTYzNjU3NzA2MGM2MDg1YzlkYzVlYWIyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIn0"
+        },
+        {
+          "resource": "repo://engine/src/assets/shader_resource.rs#L42-L83",
+          "version": "repo-lines-v1:sha256:81f86b26ff4a30d4d8120eee889398bacf8490b107d03872755243ad3306d89e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZDNlZWZlOGVkMWY1N2EwNTI0ZDUxNDI5YWIxZDcwMWNiYzVlZjBhMWEwNDNiODQ1YWUxYjI5NjE3YTljNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L530-L603",
+          "version": "repo-lines-v1:sha256:b4a643e513c2049a7665bbe0256827c12dd7c5645d8d0bdc3685e9704c99bfd7:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhZmU1OTMzZjg1MjI3NmI0MzY0N2ZkODkzNmE3NTg2NjMxOTA3MjEwZWViN2UwNmQ1ODJhMWM3MzM0NmYzNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4ODBlNTEwN2FiMDRjMDFjYjcyZDNkYmIxMTk1NDFlZWFjOGRmMjIwMjNhYmY1NmY4OTA0Njk4NWJmN2FlYjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhZDExZTRmYWJjMDFjNDZmMTE1NzVkYzAwYmE5OGFhYWQ5MmYyNjZhZjJlNDBhZTQwZTIzNWJjYTg4NDIyZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c4d369e0309483384e9484898fcab88",
+      "statement": "Textures are uploaded eagerly when loaded from a file or created from RGBA data; failure to open a file panics, and upload creates an RGBA 2D texture with repeat wrapping, generated mipmaps, and configured mipmap-linear filters.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/texture_resource.rs#L40-L77",
+          "version": "repo-lines-v1:sha256:d64dbfa8fa20047a4101abbacfb5807a62f2c20c6aebe59054dda53984457744:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwMTZkYTg1M2JiYTQxMjYxNzE4ZmMzODc2ZDQ2Y2IzMDYwMTcwNmUxN2YzNzdhODUwMGI1ZGRlMTc1ODY4MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L668-L710",
+          "version": "repo-lines-v1:sha256:af0fc75723d1cf47c57e829a431a469644bb3112aeaec41ce1e2a39271555bff:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwNzRhYjcyNjhhNTM4ZjlhN2ZkZTY1NWM0Yjk4NjJhOTNiZGJjMzE5NDRiYmYxYjEyMWEyNGM2OWE5MjliY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_69737d26e5444a9fabdf06aeef7940ab",
+      "statement": "Render-body meshes are also a physics integration boundary: Engine can union locally transformed part AABBs for a render body and create a MeshCollider referencing its handle, while collision systems resolve render bodies and mesh storage to derive world AABBs.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L478-L514",
+          "version": "repo-lines-v1:sha256:7fbf5598cdbdbb7c8fcf1929da48e30b46d4e466b1a797b3f4d9b85bb23c5f84:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MWRhZjE2YjBhMDVlOGFmYmVkM2Y2NjYyZWE5Nzg0MjIxMGNhMTVkODk1NzdlOTQ5OTFjY2NkM2QxNmJiYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0YjQwZGJlZTUxZDZhZTFmYmQ5MmY2MGM3NGM0OTNlODVmNjZhNDIxNzI4YWQ1NzkwODg3NDUyMGZlODNlODYifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/collision_system.rs#L39-L75",
+          "version": "repo-lines-v1:sha256:9ccd36993a3225da2820f5f74a4750a4ae1074b1eab84b1592c479a55f427d5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjMDgxZGIzYmQxM2VkOGM3NDQ3ZDFhNzc0MTM3MzdkNTllNDQwZjQ5NjljZjU3N2I1MDg4M2U3MTc0MzA2YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMWE3NzE5MmQ1OWZmNGQxNzgxNGM4NDAxN2U1MWNmMWFmOWM3OTg0OTlkYjUxYzAxZjQ3Yzc3ODcyNDZhNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1MGZhZjNiYWI5ZmYxNThlYTA4YzEzMjMwMWFlOTdhYjY4MjkxOTExYmQzYmI5OTMxY2M4ZTdhNGZmZTFhMjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_84f75dd928ef437eae8700c3102aa87f",
+      "statement": "Engine::load_wav decodes through Sound::from_wav at the mixer sample rate and stores the result by file basename; decoding supports only mono or stereo i16 samples, linearly resamples when needed, and uses panic/unwrap/assert failure paths despite the public method returning Result.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/sound.rs#L20-L119",
+          "version": "repo-lines-v1:sha256:49dc766e6c39621ad72ca832015c297aaabd968936dd1a5666308d535bfd4b19:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmNzY2ZDk0ZmE0MTUzM2QxYTg1YWEzYjVkYTM5MTIxNWI3ZjFiM2VjNWM4M2ZlY2U0ZGQ1ZmRmNzQ3NWU3Y2JlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1In0"
+        },
+        {
+          "resource": "repo://engine/src/assets/sound_resource.rs#L11-L66",
+          "version": "repo-lines-v1:sha256:c59851642fa666ebc38a0d4e9ac00dd0267f993027641b0b41ef588ccc9e4a64:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MWUzZTI0NTk0M2FjZTBkYjJlNTkwMGM3ZjNjZjViZTBmOTE2ZDNkYzNmZjQ5ZWY5MGE0MDgyOTM1NTk0ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlNjNlMWU5MGY5NDIzZDFiZmVkMmZkMjBmODk3MmRiYjFhNTdmNzdhMzg5NDc5NGJlMGNiNzZhOTUzZDYwYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyYmUzZmIxZTY0ODM0MjU3NjA2NDJjY2E4MTM2NmRmZDY5YjFiMGIyYTAxZWE0NjE3Y2I2MzRjOTg1MjI1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L315-L327",
+          "version": "repo-lines-v1:sha256:2632611e6de2d6528e350782ce6399606021c9b85cd58a00b260904898e5a4ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzM2VlMTVjZDhhYjIyMWVlOTVmYjczZjIyMzIwZTRlZTBjOWZlNWMxYjk4NTlhZDc4NmE4ZDdmZTk1ZWY0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZDAwODlkY2Q4OThiMmQ5YTc1MzQ5Y2E5MTJmYjhjMjYzNzg4MDVlZjllOTlkZjI4ODY5ZGYzNmMwODIzZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwOGM3MjVkNTk4MWY0NzI3YmJjZTc2YWM1M2QyNjIxM2RiMGU0NGM4ZGI0NWVmYzNkYjY1YmY2ZDE2ZjcwMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjNTU2YzYzZWQwMTNiNjhmNzNlYWEyYzgxYTBhODZlMTViNTBjNzY1NDVjNWRkZjZhY2MyODNhNTFkMTVmNDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_34e0cf1adea44e3dbe73a0fa25c9f300",
+      "statement": "Current asset unit tests cover mesh AABB/bounding-sphere calculations and supported or unsupported glTF image-format conversion; there are no renderer tests in the renderer module.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/mesh.rs#L303-L356",
+          "version": "repo-lines-v1:sha256:00249a41fc8a4b23b993c980a14b8d51cde4e9a892d42efec94921f12f1969a8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L600-L647",
+          "version": "repo-lines-v1:sha256:275f134b554c6b2e44b0788a2c96fd5be18253bcb3b599370afd42fb22d2592d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L1-L710",
+          "version": "repo-lines-v1:sha256:38fb95d5285ca087915208269cb98d6b6742637a9f4e491a5b00592e998b258e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiMGNmZjQxOWUwNDkzOTRlYzEzNTBiZjA5NzFhMWUxMmY0Y2EzODA3MmMzNmYwNzgyOGQyYjM3YzVhZTJjZDc2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDE5YTZkY2MwNGUyMTNhM2M3YTc3YTQ1NmIwMWU3NmQxZWY3OGNkMDBiYmVjMWQ4ZjgxNDU4ZmU5M2VkYzU2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1In0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T19:22:21.487Z"
+  }
+}

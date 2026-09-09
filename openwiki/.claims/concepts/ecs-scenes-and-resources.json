@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:137c007354f64735aa01f01a20ac63efc6acb35f3ec9e6fe9830939e38095f71",
+  "claims": [
+    {
+      "id": "claim_e6fa11f2d0aa46f5aea86ea9ba8a5e5b",
+      "statement": "`Scene::new` creates a new ECS `World`, stores a clone of `SceneServices` plus clones of its mesh, texture, shader, sound, render-body, and material resources, initializes the built-in scene resources, and returns empty game-frame and game-simulation schedules.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L12-L51",
+          "version": "repo-lines-v1:sha256:e622a3b861bf1d5131d448b0e2733a0be2ec9abb017dad965c955f9056f8a4c8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNWU1NGQ4M2E1NGE4YThlZTAwMzcwYjAzMmM4ODg5ZTQ1MDkwODI1MTc4NjM5MDE5Y2Q1YzQyM2NiYjcyNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMTEwMzI2ZTdjZGMyZjI0NjZkZTg1MzAzMDkyZjNiNzU5MWJlNGIyMDAwYzEzMDUzNTAxYTQ4NzI4ZTkzZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_services.rs#L12-L20",
+          "version": "repo-lines-v1:sha256:29339c3c8bf5292007dc939f6face72146932540f86e595a06e32f89042aed33:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjllM2U2MmIyZGNjZmFkYjBkNTg0ZWM5ZmZjZjZhMGYyMzQ4ZWEzNmVlOWVhYTI2ZTg4ZTZkZmU1YTNhNmQxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDQyMzgwNTFlOWYxMDhmNjNmYTVjNjdkN2ZjZWM4NjIxNjUwYmJmNGI1MGRkMDQ2N2U2ZmRlZTBhMGM1ODVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e1725d73688f43268403ef0f32002f91",
+      "statement": "`Engine::new` creates one master `SceneServices` value, retains it in `_scene_services`, constructs the initial scene from it, and `Engine::new_scene` constructs later scenes from that same service set; the service resource types are clonable `Arc<RwLock<Storage>>` wrappers, so cloned wrappers share storage across scenes.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/mesh_resource.rs#L12-L18",
+          "version": "repo-lines-v1:sha256:12f78badfe6b8cfe380d1c4ebcb9ad3d0343d31a5cac1ee790dbe04f1fbaf8e3:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzgxZTNlMjQ1OTQzYWNlMGRiMmU1OTAwYzdmM2NmNWJlMGY5MTZkM2RjM2ZmNDllZjkwYTQwODI5MzU1OTQ4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGY2ZTRmNDVjNTAyODA0N2IyNjMzOWY2N2JmZDNmNTYzYjM1ZGY3MjVlZWMzYmRlNjYyYjRlODEyZGZhZjg2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTkzYTczMGZkNmFlNDI0Y2IyZjc5NjRlNWU0MjBjMDRhMDhhNjBlNzU1MzFhOGZhOWY2YjhhZWY2MzlhZDMwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjUwYzY1NGZiNWQyZjE1OTVmOTBjNDRiZWNiOTYyZmQwMmNlZWRmNGRmOTU5MTI2OGYyNzdhOTIxNDljOWQ0OSJ9"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L137-L170",
+          "version": "repo-lines-v1:sha256:ca1373bbb3300f3e45f6e50b27fcabe0d2c31aef182d54ff1c34ca0815cb95c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTI1M2EyZjBiM2YzMzRkMjYzYmE5NzQwNzU5NTc2MTA0MTc4NWE1Y2ZhZGU5ODBiZDZjOTYwNDY0NmU4YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxZDI2MDQ3NjRkNjkyODhjNmVjZGI1YmUyNWRlNzlmZDZkM2VlZWRkZjc4ZGY0OTI1OGFhN2MyZjk3ODE5MmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmN2UxNDQ2MTFlNWFkMDdlODJjODM2Y2UwODU5ZDJjM2NjMDc3OTVkYjFkNDAyODU5OWVhNzc0NmJlNzY2NWQifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L71-L88",
+          "version": "repo-lines-v1:sha256:8acef1d273e2ef00e1610effc7dbd5656626873a62e2f2e29c43f3664a790eda:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjMjhhNmYwMWVjNTQ4MGM0MThiNDA1MTM1NmI4OGU2ZjIxYTE5ZmUwZGEwMTY3ZTJkNjczZTg4Y2UyOWEyNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4NzI2Mjc4ZGEyMGFjZTU5YTFlZjIyNTU5ZjM0OGFjMDViN2ZlZjliMzg2MmJjOTQ5ZmEyYTRhYmM5Y2Q5OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2NDQwMDgyZDliZDRiNmM4NGIzYjRiNjc4NGExOWU3ZmQ0ODY5YzhhNzI1MzczZDMzNTMzNmZlODBjOThjMWQifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/render_body_resource.rs#L8-L14",
+          "version": "repo-lines-v1:sha256:faeec608aeb554300429180ab217d14fca231e38a3471dadafe4a8ea93e78c41:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzgxZTNlMjQ1OTQzYWNlMGRiMmU1OTAwYzdmM2NmNWJlMGY5MTZkM2RjM2ZmNDllZjkwYTQwODI5MzU1OTQ4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmVhM2M4ZWIxM2M1ZmJmNTFkYzhlNjY1NGNhNjJlNDM4OGQxOTliMWYyYmI5MDhmZWY0MDFmNjAxMjkyYjhjOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjc1ZjNmNGFkMDBhNjA4OWE2ZjQ3OWE2YWQ4MDNlMWYzMTY3YTY0MDk3MDRiNjBlMmQ3OGJlZmNhMDZiYzA2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODIwMzlmZTJiMzIwNDJiZTRlNmJiZWM2ZGM4ZTE3MzNjYTQzNjdiYjZmOTE2NTBiYjU5NTMzNzNjY2RiZDI2MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_14070d5de78440b3bbc6e79ad027fbb7",
+      "statement": "Scene-local physics state is initialized fresh: `PhysicsResource` contains entity-keyed AABB/broadphase state, while collision and solver frame resources hold per-step candidate, manifold, constraint, and correction data.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/physics_resource.rs#L32-L50",
+          "version": "repo-lines-v1:sha256:74ddfd2c3c9296f75c3ac3196f3a6aa9f8ee91a8b698995eed1ba636bd9217bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4MzFhZjg0YTUyNTQwMmM4MWE3OWI4MDMzYzQ3ODRhZDgzNGMzYzNkZjVjODQyM2UwZjViZmRkZjZjMjg2M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1M2FiOGQ0M2QzYmMzMDY0YTIyMGI0MTlkNGM0ODJiYzFmZDljZTdhZjQxZGRiNjgwNGJkYWJiOGY1NTdmYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmNjk3NWExYTgyNzUwY2RhNjAxODBmMmY5ODJjODI3NDFjMmUxNjU3ZDUxYTAwMmE5MDNjZjc2Y2ViZWMyNjIifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_resource.rs#L97-L109",
+          "version": "repo-lines-v1:sha256:afe683a78f16ce4fdd676a23dc2ad1f935fab8817b767e3f5172af043b3d46da:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NmE5ZDE2NGFkM2MzOTc5ZThjZDlkY2IxODYyZjE4ZmVkY2YwMDAxZDFmNDM4ZTRjODgzZWZmNzU0NTczMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L32-L42",
+          "version": "repo-lines-v1:sha256:954af8fde2b8bb1fe96c0b6beccc3069f9ac79aa23009a0fbe116c6b493ccd94:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzNzlkZmU3OTY2MWI2ZWNjMjcyYmU2NzhjYjYwZDBmNmMwN2Y3NzUwOGRjMDI3MjliNWM5MDAxNDJmNzRmOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MTQzZDAxZmQ0OWE4YzUxNmJjNjZjMGM2ZjNiNjllZDA0NGUwMTRiODYxNmM0MGJhYTQzNGY4NTAxN2I0NDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmOWJhNzkyNDJhMTk2ZDRkMDBmMGU1NjI3ZDA0MjIwODU5ZTE3NDYyYTBlZTQxY2M1NDY3YmY0MDg0NjYxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwMGZhMjg0YTIxNDM4MTcyNzczMjJkZWFjNDA1NzkwZDVkMDRkYTZkMmI1NmY3MzllNmI2NTkyNGY0NzRmZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2aedbc317c54007880978fd589760ad",
+      "statement": "A scene change is deferred through the one-slot `SceneChangerResource`; a later request replaces an existing pending scene with a warning, and at end of frame the engine assigns the pending scene then rebuilds its frame, physics, and cleanup schedules because schedules are bound to their prior world.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L329-L351",
+          "version": "repo-lines-v1:sha256:0ee4ee81cb7d6eb4e05701cf95148f2bc882809a47a23f85a2922edd9ad76c00:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkZjYwMTIzYTRlYjM2YzZlNzgwMzU2MDNhMzFiNjYyOTFjNTRjNGJhZGIxMjgyMDczNWYxNzM4OTYyNTMxNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyZGU4MzYxMjRkMzI2ZGI2YmRkM2Q1NjA2Nzg3MjU3N2I5NDIxZTgyNTRjMDdkMmExM2Y0NWM1ZDc4ZjU1NTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0ZWY5MDY5NGY3NGZlMGU2N2UxYmY0N2FkNjdlMjg1OGI3NzMzMjk5NTY3YmVjYjBkNzkwOTM2MzlmMTMzYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmNTIzNjk0OWJkYTEyYjllMTBmNjQ2ZmFmYjg3ZjRjZWRhZjBjMjY4MjY5N2ZkYjc3MzQwMjQxNjU2MzMxZmYifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_changer_resource.rs#L5-L24",
+          "version": "repo-lines-v1:sha256:e8bad7756763e86f795f41b99b581faa0dbe88bf98d179db8222e5e01248f474:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkNjZiMGQ4ZGZmMGI5NGE0ZTI4Njk2ODZmOTU4YTViZTU0OTNjNmFlZGUxMTZjOTZlNTU3MzJhMWMyNzFlODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlM2NiNTUyZDdmZjk3YmYwM2FlNzc0NTQ0NDY2N2Y3YzZiMGRlMDdkMjdkOWYyODU2MzIyMjRjZjhiMDBlNDgifQ"
+        },
+        {
+          "resource": "repo://game/src/game_controller.rs#L16-L25",
+          "version": "repo-lines-v1:sha256:d40a9d42e827410acccaae834ee8d631b3f9a3e3fe1c24a75d19c8bd204cd0d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljODBiYjhjYWQzYjE5YTg4ZDE4Mjg4Y2M5M2NkMWVhMWJjZmE0MzQ1Zjc4NmViZDllYWQ5MTc2ZDZjM2ZlMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZDY2NjAxMmUyNmJhZWExYWI4MTRjZDI1MjllNmRjMTBkOTVmNTUxYTQ5OTRlNjI1OTQxMThjODFhNjBiOGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2EwZWNkYzRmYTBkZWNjM2RlZjcxODU0MDJhZGI3M2MwNjdkNjE0OGRhMzY2NTA3ODY2MzM4MmExNTZhNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2dea138bd40a401fa99c8b62b7bbac22",
+      "statement": "The engine's frame schedule builds the render queue, updates time and audio state, then the game frame schedule runs; rendering stages the local queue and reads shared mesh, material, texture, and shader stores before fixed-step physics and the game simulation schedule execute.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L194-L327",
+          "version": "repo-lines-v1:sha256:fbceb52e9cb910b70de0e35386fd9aa3ad4012e66c608041ebda94b22c10e136:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxNWI2YmE2NjhmOTRmNmU0ZmYxMzkwY2VjZTUzMGVmY2IxMjIyODAxNWE4NTIyYjBlNmE3Y2U3ZjU1YmJmZGE4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5YmQwMDg5ZGNkODk4YjJkOWE3NTM0OWNhOTEyZmI4YzI2Mzc4ODA1ZWY5ZTk5ZGYyODg2OWRmMzZjMDgyM2Y5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1NDZiNjkxNmRiODM4Y2Y5MDY5ZjQ4NzBkYjViNGIxNGRjODdmOTlmMDdjYmIxMDMwNjRmYjg3YmM0Njc0MzQ5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjYzU1NmM2M2VkMDEzYjY4ZjczZWFhMmM4MWEwYTg2ZTE1YjUwYzc2NTQ1YzVkZGY2YWNjMjgzYTUxZDE1ZjQ3In0"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L90-L134",
+          "version": "repo-lines-v1:sha256:33f33304974a1cb9eae1423a39f46f2b6c5c661f74a9a21814bf293fd715b330:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNjE3MGY5NGMxNGVkMmQ4MDg1YjlhMWI4ZmU3ZWE1ZTM2NmNlN2ZlMDMxMjdjNjY0NGYxMmRjODc4MTUxNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGUzNTE4MDgzMzFjOTQzZmQyOWJlOWQyMTU3Y2E1OTM3YWE4MmY5ZDBhMDU0YzdhMjg3YTJkYTRkNTcyMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxN2UyZGFhMTI0ZjM3ZmFlMTE3NzEyN2M4OTQwNjg4MzYxOTgxYzRhN2E3MWQ2YjAwYzdhNGJkNWY0YjIzY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmYjU2NDEzN2VkNTllMWRmZmNjNDQzNjg0MDg0OGM5MGJiNjU5ZDRkZjI5ODI1ZGRiNmYwYzUyYjI0YWE3NDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ac5fb8ec68a455ba30d2560d02839ae",
+      "statement": "The canonical `WorldBasis` is normalized, right-handed, Z-up, and negative-Y-forward, deriving right as `forward.cross(up)`; default gravity is opposite canonical up at magnitude 9.81.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/physics/gravity_resource.rs#L6-L18",
+          "version": "repo-lines-v1:sha256:53adc46843556481ec6b6d289308d3a6953af63de910a3e1e7859d778010c137:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzZWQ5MzAxYjQyYTU1ZmMxZDc0MDNjMDgzOTNhZWU2OWVkMzExYjc1ZWZmMjczZjFmZjg4ZTEzODlkYjUzNmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzODU0OThlMzAxYTg0N2MwOTJmOWEyMDBmYmFhYTU5ZmRiYTU2MmEwOTIxZDc1MDlhYThkNDlhMDdlZTNiZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0YjZlZjBhMWI5M2FiZTY5NmU0ZTYxYjBmMWZkOGQ4MDc2MmMzODE1ZjJiNzc5MThiNmRmMDlmNjc1NTI4ZjgifQ"
+        },
+        {
+          "resource": "repo://engine/src/world_basis.rs#L7-L27",
+          "version": "repo-lines-v1:sha256:1e1cb84c1b3ed50604477f7848d66011ef2c443f2e86e82637f69da6f82143dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5ZjExYjBmN2ZkYmY5N2EyNjljNWJkNDJiNTAxYjYxMGRlODJkZWQ1ZjZmODFmZTk2NTAxMjBmMjQzNzgxNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0ZjBlNzFlZDRjMjVmOGE2M2Q3Nzc4NmY0OTZmZDUzM2VhNmUzMDM4MjdlNjc4OTc1MjRhZTZlYjU4NTAyM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViNTBkNThlYjVlMjhmMDNhMWNmZDdhMjhjMGEwYTBhMjk5NWExNGUwNDJhODlkMjM4ZmU2YjI1YjAxOWU0NzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c3a65d945b0240ff88e5a202991d9c6a",
+      "statement": "`TransformComponent` stores position, quaternion rotation, and scale, and its matrix is translation multiplied by rotation multiplied by scale; render queue construction combines that entity transform with each render-body part's local transform.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/transform_component.rs#L4-L28",
+          "version": "repo-lines-v1:sha256:6f1b9e1fa83c6ea3c13d33c433fb84ceeab3e0a59bfd945a158c95b79c17ce58:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MTdmZDQzNTg3NTdiZjlmOGFlNTkyNGY3MTBlY2ViOTI2YWU4NmFlNzc2YTgxZDVhMjA1NGY1ZTRmMTBiMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkMzFkYjJlNWMyYTMzMjEwZDQyMDI4YzQ4ZDU2NTZjNTk2NTgwOTg2OTNjODY4YmUwOTY0Yzg1ZmIwOWUxOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/render_system.rs#L16-L36",
+          "version": "repo-lines-v1:sha256:9a174b058f66b427e33d2c99421affb73c622d33fb93be2f39cf47582c7c2cf5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzNjBjZjA4ZTE3M2IxNTMyOTM0MjcyYzRiY2VhNzg4Mjg0ZGFlMzM4NmYxYTU5ZDUwZTQxYjA2Y2RkMTBjMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMzY5YjgyNTIzZjQ4NjU5YmI0OTU2YTMzYzA2Y2VjYzM2MTM4NzNkN2EzOTQzZWRkNWY4OTc4YWY2ZTBmNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9652b76e575041ed9c83c67f96b6bf16",
+      "statement": "`CameraComponent` is projection-only and requires `TransformComponent`; `ActiveCamera` holds an optional selected entity, and the render path produces no drawing work when it cannot obtain a valid active camera.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/camera_component.rs#L9-L43",
+          "version": "repo-lines-v1:sha256:94c727dce5619e8d2466e318f7e88af1f1d74a83d86c1640eda6a4ade3e4a1eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5MDcyYzI4MWRkM2E5ZGQwYWI2ZWVhNzk0NTM5ZDVhNDRlMTlkZjU0MGEyZTY5Mjc5YWI2ZmM4Nzc5NTcwMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5MjMwY2JjMjdmNzM5ZjM1M2U2YTY5ZDYwZGY4ZjFkNDU2NzIxMWU0MTYxOTZiMmE5YTJmNTY4ODEwMjdkYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L438-L469",
+          "version": "repo-lines-v1:sha256:b3fbac106110eb0e629ba7d490b16d22f1667efb9bbebda75f304edc818d7f19:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2ZWYxZGRlNzYwMjY1YzM1Y2IzYjQ5MGUyM2M3YTYzNDIwMmVmOWFjNDdlOTYyZDBiOGE0ZjNiMmU4ZmIzOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyMWEwZTYwNGY0ZTM1MDU4YjM5MjE1YTI5NDJiMTY3MDI5YWQzNjI0YmNmODM5NTc4ZjFlN2M2YTQzMmRkMWYifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L170-L180",
+          "version": "repo-lines-v1:sha256:2d6a2cefdbb4cddef7069f785846e33b70dff7ca4b0542061795583156bf942b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzYjYxMTM2YmM4Y2QyYTE1ZGY5ZmRmZmJiZjQ4ZWYxMmRlYWY3ZDVmYzYwNDZmMTA5MmZlM2RhMDI1ZGVjNmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MDFhMTFmMmQ4MTcyMGMwMjU1ZDVlMTUyMjJiMTE4NTFmYTJmN2QxMjNjZjc0MzkyZGZkNWRmNmFlYTBmYWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMDVlMzM4ZmExODNlZjk3OTMxMmY2Yzg3ODc2N2JjYzc1ZWUxYjg5MzJhYTg0ZmUxYjI0ZmQ5YzUwNGM3MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjY2M0Yzg2Y2FjN2RkY2Y5YWU2MTUzNTc1MzU5NTMyZTNkODVhYzQwNzQ2YjgzYzY4MzE1NzMwYjNjNDM1NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c48932136444f8aa0b3dea360a8cf3c",
+      "statement": "The runtime camera path currently constructs its projection with `aspect_ratio` as the first `Mat4::perspective_rh` argument and `fov_y_radians` as the second, whereas `CameraComponent::projection_matrix` passes FOV then aspect ratio.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/camera_component.rs#L23-L26",
+          "version": "repo-lines-v1:sha256:151008a03b2ba9d1b1d6c973dea34fdeda06b8cf1691e82fac1a953d360d104d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzdmZDg0ZjA4NGEzMTI5ZjRlNjAwOWIwN2U4NTljNzM5MDVjZGFhYTMxOTkzYWJiYWFiYWZhNmRmYjM3NTg2YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjgxYmMwZjE0YWIzNzFiM2RjMjI4NWFiODU2YzM0MThiNTM5MWM1Mjg1YWI1MmNlM2Y2NzNmZWIwOWY5YTRhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTQ5ZjkzZjM0Y2RkMWZiY2U2N2I2ZTY0MmZhNmQ5YWVjMzIxZDEyNmEwYTNlZDdiMTBiNWEwNjExNjgxZDYwZCJ9"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L455-L466",
+          "version": "repo-lines-v1:sha256:4e2d9f6f1bf0fd9f8fbf827e1cebb028eef66b7e7525df78d5b4b66805e09ef5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1OWQxYmVlZjdhODNiNDRkNTAyMDM2YmVmNmE2NWEwZTE4Y2ZlMGM2MjA2MjY2ZjkzNzcwMTdjNTljOTJlZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiODEzMWI1Y2M5N2VmOGU0NjI0Njg2ZWViYTFjMTQ2MjRkNDcyYTFlZmYyOTc3NjI5MDI1YjQ5Mzg4ZjJjMzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhNjQyMjc5ZWY1NTllMWY3Y2M2NTg2ZDFmZDczMDJkMWY5NDQzYzkyYzY2ZTNmNWU5OGE1NjJkOWM0ZWRlM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMTNiYzU5ZTU1Yzk2ZTYxMzNkMzM1MTI5OWUyMmNmZDU0NGYxODA5Nzk5NWRmNzBkZWJkOTQwOTIyNDFkNDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cd98409a5cbc42b6a80a874de1c29ed0",
+      "statement": "`RenderBodyComponent` requires a transform and stores a `RenderBodyHandle`; a render body is a vector of parts whose mesh and material handles are emitted as per-part render instances.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/render_body_component.rs#L5-L10",
+          "version": "repo-lines-v1:sha256:65f0d807a50f57bad51c47521c8c504e76cf32deed40f251fa303a37696f10e3:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgxN2ZkNDM1ODc1N2JmOWY4YWU1OTI0ZjcxMGVjZWI5MjZhZTg2YWU3NzZhODFkNWEyMDU0ZjVlNGYxMGIwMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzkzZjI5YjNmYzIyYmQyM2FhYTZhNmU0N2UxMGU3MDJkZDA0MjdjYTM3MDdlN2YxNzNhYzhjM2U2YTY3YzZhMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://engine/src/render/render_body.rs#L5-L20",
+          "version": "repo-lines-v1:sha256:344c6c71ec3a0f5173c6186951c070e9ed16a38af3e9a999abf6470a680009f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllNDIzODU4Yjc0MDZlZjJjNmNmNjFlOTMwNzA5Nzk5MzU2NTZjY2NlZWZkODEwMzY3ODJjNTgzMDJmMzg3NjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0YjcwYmYwMWUyYjBiNGMxYzY4NThlOGIyYTdmMTdiMjdmMjFhYjg5OTFkNjI2YTVjNjA4NjhlOTAwNWQ5MDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/render_system.rs#L16-L36",
+          "version": "repo-lines-v1:sha256:9a174b058f66b427e33d2c99421affb73c622d33fb93be2f39cf47582c7c2cf5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzNjBjZjA4ZTE3M2IxNTMyOTM0MjcyYzRiY2VhNzg4Mjg0ZGFlMzM4NmYxYTU5ZDUwZTQxYjA2Y2RkMTBjMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMzY5YjgyNTIzZjQ4NjU5YmI0OTU2YTMzYzA2Y2VjYzM2MTM4NzNkN2EzOTQzZWRkNWY4OTc4YWY2ZTBmNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_742e6a96b5864996b70d1d3a39639ba6",
+      "statement": "The renderer requires a resolved mesh for frustum culling and resolved material and shader entries for drawing, then groups visible instances by material and mesh; consequently stale live handles fail on these `expect`/panic paths rather than being ignored.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/render/render_system.rs#L23-L35",
+          "version": "repo-lines-v1:sha256:d5557c77518dff8ce24a017ed278158922ff23094c9fe2346087add76410b300:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzOTE0OGE0NmUzMWNkODc0ZjA4ZGQzN2ViZjMwMDNkYTQ4NmM4Yjg2N2NiMTllNmE5OWE3NDRlYTE0ZWNlZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmZDNjZmY0ZWU4Mjg3ZDBlYWFiNjA2MDZhZWFhYzY3N2RhYTQ0MjI5ZDdhNjI4YmQ0OGY4MGZmNWY1ZGFkNzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4ZWZhNWM1N2QzZTY3Y2U0Yzg1MGJmZWYyMGM5ZWYzNjUzMTI5NDAxYzBjMWIxMTc3NWEyYjIzYTg2YmE2MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiZThlYjc3NjY5Y2I1ZTAwMTEzMGRkNzMyYmYzMWZlYjgxMWYzM2EwZDhhNzkzZTQyMGVkYWZiYzNmOWRiNGQifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L192-L217",
+          "version": "repo-lines-v1:sha256:b770b58ad1552a25882209b4c19ba476458553b742b943328bec0cd831e59675:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNDI5NDE3MTg3ZTQ5OTgyZjk5NWRlNTQ4NTUwMjI2MmFhNWU2OGE0OTkzM2QxMWExZTc2MTczOGI3NzkxMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZjZkOTc0Y2NiOTk0Mzc3MGViOTgzZDM1YzNkOGZkNDkzMzRiMWM2NjNlMDk4MTBjNTQ4ZWU2YWJkZjg5MmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiN2Y4MGM2N2ZlYTBhMTgxYmMwOWRhOTkxZGJlNGUwYmYyZGY5ZmFkMGNiMzM3Y2FkMjhkYzIyZjFkYjdkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwZmFiZjZlZGVmZmU0NmMwMDQxZmQ3YTQ1MmRmOGI1YmYyNzUyMWUzMjI5NzU4OGI0OGYzMjQ1NzBiOTU0ZGYifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/renderer.rs#L267-L305",
+          "version": "repo-lines-v1:sha256:729437fa3b3d718c6708679bdaa08a6d9717b7f65366fc7ca9d3ae1edc9c5dc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyZGMwYmNhNGZiYjgwNWJjNmY0MzI1MDQ1NmQxYjIyZDM2NGI1YmVhMjVhZWZhOTIyMGZkMDVjMGU5Y2YyODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyZGJmNWE2ZGQ1MDg5MTQ3YzliNDIwMTc4OTAwYjJjNWY5MTU2M2ZjZmY2NjVkZDBlN2E0Y2UzOGUzNWZkZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiODM2NDg5ZThiNDllZWNjM2U4YzRiNTkyMDg1YTQ1MDk4Y2I1MjMxNGIyZjQ2YzFmYjNkOWYyZGExNDg4YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MmRmZjMyMDFhM2U5MjMxYzlkOWFiN2E0ODJlOGE1ODhiNzk5MjlkMzUyZDQ3OTg2MjY5ZDY5NzlkYjgzNzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ce4ae7faacdd4d8a87fbc43e17c30c41",
+      "statement": "Distinct SlotMap key types define non-interchangeable handle domains for meshes, materials, textures, shaders, sounds, and render bodies; the associated storage APIs return `Option` on lookup and return handles when adding values.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/handles.rs#L1-L10",
+          "version": "repo-lines-v1:sha256:f2cb61fdbcfd1458e22691449ad6509384043ac288102696d50c94b4b650d013:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyOGNjODMwYzM3YWUwMjRjZmYzNTAxYmE1OGI1ZGM0NTExYmJhNDgxZmFkZWNiMTdlZmM3ZGIyY2E1ZTdlYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/material_resource.rs#L37-L48",
+          "version": "repo-lines-v1:sha256:b40dd8d4cac6380b0baec5a651b1e8eed4a91f125fa641c5e764b4b0ea2bb9df:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1ZTI3ZDMwMzhkMzM3YmM2OTAzN2YyOTEwMGM4ZWNkNWVmYzQ3Y2I0N2EwZmUyNWZmNjhmNGM1MTcyNzQ2OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NTM3N2NmN2ZhMDY0ZjdiZTU3OTI5ZGQ1NzhjNzQxM2E5ZTA1ZDdkZjIyOTcwZmYwY2U1OTM1OWUxNDI5YzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/mesh_resource.rs#L40-L51",
+          "version": "repo-lines-v1:sha256:1e9743b2ee5fcbf1b6ffe21019d4461ac7428b5e080c7fc86bec0438bbc0ef07:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYmYyYmVmYTZjOGQ1NjEyOTViYWNkODAxYTNmODY3M2MxMjkxZmIxZmEwNTBiZjA5ODdjYmNkNTJiMTQ0YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNTNmMjE0ZDllNmM0OGE5NmUyYzUyMmFjOTUyOGEwOTI0ZGJmNzU4NzRkZDcxM2JkMTlmOGM4YTA2Y2YwYWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiYzc3YWU0N2FjMDNiZjEyYjc2YjFmNjg5N2U1MjExNGQ3ZjcwZDcyNTdmMjU2OGU0MDQ1MWU5YzZlZTdiOWYifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/render_body_resource.rs#L37-L56",
+          "version": "repo-lines-v1:sha256:8f2be597cb0fbbe942da00bf9d5d5cf56e51d1ff21aae3b3ba23f48b8e9c359a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1OTJmMmQ4ZWYzNmU3NDk1OTc3MmY0YmUwMTI0ZmM1ZjU5OWFhYmFmNWMwYjllN2Y5MTgxYjQzM2Y5MjQxOWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5MmY1OGUzNzYwNmYzNjIzMDY4ZDViNjg1ZjE4ZTkxNjFhMmVkN2QxYjQ3MDQwMDU1ZjMyYTgyYTllMjdhNDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4f33eca99b6d448781a7d1e053011e87",
+      "statement": "Shared asset and render-body resources expose read/write `RwLock` guards; on a poisoned lock their accessors log an error and recover the inner value rather than propagating the poison error.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/material_resource.rs#L13-L34",
+          "version": "repo-lines-v1:sha256:11c2db80977dbd30cda05566248c021ce0534ae67e98fc463b032472a0d32ad1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMzgwYjYyM2Q1OTgxN2NkNTNjNmU1OTlkZGJkNjViMTQyYjgxMDRjMjUxNjZmYmJkMWIxNmU1ZmQ1NjdjN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMzdlZmQxNDFhODVhNDRmM2QwYmUzMzliOTBiMDYxZWU1MGM5NTE0Nzc4YzY1MDA5OTQ1NzdkNzVkNDNmNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzY2Q0ZWQ2N2EyMmViMDRjMTI3YWJjODJiYmIwNjRkYjAxZjQwMmMwN2NmZTQ0N2ZkZjUxZjk5YWJiYjBmYjIifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/mesh_resource.rs#L17-L38",
+          "version": "repo-lines-v1:sha256:cce797fde97620c5c47905b9e7af5bf47f4057292c1b9bc434065c3410f2f073:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMzgwYjYyM2Q1OTgxN2NkNTNjNmU1OTlkZGJkNjViMTQyYjgxMDRjMjUxNjZmYmJkMWIxNmU1ZmQ1NjdjN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzM2JjMzM1YmY3NDMxYzZlODg3MWY0MzljYTNjNTFhNzUxYTBiOGUyZDAxN2RjMmY1NWE1MjQ3OTMzNDBlMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmODJkY2QyMTZlMmI4MTMxMDYzM2M5OTcyNzE3ZWJlNmM2MWNkZGFiYjE4OGVlYmI1NzU4MWM5NDNhYzJjM2EifQ"
+        },
+        {
+          "resource": "repo://engine/src/render/render_body_resource.rs#L13-L34",
+          "version": "repo-lines-v1:sha256:2ca74e21fe68f0bdad8e2de28e6110346bc244b3e31e86015d4db5ec7a354604:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMzgwYjYyM2Q1OTgxN2NkNTNjNmU1OTlkZGJkNjViMTQyYjgxMDRjMjUxNjZmYmJkMWIxNmU1ZmQ1NjdjN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiMzdjZmNkNDM5MGJlNDQxMDJmNjVjMWEwMTQyY2NmYzNmZTM3NjM0Mjg1OWVkNGJhMDJlYzMxMGMxZDllYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3YWViNDg2NDY5MTU2OTUxNTJiNjkwNmVhYWZlMzhmNjAyZmQ0MWYxNTlhNGRkYjYxYmQ0ZWMxMTNiZDllM2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_890f92fd60874f8baa3af91d302cf340",
+      "statement": "Shader storage caches a shader handle by the vertex and fragment source paths, returning an existing handle when cached; material descriptions reference a shader and named uniform values, and sound storage maintains a name-to-handle map.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/assets/material.rs#L3-L23",
+          "version": "repo-lines-v1:sha256:0d85ff826a59d2cac7daf2c523bfe4ccaa4f3ac619be594f55b17aecacdad07c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljNjJiZGZlZmM5NGNhYTY4MjRmMmE5YmE3ZGFkOWE4OTIzNTI5M2M2ZTg0ZjYxODNlODJiZDlmNDI3OGIwM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjYWQ2NmM3YzJjY2IyYjNkZWI2ZmUyNjQxN2M5Nzk2OGQzY2ViMWMxZWNkZDdiM2Q1OGUyNDIyNTRiNTI0OWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/shader_resource.rs#L12-L16",
+          "version": "repo-lines-v1:sha256:f8c31db42492f94121f5c51d94546324526be2499201d0d80bca94d823f012d7:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzgxZTNlMjQ1OTQzYWNlMGRiMmU1OTAwYzdmM2NmNWJlMGY5MTZkM2RjM2ZmNDllZjkwYTQwODI5MzU1OTQ4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTY0ZjQzZjY3Mzk4MjM2NjQ5MWYyYWExZTJlMjc2NTI0ZDMzMjZlZGI0N2E1MmNmYzA2MjhlYWNlOTc2NWJjYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTgxZGVjNGU0NDkzYjI1ZGQ2YTIzMDIyNzlmOGE1MDY1YzA0Mjc1M2E4YWQxZmM2YTA4ZDNiNjQ2MjgyNmMzZCJ9"
+        },
+        {
+          "resource": "repo://engine/src/assets/shader_resource.rs#L48-L83",
+          "version": "repo-lines-v1:sha256:e721ad545ed344abb2358e8c14dd3758a158cb5de24039b2a626cd30d3e1cd87:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjZTYyNjNlZmExNDRhOTZjYWVmY2ZmN2MwNmZmMGJhZjI3Njg3NmNiYTMyOWY4NTQ1N2ZlNWE5ZjM1YjY4NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkMTMzMzU3YmJkMmFjN2ZmZjk0ZjBhMzdlYTNkYTQ1MmRhNWMxYTQzNjM2YTdjM2FlNzIwYjU0YTlmMWRmZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/assets/sound_resource.rs#L11-L15",
+          "version": "repo-lines-v1:sha256:9b5d741bb97c563a011dc23eeb22400ab0159b4cff46affba8bf5a5a1e2a1120:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzgxZTNlMjQ1OTQzYWNlMGRiMmU1OTAwYzdmM2NmNWJlMGY5MTZkM2RjM2ZmNDllZjkwYTQwODI5MzU1OTQ4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTJiZTNmYjFlNjQ4MzQyNTc2MDY0MmNjYTgxMzY2ZGZkNjliMWIwYjJhMDFlYTQ2MTdjYjYzNGM5ODUyMjUxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTgzMjEzNDMwOWY3NzJlNjYwNWRmZTc3MTIzZTFmMjFjNTdiMjgyNmJiZTE4ZGIzMzVlNThmZjFkYTIyY2ZjMSJ9"
+        },
+        {
+          "resource": "repo://engine/src/assets/sound_resource.rs#L40-L67",
+          "version": "repo-lines-v1:sha256:9b9c2eccbbeeabfb32cfedb0e5d319df97d9777aeab679fec43a17ae7c5a0046:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNjEyZTlkZGIyODBhMzVkYThiOTNkNmRjYWQzNTJhMzJkYmI3ZGQ2MjIwMTQ1NmY1YjI0MmVjZjZmNzFmMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmNmI2ZWI4NzI1NmI3ODM3ZWY2NjUxNGIyODNhOWQ2NjJjYjc3NmVjMjY3ODExNTZhZTgzZjI0ODEwZmI1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c149bd9bdb53410a8ffc265aa9f22cac",
+      "statement": "`AudioSourceComponent` requires a transform and contains a sound handle and playback settings; the audio systems enqueue source updates for changed transforms and log an error if more than one changed `SingleAudioListenerComponent` is found, using only the first.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/audio/audio_command_queue_system.rs#L10-L25",
+          "version": "repo-lines-v1:sha256:701e25a4a581538464a4bc4ea15bd4b52d80aa70337c5c5a765bdb1d4ff31749:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YTQxZjAzMjYwZDNiZDhiZjg0NjkxNDg1MTk3OTJhYjNjZDc1M2IzNmYzY2VlMTdmOTJhN2UyN2E4M2M4YjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2OGYyMWU2MDQ1Y2M1NWVkMDgxNTlmZDEzOTgxYzBkODZjNzliMmM3YTE2OGU2NDA4ZGNmZjI0N2YzMjUzMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/audio/spatial_audio_system.rs#L14-L53",
+          "version": "repo-lines-v1:sha256:c0627188a6a004af982d7361f3290081aac0f7270751efdb19d77b122119dd89:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOTcxZjc4YjQwOTFhOWMzMzJiMTA0ZjBkMzllYWUxNTZmYjJlNDEzMjM3MTcyODI0ZTU3ZWUyODI0ZTRhMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiODRkZTIwMGU0MTM3ZjY1ZjJiMmU5ZWViNWRlYjBhNWM3NTdjOTA1YjQwMjQzNzZhYzgwM2ZmNzFlY2EyNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/audio_source_component.rs#L3-L12",
+          "version": "repo-lines-v1:sha256:e845d8adac94903943e53fef4684c9d319bd96c19a001fc4390fb66cb962d887:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxNzI4Y2RlZDIwZDViMThjMDM0YWM1MmEyOWJjYzRkYThjMDMwYWJkNGI1ZjExMTAxNjA5MmMzODdjZjFhYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkNTNlODliMGRmNTA4ODY5MjlmNzhkNjBlZjNlNjg1MGQ5MWU4MWU2NTEzNDYxNjZjYjFkNTg1YzA4YWE5NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b945f29cf5d44b749c50f7e350e1f138",
+      "statement": "`PhysicsComponent` requires transform and velocity and supplies body classification and physical parameters, while physics integration only advances dynamic bodies and honors an optional sleeping state.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/components/physics_component.rs#L5-L21",
+          "version": "repo-lines-v1:sha256:d5017ae4a3c527b21b6010ac317c2ee90dede61e8e6087bba7806fbd43b5a0e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4YzI5ZTU1Y2NmZTlkYmZjMWUxNTRmY2FlOTMyMjM4ODQ2ODhlMjU2NDEyODc5ZDg0MmNjYzdkNTYzNTI4YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZjg5MWRlNzUxNzQwN2EwM2Q1OGU4MDU5ZDk5YTA3MWM2ZDZhOWQxZGM1Y2JhNjM2NDc0N2I0YTBmMTk1Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmZTg2MmFhMzEzOTA3YjU4M2VlM2UzMmVlOGU2NWMzYWMyNDcyZTkyZjNkYzI5ODA1Mzg4NjMzNmIzODM2MzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/components/sleep_component.rs#L3-L20",
+          "version": "repo-lines-v1:sha256:2a04d41b066f3ca47999a3dbd5bbb179a70b9dec67d44ea6b6bdbfefe119640e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MTdmZDQzNTg3NTdiZjlmOGFlNTkyNGY3MTBlY2ViOTI2YWU4NmFlNzc2YTgxZDVhMjA1NGY1ZTRmMTBiMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxMGMzMTY4NmEzZDFlMmM4NTMwMTJlNTAwMDU4MmFjZDliYTU4YjE4NTdiNDNlMDk2NDNmOGQzMTdhNGUxYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYmNjYjkyZTI2MzkxZTkyZmNlMGYzMmM5MzEyMDcxY2JiYWFlYTg3MTA2YzEwNmI4YTE2NmU2YTBjYzAwODIifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/physics_system.rs#L28-L74",
+          "version": "repo-lines-v1:sha256:17e4c5c762d8ea0171041196fdd451a1b005f07a7de8f120fbaf17168d364b92:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyMWQ1YjBmZDU3OGE5Zjg5NzcyMDUzMDE5YzA0NzM0ZWFiOWFmMDhhNGMxNDQ5NGE4NzNiMzRkN2U2Y2ExYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4MWQ2MGFiNzk5YjAzOWNhODcyMmJjMTVjYWZlOWI3OTU1ODNhMmFhNTRmYjEwYWNkZGMwMDBmMGRiOGYzNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0NWRhNWM4MmJhNzBmMTRhYWM0MjEwMGVkYzEzODIyMjc3MzM5Mjc3YjRhYTFmOGNkZDIzNjhiOTBkNGIwMDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2197e0b4b45946078ffeeec6f1214419",
+      "statement": "The engine workspace exposes an `engine` package, and existing focused tests cover TimeResource initialization/update behavior, gravity rotation relative to the canonical basis, movement integration helpers, and glTF image-format conversion including unsupported formats.",
+      "evidence": [
+        {
+          "resource": "repo://Cargo.toml#L1-L6",
+          "version": "repo-lines-v1:sha256:af69ae4ac5c5f056f77f02899f321aeca83eccdbb15b342bffeaa629520752b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWEzYzIzOWRkMGYyMTU0ZDc5NWMzOTlhMjdlZGI5Y2MzNGM0YmQ0M2Q5Mzk5MTY3NmEyMWRiMWQwYWMyNjk4ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODc3NDc1N2E0NGQ1M2Y0Mjc0MWM1MTk2NTk0MmQ5MTU5ODdjODNjODQxMGNkYTIzNjA5NmQwY2M1OGNkNjlkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjMyM2U5OGMwZDBlYWEzYTI1NzBjNzBlODZmMTc5OWE1NmZiZTIzNjk4OGY0YWNlYjg4YzIyYzczZWE2YzNiYyJ9"
+        },
+        {
+          "resource": "repo://engine/src/assets/model_loader.rs#L600-L646",
+          "version": "repo-lines-v1:sha256:f08151f2d1d76404993cee933725978b918afc0424e4ee5123c2180307d90922:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/gravity_resource.rs#L68-L106",
+          "version": "repo-lines-v1:sha256:2eb539eb833324b2b9e7ba397bef281f92c0792ac483b2181ca70560c805a4c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/physics/movement_system.rs#L50-L93",
+          "version": "repo-lines-v1:sha256:afa03475a86d9c556e2ceec146af940705a7b1691bdd367efe74dfc8d239c2bf:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAyMTE2MTBmMTEwZjUwMzIyYjQyNjc0YzVhZDAzMmIxMzBjNDRiYWJiMTg5YjUxOTlmNjUxMjk5NWIyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/time_resource.rs#L105-L215",
+          "version": "repo-lines-v1:sha256:8d6e05c4af6f6fd46f17f0c175a096e12fde4db3261f82b151e374df08ef02e3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTExLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZGQ4YTIyZjFkZDQ2MWU0MWYyOTNjM2JlYTNkYjNlODZiMzdhZDNiZmY3NzI0OGQzNmZiN2NmODI1NzNkNmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhZDQ5MTBlMmE1YWZhZmRiYzU5OWEzOWUxY2ZkNjIzZWRhMDY3ZDU3MzM0MmFkYWU2MWI1MWIwYzkzYmExZDc0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyOWNmOTZkZTM3NTBlMmE1NmI3MjE0MWQ2MGIzZTVkOTU4YWMwODY1ZjFkNmQwY2I2NGU1MGJkYWFjNTg4NGMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MiwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjZmJjY2I5MmUyNjM5MWU5MmZjZTBmMzJjOTMxMjA3MWNiYmFhZWE4NzEwNmMxMDZiOGExNjZlNmEwY2MwMDgyIn0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T19:22:21.487Z"
+  }
+}

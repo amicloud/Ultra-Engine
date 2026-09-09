@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:49814a3cdf5e3e97931edf715a0b574dff3d4fb356b63a50497469ae3d4cfb25",
+  "claims": [
+    {
+      "id": "claim_09ed336696df406cbcc87a4a5dd30f93",
+      "statement": "The root manifest is a virtual Cargo workspace with the `engine` and `game` members; the `Game` package depends on the local `engine` crate and declares `src/main.rs` as its `Game` binary.",
+      "evidence": [
+        {
+          "resource": "repo://Cargo.toml#L1-L6",
+          "version": "repo-lines-v1:sha256:af69ae4ac5c5f056f77f02899f321aeca83eccdbb15b342bffeaa629520752b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWEzYzIzOWRkMGYyMTU0ZDc5NWMzOTlhMjdlZGI5Y2MzNGM0YmQ0M2Q5Mzk5MTY3NmEyMWRiMWQwYWMyNjk4ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODc3NDc1N2E0NGQ1M2Y0Mjc0MWM1MTk2NTk0MmQ5MTU5ODdjODNjODQxMGNkYTIzNjA5NmQwY2M1OGNkNjlkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjMyM2U5OGMwZDBlYWEzYTI1NzBjNzBlODZmMTc5OWE1NmZiZTIzNjk4OGY0YWNlYjg4YzIyYzczZWE2YzNiYyJ9"
+        },
+        {
+          "resource": "repo://game/Cargo.toml#L1-L28",
+          "version": "repo-lines-v1:sha256:51751d881b8ae9850d25e5f61dc4ae83382ed9cc8198158828cb54dda1e75ca7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1YzE1ZDcxMzg2ZWVmNzE4NmI5MzE2ZWY2OTdiYzVmMjEyMTBlZDcyMzA2YTBiMDY2MmM3YzM4NTI1NjU1OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhNTRiYmY5OTE4ZTBiNzVmMjJjMjM3YTI5ZjA5NjBjMTRmOTQ4MjEwM2JiZmZmMzZkYTBhN2I0ZTM0M2M1NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwMDkyNWZlZjFmOTQzMTA4ZWNiYTQ2Y2ZlZjYwZWYzMmM5ODI4YzA3Zjk2Y2RjZDUwZTg3ZWVmYzJlYmM5N2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b309a4f930d1415e9f63fd17bbd7f1e5",
+      "statement": "The demo entry point constructs `Engine`, populates its exposed scene world and schedules, loads relative model and WAV assets, and then enters the blocking engine loop with `engine.run()`.",
+      "evidence": [
+        {
+          "resource": "repo://game/src/main.rs#L332-L359",
+          "version": "repo-lines-v1:sha256:eaa14364e30ab21efcfb63ef3a2a27c5e992d5903f234fe1774f88ec3f061152:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzNjU0NTE5ODY0MzQ0OTAyMmE2NWNhMTBlMmExZTQxMmM3OTRmM2Q0YjA1MGJkZjcwM2FkODBhZmQ2NjdjMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NjRiZWUxYjM4MGVkNDY5OGIxNjVmNmViMzMxZDM4MDhmNTdlYWJlM2EzMzQzOTAyNzAwY2Q5NDhiZmJlZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyOWE5NzVjNDRmNzY0MDRlOGQxNWNmYTk0MjQ2YWFlMzU4ODU1OTVlMzljOGNjODc0NDE1MTk2Nzk1ZTA3YTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L41-L171",
+          "version": "repo-lines-v1:sha256:5a21981dbc44b555fa64f420d440306509745ad9351d7a0c2893266c154f467d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxMDM3NDFlMDQ2NWNmMjUxY2YwNmZiMjc1MmFhZmEyNTdlMjY4MTg1ZWMxNDBhMDYzNDRiNWFjZDIzMWU1OTRiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4ZmY1Nzc2Mzg3M2ZlZmZiNWQ4NjMwOTJmYTM2OGMxN2QzZjdkNWJlZmM1NjkyOTJmM2JmNmZiNWViZjJlOGQ3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjZTZmODA2ZjQ2YjU1YWIyNTU3OTI0OTVhYjIzYWQ0M2E4YzQ0NjhjODY1NGNkOGFkMGZlNTI4MzA4ZWIxZjhhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyZDVmODJkNmFiN2VlZWI0ZmUxZDQ2YzFmMjc2NDFmNWMyZWZjMDFkMDdjNWE5ODFmNjg4N2RjMjllMWNlZGJjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_f09b3afbac004b6b9975bb75b704826d",
+      "statement": "`Engine` owns the SDL window/event pump and GL context, renderer, audio mixer, engine schedules, and current scene; its constructor initializes the platform/render/audio services while game code integrates through the public scene.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L137-L170",
+          "version": "repo-lines-v1:sha256:ca1373bbb3300f3e45f6e50b27fcabe0d2c31aef182d54ff1c34ca0815cb95c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTI1M2EyZjBiM2YzMzRkMjYzYmE5NzQwNzU5NTc2MTA0MTc4NWE1Y2ZhZGU5ODBiZDZjOTYwNDY0NmU4YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxZDI2MDQ3NjRkNjkyODhjNmVjZGI1YmUyNWRlNzlmZDZkM2VlZWRkZjc4ZGY0OTI1OGFhN2MyZjk3ODE5MmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmN2UxNDQ2MTFlNWFkMDdlODJjODM2Y2UwODU5ZDJjM2NjMDc3OTVkYjFkNDAyODU5OWVhNzc0NmJlNzY2NWQifQ"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L71-L83",
+          "version": "repo-lines-v1:sha256:c9f6ca7e78831d16765a116b6a518df10b10dab05fed0ea2d2a6bb7405ee1520:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjMjhhNmYwMWVjNTQ4MGM0MThiNDA1MTM1NmI4OGU2ZjIxYTE5ZmUwZGEwMTY3ZTJkNjczZTg4Y2UyOWEyNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4NzI2Mjc4ZGEyMGFjZTU5YTFlZjIyNTU5ZjM0OGFjMDViN2ZlZjliMzg2MmJjOTQ5ZmEyYTRhYmM5Y2Q5OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmZDg5MGVjNzI5ZjczN2FmMjE2NjE1ODM1NjMyOTUzMTA0ZDdhZmU4ODNlZDI2NzljZmU5YjZkOWU0Yzk2ZjEifQ"
+        },
+        {
+          "resource": "repo://game/src/main.rs#L46-L133",
+          "version": "repo-lines-v1:sha256:0115f18ff66c85c0ddfb8c2da0cb3caf7381dcb7188343049681552e032e7a00:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2OWU4M2YwYTI3ZWRlODAzOGM1ZWVhNGY5Yzc3MGZhZWEyN2M0YWMwY2Y4ZWYyZmQxZmRiMGJjMDczNWZkODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNzhlYzQ3OTBlN2I5ZmVhM2VhYjAyZDUxZTg4NTlmZmFiOTI2YTM4MTQwMmFjMGViYzg5MDE3NWU0MGFlZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwYTVlYTQ4YzM3NDU4NGJlMjBiYmEyZGIzMGU0NzRmM2E3YjdjNmJhYTA4MmE5MTgxNjY1MTI2YzhmNWZjNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkYTI5M2VjY2NmN2Q2NjYzMTA5OTc0N2IzMTYwM2QwMjkwNmFmMzY2ZTBlOGY0YzY1NGY3MmY2YTkyYTYxZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f80aa56ed436460b921ff5f5893a6448",
+      "statement": "The engine loop processes input, runs engine and game frame schedules, renders before fixed simulation, performs at most six accumulator-driven physics/game-simulation steps per frame, transfers audio commands, cleans up and clears trackers, presents, and only then commits a pending scene replacement.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L188-L354",
+          "version": "repo-lines-v1:sha256:e2d52b300185457fd437c1418c8d4df6a71739c69959ef616152dd98093b5e0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTY3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOTA4YjQ0MGIyNWJiYWRlMTUyODJhYjE2NTkxNmI2YWM1MTVjMzU3YzcwMzFjNWNjYTc5MWI3NTdhZjBkZjE3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhZjEzYjVkOTNhZTM1ZDExYWFlMzg0YjgxZWU2YjkzMDc1MGQyNTEyNDBiMjA2NzQ1YjM4NTkxOWI3ZmY4MjliIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4MDA1ZTMzOGZhMTgzZWY5NzkzMTJmNmM4Nzg3NjdiY2M3NWVlMWI4OTMyYWE4NGZlMWIyNGZkOWM1MDRjNzFlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIn0"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L358-L405",
+          "version": "repo-lines-v1:sha256:12998ea35aefa1bbe2b66da1df4c7fb87d689dcfea8b0e77b3df784733741109:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NjVhNjllZmYxMDMyOWYzMTRlNDE5YmQwYzYyMTMzOGUzNmNmZDFmZTNhNjlkZDhiZTkwZmQ3YjlmZDE4NzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhYjgxMzkzZTQ0ZGUyMDc0NWUzYjM5NDM4ZDMyZDM2Y2U0ZTg2MGFjOTcwM2EwNmVmMGFjNjdiZDE1ODJjYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiMWM0ZTcwZTk3ZGY5OTBkYjg3MjM1NTYwMDExNTc5Y2JiNDQ4OGEwNzdkNmUzNzc0MjM1Yjc5Y2I0Y2I4MGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0fc34e053cb54730aeabf05917c3d691",
+      "statement": "`Scene::new` creates a fresh ECS world with cloned shared asset-service resources and installs the scene-local render, input, timing, physics, gravity, audio, active-camera, and scene-change resources plus game schedules.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/scene/scene.rs#L12-L52",
+          "version": "repo-lines-v1:sha256:a3ed00f2cc9709963d106678276598d606ed6b5cabf093cf56cf8eec20b233ed:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNWU1NGQ4M2E1NGE4YThlZTAwMzcwYjAzMmM4ODg5ZTQ1MDkwODI1MTc4NjM5MDE5Y2Q1YzQyM2NiYjcyNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMTEwMzI2ZTdjZGMyZjI0NjZkZTg1MzAzMDkyZjNiNzU5MWJlNGIyMDAwYzEzMDUzNTAxYTQ4NzI4ZTkzZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_services.rs#L12-L20",
+          "version": "repo-lines-v1:sha256:29339c3c8bf5292007dc939f6face72146932540f86e595a06e32f89042aed33:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjllM2U2MmIyZGNjZmFkYjBkNTg0ZWM5ZmZjZjZhMGYyMzQ4ZWEzNmVlOWVhYTI2ZTg4ZTZkZmU1YTNhNmQxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDQyMzgwNTFlOWYxMDhmNjNmYTVjNjdkN2ZjZWM4NjIxNjUwYmJmNGI1MGRkMDQ2N2U2ZmRlZTBhMGM1ODVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0fe819e19744521b8621c2ed2e9493f",
+      "statement": "A scene-change request stores one pending scene, replacing an earlier uncommitted request with a warning; the engine consumes the request after presentation and rebuilds its engine schedules for the replacement world.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L337-L351",
+          "version": "repo-lines-v1:sha256:1c5aa6ace8fb2afd0999b34afe6d5fc3f3e54392b7e5576462da962d252342d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyODQ2NTIxZWE0NDRkMGViMjkxOTJlNDBjNGI3OGIzZThiYTY4ZTQwYWQ0M2Y1MDhkN2NjM2E1NjE0ZjdhOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyZGU4MzYxMjRkMzI2ZGI2YmRkM2Q1NjA2Nzg3MjU3N2I5NDIxZTgyNTRjMDdkMmExM2Y0NWM1ZDc4ZjU1NTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzZTMwZDcwY2QwNThlNjFlNmExOTQ0Y2RkMTRiNTM5MDY5M2Y3NDUzYjY1MDc0NzU1MDU4NzI1MDYyMTIxMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmNTIzNjk0OWJkYTEyYjllMTBmNjQ2ZmFmYjg3ZjRjZWRhZjBjMjY4MjY5N2ZkYjc3MzQwMjQxNjU2MzMxZmYifQ"
+        },
+        {
+          "resource": "repo://engine/src/scene/scene_changer_resource.rs#L5-L24",
+          "version": "repo-lines-v1:sha256:e8bad7756763e86f795f41b99b581faa0dbe88bf98d179db8222e5e01248f474:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjYwMDU1OGMzMmU1MTVkNTgwNzcyNjY0MjQ1ZDRmYzlkNjhkOGQxOTc2NTY2Y2RiMjJjYTI2NDE0MGQzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkNjZiMGQ4ZGZmMGI5NGE0ZTI4Njk2ODZmOTU4YTViZTU0OTNjNmFlZGUxMTZjOTZlNTU3MzJhMWMyNzFlODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlM2NiNTUyZDdmZjk3YmYwM2FlNzc0NTQ0NDY2N2Y3YzZiMGRlMDdkMjdkOWYyODU2MzIyMjRjZjhiMDBlNDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f3d4fb380d5a46249761d61b9dffc262",
+      "statement": "The workspace defines shared dev, release, and profiling Cargo profiles; the engine exposes a Criterion benchmark target and both packages declare a `dhat-heap` feature, while the engine heap integration tests install dhat and assert no additional allocations after their warm-up/first-operation checkpoints.",
+      "evidence": [
+        {
+          "resource": "repo://Cargo.toml#L8-L25",
+          "version": "repo-lines-v1:sha256:ce4d9fcaacf23701bc65e0bf4a36366761aeb195445080d5e3ace956702fcf9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzM2E3Njg2ODkzM2I1ZTEzNDE0YTgzZDE3NjU2M2Q3ODUxMmFhMWZiM2NjZGQ3NGQzMmRmZmUyNmNkMTNlMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZTRkYTJlMjZkNzBiNGM1ZjA1ZjcxNjkyNzk0MDZjZDBjOTFlZDgxNWY2MjQwNmNmYTc4Y2IxODE1ZWM5ZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmZmY2ODk4MDc2NGYwN2RiN2RlYjE2NjlmMjdmYmI2NWI0ZGUxOWUzOGFkZGIwZmZmMGNhYWY2MjQzNzQ4NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/Cargo.toml#L53-L66",
+          "version": "repo-lines-v1:sha256:7fdefbbe5dd157516f6533d1f17ce0f00136c8390d11203a35aa9d187055cbb8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmNzFhMTk5NGU4MDY3YmU5ZjQ0MTVkNjc0OTE5ODA2M2M5MDQ3MTM1MjJmZWY1YTEyZjY0ZDIxMjcxZmJiYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYjViOTIwOTFjYTFhMWYzYzdjYWFlY2FmNmEyN2ZkZjJlNzkxODlhYzE3ZmM3ODI5MDYyZmZlZjdmNjhjYjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4OGM4NTk2ODNiNWU5OTFkM2ViOTAzNTRiNTE5ODVhZDk3YzFmNjVjMDk3ZmRmMjk2YmRkZWMwMWY0ZmVmZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://engine/tests/dynamic_aabb_tree_heap_test.rs#L15-L60",
+          "version": "repo-lines-v1:sha256:dce3d908c0c80590a177968e1a42c378922c62877c939f21452eecaa83018574:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NDJjOWUwYTU4ZTIyMmZkYWEzZGIzODdmNWQ3N2IyYjNmZGZhZTFjZGU3Y2JlZTFmZGM2NDM0MWYwODhhNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzFkOWZiODgwZWVjZGNiYTUzMjc1MmRhMjM3YTZlOGI2MzJlMWNlY2ZlNTM2ZDhmZTkyYjhmZDA5NzJiYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://engine/tests/epa_heap_test.rs#L34-L74",
+          "version": "repo-lines-v1:sha256:04327c16ba6cb3e5452fb35e2287eaf0d8aeb31374cddadd86b88dfe5c2c7a6a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NDJjOWUwYTU4ZTIyMmZkYWEzZGIzODdmNWQ3N2IyYjNmZGZhZTFjZGU3Y2JlZTFmZGM2NDM0MWYwODhhNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzFkOWZiODgwZWVjZGNiYTUzMjc1MmRhMjM3YTZlOGI2MzJlMWNlY2ZlNTM2ZDhmZTkyYjhmZDA5NzJiYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiMGUxNzA1NTk1ZmZmZWFjN2M2MmVkNDM1ODI3MTBiZDc5ZmRmZmI4ZGM5MTIyYjYyNmMyNjFmOTg2NzJkMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://game/Cargo.toml#L26-L31",
+          "version": "repo-lines-v1:sha256:ab0629517f1ca487a43947d6fa46db353ba241eb022118bd50f348d67d59787b:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWMzY2IxZmI3MDU1OGRhM2FkNjkwYzFiZmI3ZjY5ZDU5NjNkNmI5ODUwOTQ0MzRlOGFjMTQ1YzBhODUwZDFiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGFiNWI5MjA5MWNhMWExZjNjN2NhYWVjYWY2YTI3ZmRmMmU3OTE4OWFjMTdmYzc4MjkwNjJmZmVmN2Y2OGNiOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDM5OTUzMWVlOGIyOTg4NDUzYTJkNDM5ZTM1MjVjNGNmMzVhNTAzYjQ1NTBlYmYxNDRlZWJmYWViNmY4MWUwMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b679d79dba5d43d983ae51e936b4d226",
+      "statement": "The checked-in Rust GitHub Actions job runs on Ubuntu for pushes and pull requests targeting `master`, installs Linux SDL/window-system development dependencies, and executes `cargo build --verbose` and `cargo test --verbose`; it does not launch the interactive game.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/rust.yml#L1-L30",
+          "version": "repo-lines-v1:sha256:b621868522875feadda69e81f2f439ce443cafe599d4fbc261ca425210642104:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNTk4OTkzZTA0MDI5YmUxNzA3NzM4N2ZlMGYyYTZhYWY0ZTRiMDQ0MTIxZDRlM2FmMWIzZjA5ODVlYmQ4ZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OGRmY2MzMjZjNjc0YjQ1OWU2NjMzODlhOTc2ZWZlYTkyODgzMGUwOWZjOWExYzYwMDhlNzE4NjNiNDQxZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a9af546be83e4618899c81c1d9583809",
+      "statement": "Launching the engine requires SDL video initialization, a current forward-compatible OpenGL 3.3 core context, and a default audio mixer; the initialization path uses unwrap-style failures rather than returning a headless or mute fallback.",
+      "evidence": [
+        {
+          "resource": "repo://engine/src/lib.rs#L137-L143",
+          "version": "repo-lines-v1:sha256:fb07e07cba233b48868cd9d125348f82175a5a7a6fb737a6d805885565362fff:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjA5MjUzYTJmMGIzZjMzNGQyNjNiYTk3NDA3NTk1NzYxMDQxNzg1YTVjZmFkZTk4MGJkNmM5NjA0NjQ2ZThiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTdlNmFjMTdjNWNjM2MyOTczOWE3MDc1MjRkYjU2NGUyYjRlNGU1MzIyMWQ1ZjQwMGJhOGFiN2Q0MmI5NTQ4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTFkMjYwNDc2NGQ2OTI4OGM2ZWNkYjViZTI1ZGU3OWZkNmQzZWVlZGRmNzhkZjQ5MjU4YWE3YzJmOTc4MTkyZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODU2YjlhYTEwMjFlYjkxOTg2YWI0NTI4MjJjZTk0ZGQxMTIzZTJlZDQ3ZjliM2VjZGYzMTllMzJlMDZmYzgxMiJ9"
+        },
+        {
+          "resource": "repo://engine/src/lib.rs#L408-L435",
+          "version": "repo-lines-v1:sha256:692378d9bce589d438c0edd6ca2213f9c0a4b324a68a0dfb9e3926a1a9749735:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MjYxNGVkY2IxMjU4ZWU4YzdlMWFlZmFmYTZmZThlZTk5ZWYxMWVjZjUyMGU4MjdkZThjNjE4ZDA4ZWEwOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4ZWNiNmMwZWQ5NWU3ZmVjMGU0ZDNhZDQwMDRkZDgxOTVhYzcwZjc0ZmMzY2E0MTgwYzkzMTMxMDUzNjVlNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiNzAxZGMwNTgyODJkZmNkMTk1OTM3NjczOWI1OTMwYWVhZDk0NzQ4NjI1Y2QwNzQ4OWZmNDhmMjg3NmY2OWYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-09T04:05:08.193Z"
+  }
+}
